@@ -1,0 +1,791 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.brick_wall &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.brick_wall</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.brick_wall</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module definissant des classes &quot;murs de brique&quot;</span>
+<span class="kn">from</span> <span class="nn">..avatars</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..utilities.error</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">.brick_row</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># classe definissant un mur construit avec un apareil type paneresse generique, i.e. la classe fournit</span>
+<span class="c1"># toutes les fonctions pour donner ou calculer le nombre de rangees, la hauteur du mur, la taille du joint</span>
+<span class="c1"># mais pas la methode de construction</span>
+<span class="k">class</span> <span class="nc">paneresse_generic</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;class paneresse_generic():</span>
+<span class="sd">      this class defines an objet representing a wall, using the so called &quot;apareil en paneresses&quot;</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># costructeur</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;__init__(self, brick_ref, disposition):</span>
+
+<span class="sd">      this function defines a new wall</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - brick_ref: a brick object describing the kind of brick used to build the wall</span>
+<span class="sd">      - disposition: disposition of the brick in the wall, possible values are &quot;paneresse&quot;, &quot;boutisse&quot; and &quot;chant&quot;</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on stocke la brique de reference</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">brick_ref</span> <span class="o">=</span> <span class="n">brick_ref</span>
+      <span class="c1"># on stocke la disposition des briques dans le mur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">disposition</span> <span class="o">=</span> <span class="n">disposition</span>
+
+      <span class="c1"># on calcule la hauteur d&#39;une rangee de brique, en fonction de la disposition choisie</span>
+      
+      <span class="c1"># si la disposition est en paneresse ou en boutisse</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disposition</span> <span class="o">==</span> <span class="s2">&quot;paneresse&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">disposition</span> <span class="o">==</span> <span class="s2">&quot;boutisse&quot;</span><span class="p">:</span>
+         <span class="c1"># la hauteur d&#39;une rangee est la hauteur de la brique de reference</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">=</span> <span class="n">brick_ref</span><span class="o">.</span><span class="n">lz</span>
+      <span class="c1"># si la disposition est sur chant</span>
+      <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">disposition</span> <span class="o">==</span> <span class="s2">&quot;chant&quot;</span><span class="p">:</span>
+         <span class="c1"># la hauteur d&#39;une rangee est la largeur de la brique de reference</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">=</span> <span class="n">brick_ref</span><span class="o">.</span><span class="n">ly</span>
+      <span class="c1"># cas general</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># on affiche un message d&#39;erreur</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;unknown disposition!&quot;</span><span class="p">)</span>
+
+      <span class="c1"># la valeurs des autres attributs ne sont pas encore connus</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="o">=</span> <span class="kc">None</span>           <span class="c1"># le nombre de rangees de briques</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="kc">None</span>            <span class="c1"># la hauteur du mur (briques + joints)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># l&#39;epaisseur du joint entre deux rangees, superposees</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span> <span class="o">=</span> <span class="kc">None</span>          <span class="c1"># objet rangee de brique, d&#39;indice pair</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span> <span class="o">=</span> <span class="kc">None</span>           <span class="c1"># objet rangee de brique, d&#39;indice impair</span>
+
+   <span class="c1"># donnee de la hauteur du mur, en nombre de briques</span>
+   <span class="c1"># N.B.: le nombre de briques doit etre entier</span>
+   <span class="k">def</span> <span class="nf">setNumberOfRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_rows</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;setNumberOfRows(self, nb_rows, rtol=1e-5):</span>
+
+<span class="sd">      this function allows to set the number of rows in the wall.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: wall itself</span>
+<span class="sd">      - nb_rows: the given number of rows; this number must be an integer, but could be represented as a float</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - rtol: relative tolerance used in floatting number comparaisons</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on calcule la tolerance absolue pour evaluer les valeurs reelles, a partir de la tolerance relative </span>
+      <span class="c1"># et la hauteur de la brique de reference</span>
+      <span class="n">atol</span> <span class="o">=</span> <span class="n">rtol</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span>
+
+      <span class="c1"># si on passe un entier</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nb_rows</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+         <span class="c1"># on le stocke tel quel</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="o">=</span> <span class="n">nb_rows</span>
+      <span class="c1"># si on passe un reel</span>
+      <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nb_rows</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+         <span class="c1"># si c&#39;est un entier stocke sous forme d&#39;un reel</span>
+         <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">nb_rows</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">nb_rows</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">atol</span><span class="p">:</span>
+            <span class="c1"># on le sotcke sous la forme d&#39;un entier</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nb_rows</span><span class="p">)</span>
+         <span class="c1"># sinon,</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># on affiche un avertissement</span>
+            <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;the given number of rows has been skipped, since it&#39;s not an integer&quot;</span><span class="p">)</span>
+
+   <span class="c1"># donnee de l&#39;epaisseur du joint entre deux rangees</span>
+   <span class="k">def</span> <span class="nf">setJointThicknessBetweenRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_thickness</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;setJointThicknessBetweenRows(self, joint_thickness):</span>
+
+<span class="sd">      this function allows to set the joint thickness between two brick rows.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - joint_thickness: the given joint thickness</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="o">=</span> <span class="n">joint_thickness</span>
+
+   <span class="c1"># donnee de la hauteur du mur</span>
+   <span class="k">def</span> <span class="nf">setHeight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;setHeight(self, length):</span>
+
+<span class="sd">      this function allows to set the height for the wall.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - length: the given height</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
+
+   <span class="c1"># evaluation de la hauteur du mur, a partir d&#39;un nombre de briques et d&#39;une epaisseur de joint</span>
+   <span class="c1"># passees en argument</span>
+   <span class="k">def</span> <span class="nf">evaluateHeight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_rows</span><span class="p">,</span> <span class="n">joint_thickness</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;evaluateHeight(self, nb_rows, joint_thickness):</span>
+
+<span class="sd">      this function evaluates ans returns the height for the wall, using given number of rows and joint thickness.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - nb_rows: the given number of rows; this number must be an integer, but could be represented as a float</span>
+<span class="sd">      - joint_thickness: the given joint thickness</span>
+
+<span class="sd">      returned value: the evaluated height</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># il y a autant de joints que le nombre de rangees de briques</span>
+      <span class="n">nb_joints</span> <span class="o">=</span> <span class="n">nb_rows</span>
+
+      <span class="c1"># on en deduit la hauteur du mur</span>
+      <span class="n">height</span> <span class="o">=</span> <span class="n">nb_rows</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">+</span> <span class="n">nb_joints</span><span class="o">*</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># on renvoie la hauteur de mur calculee</span>
+      <span class="k">return</span> <span class="n">height</span>
+
+   <span class="c1"># calcul de la hauteur du mur, a partir du nombre de rangees et de l&#39;epaisseur des joints</span>
+   <span class="c1"># precondition : le nombre de rangees et le joint on ete renseignes</span>
+   <span class="k">def</span> <span class="nf">computeHeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;computeHeight(self):</span>
+
+<span class="sd">      this function computes and stores the height for the wall, using the number of rows and joint thickness</span>
+<span class="sd">      defined as attributs of the wall.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># si les donnees requises sont absentes</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># on affcihe un avertissement</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;data is missing to compute the wall height&quot;</span><span class="p">)</span>
+         <span class="c1"># et on quitte la fonction</span>
+         <span class="k">return</span>
+ 
+      <span class="c1"># on calcule la hauteur du mur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateHeight</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span><span class="p">)</span>
+
+   <span class="c1"># calcul de l&#39;epaisseur du joint, a partir du nombre de rangees et de la hauteur du mur</span>
+   <span class="c1"># precondition : le nombre de briques et la hauteur du mur on ete renseignes</span>
+   <span class="k">def</span> <span class="nf">computeJointThickness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;computeJointThickness(self):</span>
+<span class="sd">      this function computes and stores the joint thickness for the wall, using the number of rows and height</span>
+<span class="sd">      defined as attributs of the wall.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># si les donnees requises sont absentes</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># on affiche un avertissement</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;data is missing to compute joint thickness&quot;</span><span class="p">)</span>
+         <span class="c1"># et on quitte la fonction</span>
+         <span class="k">return</span>
+
+      <span class="c1"># il y a autant de joints que le nombre de rangees de briques</span>
+      <span class="n">nb_joints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span>
+      <span class="c1"># on en deduit l&#39;epaisseur du joint</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span><span class="p">)</span><span class="o">/</span><span class="n">nb_joints</span>
+
+   <span class="c1"># calcule deux nombre de rangees fournissant des murs dont la hauteur encadre une hauteur desiree,</span>
+   <span class="c1"># passee en argument, connsaissant l&#39;epaisseur du joint souhaitee</span>
+   <span class="k">def</span> <span class="nf">limitNbRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">joint_thickness</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;limitNbRows(self, height, joint_thickness):</span>
+
+<span class="sd">      this function computes and returns two number of rows, using given joint thickness and height.</span>
+<span class="sd">      Each number of rows coresponds to a wall which the height is close to the given height.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - height: the given height</span>
+<span class="sd">      - joint_thickness: the given joint thickness</span>
+
+<span class="sd">      returned value: the couple of number of rows computed</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on calcule le nombre de rangees que peut contenir le mur</span>
+      <span class="n">nb_rows_min</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">height</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">+</span> <span class="n">joint_thickness</span><span class="p">))</span> 
+
+      <span class="c1"># l&#39;encadrement consiste a ne pas ajouter de rangee, ou en ajouter une de pluse</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">nb_rows_min</span><span class="p">,</span> <span class="n">nb_rows_min</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+   <span class="c1"># calcul du nombre de rangees, a partir de la hauteur du mur, de l&#39;epaisseur des joints</span>
+   <span class="c1"># et d&#39;une tendance de variation pour l&#39;epaisseur du joint. En effet, la donnee d&#39;une hauteur de mur</span>
+   <span class="c1"># et d&#39;une epaisseur de joint peuvent aboutir a deux nombre de rangees, approchant la hauteur du mur</span>
+   <span class="c1"># par valeur superieures et inferieures, sans l&#39;atteindre. Aussi, la liberte de changer l&#39;epaisseur du</span>
+   <span class="c1"># joint, en indiquant si l&#39;on peut l&#39;augmenter ou la diminuer, permet de retrouver un mur a la bonne hauteur</span>
+   <span class="c1"># precondition : la hauteur du mur et l&#39;epaisseur d&#39;un joint ont ete renseignes</span>
+   <span class="k">def</span> <span class="nf">computeNbRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trend</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;commputeNbRows(self, trend=&quot;max&quot;, rtol=1e-5):</span>
+
+<span class="sd">      this function computes an optimal number of rows, using the joint thickness and height</span>
+<span class="sd">      defined as attributs of the wall. It computes bounds using the function evaluateNbRows.</span>
+<span class="sd">      If one of the bounds is the exact solution, it&#39;s stored, else the joint thickness is altered to</span>
+<span class="sd">      find a solution. The joint thickness is increased or decreased depending on user&#39;s choice.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - trend: this parameter is used to choose how the joint thickness can change</span>
+
+<span class="sd">           - &quot;max&quot;: if the joint thickness could only be increased</span>
+<span class="sd">           - &quot;min&quot;: if the joint thickness could only be decreased</span>
+
+<span class="sd">      - rtol: relative tolerance used in floatting number comparaisons</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># si les donnees requises sont absentes</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># on affiche un avertissement</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;data is missing to compute the required number of rows&quot;</span><span class="p">)</span>
+         <span class="c1"># et on quitte la fonction</span>
+         <span class="k">return</span>
+     
+      <span class="c1"># on evalue les deux nombre de rangees possibles</span>
+      <span class="p">[</span><span class="n">min_nb_rows</span><span class="p">,</span> <span class="n">max_nb_rows</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">limitNbRows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span><span class="p">)</span> 
+
+      <span class="c1"># on teste si on tombe dans le cas particulier ou la solution exacte existe</span>
+      
+      <span class="c1"># on calcule la tolerance absolue pour evaluer les valeurs reelles, a partir de la tolerance relative </span>
+      <span class="c1"># et la hauteur d&#39;une brique</span>
+      <span class="n">atol</span> <span class="o">=</span> <span class="n">rtol</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span>
+
+      <span class="c1"># on evalue la hauteur du mur, en utilisant le plus petit nombre de rangees</span>
+      <span class="n">min_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateHeight</span><span class="p">(</span><span class="n">min_nb_rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span><span class="p">)</span>
+      <span class="c1"># si on trouve la hauteur souhaitee pour le mur</span>
+      <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">min_height</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">atol</span><span class="p">:</span>
+         <span class="c1"># on choisit ce nombre de rangees</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">setNumberOfRows</span><span class="p">(</span><span class="n">min_nb_rows</span><span class="p">)</span>
+         <span class="c1"># on a fini</span>
+         <span class="k">return</span>
+
+      <span class="c1"># on evalue la hauteur du mur, en utilisant le plus grand nombre de rangees</span>
+      <span class="n">max_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateHeight</span><span class="p">(</span><span class="n">max_nb_rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span><span class="p">)</span>
+      <span class="c1"># si on trouve la hauteur souhaitee pour le mur</span>
+      <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">max_height</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">atol</span><span class="p">:</span>
+         <span class="c1"># on choisit ce nombre de rangees</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">setNumberOfRows</span><span class="p">(</span><span class="n">max_nb_rows</span><span class="p">)</span>
+         <span class="c1"># on a fini</span>
+         <span class="k">return</span>
+
+      <span class="c1"># sinon, on choisit par rapport a la tendance de modification de la taille du joint</span>
+
+      <span class="c1"># si on souhaite garantir une epaisseur de joint minimale</span>
+      <span class="k">if</span> <span class="n">trend</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+         <span class="c1"># on choisit le plus petit nombre de ranges</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">setNumberOfRows</span><span class="p">(</span><span class="n">min_nb_rows</span><span class="p">)</span>
+      <span class="c1"># si on prefere diminuer l&#39;epasisseur du joint</span>
+      <span class="k">elif</span> <span class="n">trend</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+         <span class="c1"># on choisit le plus grand nombre de rangees</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">setNumberOfRows</span><span class="p">(</span><span class="n">max_nb_rows</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># si le choix est impossible, on affiche une erreur</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;unknown trend&quot;</span><span class="p">)</span>
+
+      <span class="c1"># on calcule la nouvelle epaisseur du joint</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">computeJointThickness</span><span class="p">()</span>
+   
+   <span class="c1"># caracterise la premiere rangee, par le type de premiere brique, l&#39;epaisseur du joint </span>
+   <span class="c1"># entre deux briques de la rangee et le nombre de briques de la rangee</span>
+   <span class="c1"># N.B.: le nombre de briques peut etre fractionnaire, e.g 2 briques entiere plus un quart de brique, donnent une longueur de 2.25</span>
+   <span class="k">def</span> <span class="nf">setFirstRowByNumberOfBricks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_brick_type</span><span class="p">,</span> <span class="n">nb_bricks</span><span class="p">,</span> <span class="n">joint_thickness</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;setFirstRowByNumberOfBricks(self, first_brick_type, nb_bricks, joint_thickness):</span>
+
+<span class="sd">      this function sets the first row of the wall by giving the type of the first brick of this row, </span>
+<span class="sd">      the number of bricks in this row and the joint thickness</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - first_brick_type: describe the kind of brick begining the first row:</span>
+
+<span class="sd">        - &quot;1&quot;: for a whole brick</span>
+<span class="sd">        - &quot;1/2&quot;: for a half of a brick</span>
+
+<span class="sd">      - nb_bricks: the given number of bricks; this number could be fractional, for exemple it&#39;s 2.5 for two bricks and a half</span>
+<span class="sd">      - joint_thickness: the given joint thickness for the first row</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># la premiere rangee est de type paire (indice 0)</span>
+
+      <span class="c1"># on la construit</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span> <span class="o">=</span> <span class="n">brick_row</span><span class="p">(</span><span class="n">brick_ref</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">disposition</span><span class="p">,</span> <span class="n">first_brick_type</span><span class="o">=</span><span class="n">first_brick_type</span><span class="p">)</span>     
+      <span class="c1"># on lui attribue son nombre de briques</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">setNumberOfBricks</span><span class="p">(</span><span class="n">nb_bricks</span><span class="p">)</span>
+      <span class="c1"># on lui attribue son epaisseur de joints</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">setJointThickness</span><span class="p">(</span><span class="n">joint_thickness</span><span class="p">)</span>
+      <span class="c1"># on calcule sa longeur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">computeLength</span><span class="p">()</span>
+ 
+      <span class="c1"># la deuxieme rangee est de type impair (indice 1)</span>
+ 
+      <span class="c1"># on determine sa premiere brique, a partir du choix de la premiere brique du mur</span>
+
+      <span class="c1"># si la premiere brique est entiere</span>
+      <span class="k">if</span> <span class="n">first_brick_type</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span>
+         <span class="c1"># on prend une demi-brique</span>
+         <span class="n">first_brick_type_second</span> <span class="o">=</span> <span class="s2">&quot;1/2&quot;</span>
+      <span class="c1"># si la premiere brique est une demi-brique</span>
+      <span class="k">elif</span> <span class="n">first_brick_type</span> <span class="o">==</span> <span class="s2">&quot;1/2&quot;</span><span class="p">:</span>
+         <span class="c1"># on prend une brique entiere</span>
+         <span class="n">first_brick_type_second</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+      <span class="c1"># sinon,</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># cas incompatible avec l&#39;apareil en paneresses</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the given first brick type is not allowed&quot;</span><span class="p">)</span>
+
+      <span class="c1"># on la construit</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span> <span class="o">=</span> <span class="n">brick_row</span><span class="p">(</span><span class="n">brick_ref</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">disposition</span><span class="p">,</span> <span class="n">first_brick_type</span><span class="o">=</span><span class="n">first_brick_type_second</span><span class="p">)</span>
+      <span class="c1"># on lui attribue son nombre de briques</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">setNumberOfBricks</span><span class="p">(</span><span class="n">nb_bricks</span><span class="p">)</span>
+      <span class="c1"># on lui attribue la longueur de la premiere rangee</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">setLength</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+      <span class="c1"># on calcule son epaisseur de joints</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">computeJointThickness</span><span class="p">()</span>
+
+   <span class="c1"># caracterise la premiere rangee, par le type de premiere brique, l&#39;epaisseur du joint </span>
+   <span class="c1"># entre deux briques de la rangee et la longueur de la rangee</span>
+   <span class="k">def</span> <span class="nf">setFirstRowByLength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_brick_type</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">joint_thickness</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;setFirstRowByLength(self, first_brick_type, length, joint_thickness):</span>
+
+<span class="sd">      this function sets the first row of the wall by giving the type of the first brick of this row, </span>
+<span class="sd">      the length of this row and the joint thickness</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - first_brick_type: describe the kind of brick begining the first row:</span>
+
+<span class="sd">        - &quot;1&quot;: for a whole brick</span>
+<span class="sd">        - &quot;1/2&quot;: for a half of a brick</span>
+
+<span class="sd">      - length: the given length for the first row</span>
+<span class="sd">      - joint_thickness: the given joint thickness for the first row</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># la premiere rangee est de type paire (indice 0)</span>
+
+      <span class="c1"># on la definit</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span> <span class="o">=</span> <span class="n">brick_row</span><span class="p">(</span><span class="n">brick_ref</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">disposition</span><span class="p">,</span> <span class="n">first_brick_type</span><span class="o">=</span><span class="n">first_brick_type</span><span class="p">)</span>
+      <span class="c1"># on lui attribue sa longueur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">setLength</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+      <span class="c1"># on lui attribue son epaisseur de joints</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">setJointThickness</span><span class="p">(</span><span class="n">joint_thickness</span><span class="p">)</span>
+      <span class="c1"># on calcule le nombre de briques necessaires</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">computeNbBricks</span><span class="p">(</span><span class="n">trend</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+  
+      <span class="c1"># la deuxieme rangee est de type impair (indice 1)</span>
+ 
+      <span class="c1"># on determine sa premiere brique, a partir du choix de la premiere brique du mur</span>
+
+      <span class="c1"># si la premiere brique est entiere</span>
+      <span class="k">if</span> <span class="n">first_brick_type</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span>
+         <span class="c1"># on prend une demi-brique</span>
+         <span class="n">first_brick_type_second</span> <span class="o">=</span> <span class="s2">&quot;1/2&quot;</span>
+      <span class="c1"># si la premiere brique est une demi-brique</span>
+      <span class="k">elif</span> <span class="n">first_brick_type</span> <span class="o">==</span> <span class="s2">&quot;1/2&quot;</span><span class="p">:</span>
+         <span class="c1"># on prend une brique entiere</span>
+         <span class="n">first_brick_type_second</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+      <span class="c1"># sinon,</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># cas incompatible avec l&#39;apareil en paneresses</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the given first brick type is not allowed&quot;</span><span class="p">)</span> 
+
+      <span class="c1"># on la definit</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span> <span class="o">=</span> <span class="n">brick_row</span><span class="p">(</span><span class="n">brick_ref</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">disposition</span><span class="p">,</span> <span class="n">first_brick_type</span><span class="o">=</span><span class="n">first_brick_type_second</span><span class="p">)</span>
+      <span class="c1"># on lui attribue sa longueur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">setLength</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+      <span class="c1"># on lui attribue son epaisseur de joints</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">setJointThickness</span><span class="p">(</span><span class="n">joint_thickness</span><span class="p">)</span>
+      <span class="c1"># on calcule le nombre de briques necessaires</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">computeNbBricks</span><span class="p">(</span><span class="n">trend</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+
+   <span class="c1"># fonction qui renvoie la longueur du mur</span>
+   <span class="k">def</span> <span class="nf">getLength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;getLength(self):</span>
+
+<span class="sd">      this function returns the length of the wall</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      &quot;&quot;&quot;</span> 
+ 
+      <span class="c1"># si une des rangees n&#39;est pas definie</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># la premiere rangee de briques n&#39;a pas ete donnee et ne peut donc dire la longueur du mur</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;wall length is undefined, since the row in undefined&quot;</span><span class="p">)</span>
+
+      <span class="c1"># on renvoie la longueur de la rangee de brique paire</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">getLength</span><span class="p">()</span>
+
+   <span class="c1"># fonction qui renvoie l&#39;epaisseur du mur</span>
+   <span class="k">def</span> <span class="nf">getThickness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;getThickness(self):</span>
+
+<span class="sd">      this function returns the thickness of the wall</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">     - self: the wall itself</span>
+<span class="sd">      &quot;&quot;&quot;</span> 
+ 
+      <span class="c1"># si une des rangees n&#39;est pas definie</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># la premiere rangee de briques n&#39;a pas ete donnee et ne peut donc dire la longueur du mur</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;wall thickness is undefined, since the row in undefined&quot;</span><span class="p">)</span>
+
+      <span class="c1"># on renvoie la longueur de la rangee de brique paire</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">getThickness</span><span class="p">()</span>
+
+   <span class="c1"># pose le mur de briques sous la forme de corps rigides (modele, materiau, couleurs), par rapport a une origine donnee 0</span>
+   <span class="c1"># le parement exterieur se trouve dans le plan xOz, et les briques sont posees suivant l&#39;axe Ox</span>
+   <span class="k">def</span> <span class="nf">buildRigidWall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="s1">&#39;REDxx&#39;</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;buildRigidWall(self, origin, model, material, color, rtol=1e-5):</span>
+
+<span class="sd">      this function builds the wall, as it generates a list of rigid avatars representing bricks of the wall</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - origin: location of origin of the wall</span>
+<span class="sd">      - model: rigid model for the bricks</span>
+<span class="sd">      - material: the bricks are made of this material</span>
+<span class="sd">      - color: color of the contactors</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - rtol: relative tolerance used in floatting number comparaisons</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># dans cette classe mere, cette methode n&#39;est pas definie</span>
+      <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;the method to build the wall is implemented in this super class&quot;</span><span class="p">)</span>
+
+<span class="c1"># classe definissant un mur construit avec un apareil type paneresse simple, i.e. permet de construire un</span>
+<span class="c1"># mur avec apareil en paneresse simple, pour des briques disposees en paneresse, un apraeil en boutisse</span>
+<span class="c1"># pour des briques disposees en boutisse, et sur chant pour des briques disposees sur chant</span>
+<div class="viewcode-block" id="paneresse_simple"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.paneresse_simple">[docs]</a><span class="k">class</span> <span class="nc">paneresse_simple</span><span class="p">(</span><span class="n">paneresse_generic</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;class paneresse_simple:</span>
+
+<span class="sd">      this class defines an objet representing a brick wall, using the so called &quot;apareil en paneresses, simple&quot;</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># costructeur</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;__init__(self, brick_ref, disposition):</span>
+<span class="sd">         this function defines a new wall</span>
+<span class="sd">         parameters:</span>
+<span class="sd">            - self: the wall itself</span>
+<span class="sd">            - brick_ref: a brick object describing the kind of brick used to build the wall</span>
+<span class="sd">            - disposition: disposition of the brick in the wall, possible values are &quot;paneresse&quot;, &quot;boutisse&quot; and &quot;chant&quot;</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on appelle le constructeur de la classe mere</span>
+      <span class="n">paneresse_generic</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="p">)</span>
+
+   <span class="c1"># pose le mur de briques sous la forme de corps rigides (modele, materiau, couleurs), par rapport a une origine donnee 0</span>
+   <span class="c1"># le parement exterieur se trouve dans le plan xOz, et les briques sont posees suivant l&#39;axe Ox</span>
+<div class="viewcode-block" id="paneresse_simple.buildRigidWall"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.paneresse_simple.buildRigidWall">[docs]</a>   <span class="k">def</span> <span class="nf">buildRigidWall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="s1">&#39;REDxx&#39;</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;buildRigidWall(self, origin, model, material, color, rtol=1e-5):</span>
+
+<span class="sd">      this function builds the wall, as it generates a list of rigid avatars representing bricks of the wall</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - origin: location of origin of the wall</span>
+<span class="sd">      - model: rigid model for the bricks</span>
+<span class="sd">      - material: the bricks are made of this material</span>
+<span class="sd">      - color: color of the contactors</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - rtol: relative tolerance used in floatting number comparaisons</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on calcule la tolerance absolue pour evaluer les valeurs reelles, a partir de la tolerance relative </span>
+      <span class="c1"># et la hauteur d&#39;une brique</span>
+      <span class="n">atol</span> <span class="o">=</span> <span class="n">rtol</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span>
+
+      <span class="c1"># on cree un conteneur d&#39;avatar pour stocker les briques de la rangees</span>
+      <span class="n">bodies</span><span class="o">=</span><span class="n">avatars</span><span class="p">()</span>
+
+      <span class="c1"># s&#39;il manque des donnees </span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># on affiche un avertissement</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;the wall can&#39;t be built since data are missing, an empty container is returned&quot;</span><span class="p">)</span>
+         <span class="c1"># on sort de la fonction en renvoyant un container vide</span>
+         <span class="k">return</span> <span class="n">bodies</span>     
+
+      <span class="c1"># on initialise les coordonnees de l&#39;origine de la rangee courante</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="c1"># on tient compte de la premeire epaisseur de joint</span>
+      <span class="n">z</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># pour chaque rangee de brique</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span><span class="p">):</span>
+         <span class="c1"># on choisit la rangee de brique a poser, en fonction de la parite de l&#39;indice</span>
+         <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># cas pair</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># cas impair</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+         <span class="c1"># on incremente la hauteur de l&#39;origine de la prochaine rangee de brique, i.e. on l&#39;augmente de la hauteur de la rangee</span>
+         <span class="c1"># que l&#39;on vient de poser + l&#39;epaisseur du joint entre deux rangees</span>
+         <span class="n">z</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># on renvoie la liste de corps generee</span>
+      <span class="k">return</span> <span class="n">bodies</span></div>
+
+   <span class="c1"># pose le mur de briques sous la forme de corps rigides (modele, materiau, couleurs), par rapport a une origine donnee 0</span>
+   <span class="c1"># le parement exterieur se trouve dans le plan xOz, et les briques sont posees suivant l&#39;axe Ox</span>
+   <span class="c1"># le mur genere par cette focntion est pret pour le harpage, puisque les demi-briques pouvant aparaitre au debut ou la fin de</span>
+   <span class="c1"># chaque rangee ne sont pas posees</span>
+<div class="viewcode-block" id="paneresse_simple.buildRigidWallWithoutHalfBricks"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.paneresse_simple.buildRigidWallWithoutHalfBricks">[docs]</a>   <span class="k">def</span> <span class="nf">buildRigidWallWithoutHalfBricks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="s1">&#39;REDxx&#39;</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;buildRigidWallWithoutHalfBricks(self, origin, model, material, color, rtol=1e-5):</span>
+
+<span class="sd">      this function builds the wall, as it generates a list of rigid avatars representing bricks of the wall ; </span>
+<span class="sd">      the built wall is &quot;harpage&quot; ready, since half bricks have been removed </span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - origin: location of origin of the wall</span>
+<span class="sd">      - model: rigid model for the bricks</span>
+<span class="sd">      - material: the bricks are made of this material</span>
+<span class="sd">      - color: color of the contactors</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - rtol: relative tolerance used in floatting number comparaisons</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on calcule la tolerance absolue pour evaluer les valeurs reelles, a partir de la tolerance relative </span>
+      <span class="c1"># et la hauteur d&#39;une brique</span>
+      <span class="n">atol</span> <span class="o">=</span> <span class="n">rtol</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span>
+
+      <span class="c1"># on construit des rangees semblables aux rangees paires et impaires, ou les demi-briques ont ete retirees</span>
+      <span class="c1">#   * pour la rangee paire</span>
+      <span class="n">even_row_whithout_half_bricks</span><span class="p">,</span> <span class="n">even_row_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">sameRowWithoutHalfBricks</span><span class="p">(</span><span class="n">rtol</span><span class="p">)</span>
+      <span class="c1">#   * pour la rangee impaire</span>
+      <span class="n">odd_row_whithout_half_bricks</span><span class="p">,</span> <span class="n">odd_row_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">sameRowWithoutHalfBricks</span><span class="p">(</span><span class="n">rtol</span><span class="p">)</span>
+
+      <span class="c1"># on cree un conteneur d&#39;avatar pour stocker les briques de la rangees</span>
+      <span class="n">bodies</span><span class="o">=</span><span class="n">avatars</span><span class="p">()</span>
+
+      <span class="c1"># s&#39;il manque des donnees </span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># on affiche un avertissement</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;the wall can&#39;t be built since data are missing, an empty container is returned&quot;</span><span class="p">)</span>
+         <span class="c1"># on sort de la fonction en renvoyant un container vide</span>
+         <span class="k">return</span> <span class="n">bodies</span>     
+
+      <span class="c1"># on initialise les coordonnees de l&#39;origine de la rangee courante</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="c1"># on tient compte de la premeire epaisseur de joint</span>
+      <span class="n">z</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># pour chaque rangee de brique</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span><span class="p">):</span>
+         <span class="c1"># on choisit la rangee de brique a poser, en fonction de la parite de l&#39;indice</span>
+         <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># cas pair</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="n">even_row_whithout_half_bricks</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">even_row_shift</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> 
+                         <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># cas impair</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="n">odd_row_whithout_half_bricks</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">odd_row_shift</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> 
+                         <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+         <span class="c1"># on incremente la hauteur de l&#39;origine de la prochaine rangee de brique, i.e. on l&#39;augmente de la hauteur de la rangee</span>
+         <span class="c1"># que l&#39;on vient de poser + l&#39;epaisseur du joint entre deux rangees</span>
+         <span class="n">z</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># on renvoie la liste de corps generee</span>
+      <span class="k">return</span> <span class="n">bodies</span></div></div>
+       
+<span class="c1"># classe definissant un mur construit avec un apareil type paneresse simple, i.e. permet de construire un</span>
+<span class="c1"># mur avec apareil en paneresse simple, pour des briques disposees en paneresse et sur chant pour des briques disposees sur chant</span>
+<div class="viewcode-block" id="paneresse_double"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.paneresse_double">[docs]</a><span class="k">class</span> <span class="nc">paneresse_double</span><span class="p">(</span><span class="n">paneresse_generic</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;class paneresse_double:</span>
+
+<span class="sd">   this class defines an objet representing a brick wall, using the so called &quot;apareil en paneresses, double&quot;</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># costructeur</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;__init__(self, brick_ref, disposition):</span>
+
+<span class="sd">      this function defines a new wall</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the wall itself</span>
+<span class="sd">      - brick_ref: a brick object describing the kind of brick used to build the wall</span>
+<span class="sd">      - disposition: disposition of the brick in the wall, possible values are &quot;paneresse&quot;, &quot;boutisse&quot; and &quot;chant&quot;</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># dans le cas d&#39;un apareil en paneresses a double epaisseur, on ne peut utiliser la disposition en boutisse</span>
+      <span class="k">if</span> <span class="n">disposition</span> <span class="o">==</span> <span class="s2">&quot;boutisse&quot;</span><span class="p">:</span>
+         <span class="c1"># si l&#39;utilisateur le demande, on affiche un message d&#39;erreur</span>
+         <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;this disposition is incompatible with this kind of wall&quot;</span><span class="p">)</span>
+
+      <span class="c1"># on appelle le constructeur de la classe mere</span>
+      <span class="n">paneresse_generic</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brick_ref</span><span class="p">,</span> <span class="n">disposition</span><span class="p">)</span>
+
+   <span class="c1"># pose le mur de briques sous la forme de corps rigides (modele, materiau, couleurs), par rapport a une origine donnee 0</span>
+   <span class="c1"># le parement exterieur se trouve dans le plan xOz, et les briques sont posees suivant l&#39;axe Ox</span>
+<div class="viewcode-block" id="paneresse_double.buildRigidWall"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.paneresse_double.buildRigidWall">[docs]</a>   <span class="k">def</span> <span class="nf">buildRigidWall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="s1">&#39;REDxx&#39;</span><span class="p">,</span> <span class="s1">&#39;JAUNE&#39;</span><span class="p">,</span> <span class="s1">&#39;VERTx&#39;</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;buildRigidWall(self, origin, model, material, colors, rtol=1e-5):</span>
+
+<span class="sd">         this function builds the wall, as it generates a list of rigid avatars representing bricks of the wall</span>
+
+<span class="sd">         parameters:</span>
+
+<span class="sd">         - self: the wall itself</span>
+<span class="sd">         - origin: location of origin of the wall</span>
+<span class="sd">         - model: rigid model for the bricks</span>
+<span class="sd">         - material: the bricks are made of this material</span>
+<span class="sd">         - color: color of the contactors</span>
+
+<span class="sd">         optional parameters:</span>
+
+<span class="sd">         - rtol: relative tolerance used in floatting number comparaisons</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="c1"># on calcule la tolerance absolue pour evaluer les valeurs reelles, a aprtir de la tolerance relative </span>
+      <span class="c1"># et la hauteur d&#39;une brique</span>
+      <span class="n">atol</span> <span class="o">=</span> <span class="n">rtol</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">row_height</span>
+
+      <span class="c1"># on cree un conteneur d&#39;avatar pour stocker les briques de la rangees</span>
+      <span class="n">bodies</span><span class="o">=</span><span class="n">avatars</span><span class="p">()</span>
+
+      <span class="c1"># s&#39;il manque des donnees </span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="c1"># on affiche un avertissement</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;the wall can&#39;t be built since data are missing, an empty container is returned&quot;</span><span class="p">)</span>
+         <span class="c1"># on sort de la fonction en renvoyant un container vide</span>
+         <span class="k">return</span> <span class="n">bodies</span>     
+
+      <span class="c1"># on initialise les coordonnees de l&#39;origine de la rangee courante</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="c1"># on tient compte de la premeire epaisseur de joint</span>
+      <span class="n">z</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># pour chaque rangee de brique</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_rows</span><span class="p">):</span>
+         <span class="c1"># on choisit dans quel ordre poser les briques, en fonction de la parite de l&#39;indice</span>
+         <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># cas pair</span>
+            
+            <span class="c1"># on pose une rangee paire de type pair</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+            <span class="c1"># puis une rangee de type impair, derriere</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">getThickness</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> 
+                                                 <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># cas impair</span>
+
+            <span class="c1"># on pose une rangee paire de type impair</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odd_row</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+            <span class="c1"># puis une rangee de type pair, derriere</span>
+            <span class="n">bodies</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">buildRigidRow</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">even_row</span><span class="o">.</span><span class="n">getThickness</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> 
+                                                 <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">)</span>
+
+         <span class="c1"># on incremente la hauteur de l&#39;origine de la prochaine rangee de brique, i.e. on l&#39;augmente de la hauteur de la rangee</span>
+         <span class="c1"># que l&#39;on vient de poser + l&#39;epaisseur du joint entre deux rangees</span>
+         <span class="n">z</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_height</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_thickness</span>
+
+      <span class="c1"># on renvoie la liste de corps generee</span>
+      <span class="k">return</span> <span class="n">bodies</span></div></div>
+       
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.brick_wall</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

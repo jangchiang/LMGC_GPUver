@@ -1,0 +1,650 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>4. How to add a contact law ? &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5. About CMake programming" href="dev_cmake.html" />
+    <link rel="prev" title="3. Programming rules" href="dev_development.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_cmake.html" title="5. About CMake programming"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dev_development.html" title="3. Programming rules"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" accesskey="U">Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">4. </span>How to add a contact law ?</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="how-to-add-a-contact-law">
+<h1><span class="section-number">4. </span>How to add a contact law ?<a class="headerlink" href="#how-to-add-a-contact-law" title="Permalink to this headline">¶</a></h1>
+<section id="description">
+<h2><span class="section-number">4.1. </span>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>In the following tutorial let’s suppose that the desired contact law is described by:</p>
+<a class="reference internal image-reference" href="_images/contact_law.png"><img alt="_images/contact_law.png" class="align-center" src="_images/contact_law.png" style="width: 600px;" /></a>
+<p>It aims at describing coated grains with brittle cohesion.
+The parameters of the laws are <img class="math" src="_images/math/f0e0c2732f70f66671b3ebd3d28404bf65f2babc.png" alt="g_0"/>, <img class="math" src="_images/math/5785043104ea92529f489acccbf61619e881f3d1.png" alt="k"/>, <img class="math" src="_images/math/605fb5e9cf2a1f603d3af72b82c367516ddf8bd9.png" alt="\sigma^{crit}"/> and
+<img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/> the friction coefficient in case of contact of the grains (without coating).</p>
+<p>If one looks at existing contact laws within LMGC90, one will recognize that some of these parameters
+are already defined for other laws. Their name are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fric -&gt; <img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/></p></li>
+<li><p>forcePERgap -&gt; <img class="math" src="_images/math/5785043104ea92529f489acccbf61619e881f3d1.png" alt="k"/></p></li>
+<li><p>snmax -&gt; <img class="math" src="_images/math/605fb5e9cf2a1f603d3af72b82c367516ddf8bd9.png" alt="\sigma^{crit}"/></p></li>
+</ul>
+</div></blockquote>
+<p>We will have to choose the name of <img class="math" src="_images/math/f0e0c2732f70f66671b3ebd3d28404bf65f2babc.png" alt="g_0"/>, let’s settle for g0.</p>
+<p>But the first thing to do is to write a variable mapping:</p>
+<div class="math">
+<p><img src="_images/math/4273033dfb4a21c5c2a9f0288745dcb3ae205ac7.png" alt="\tilde{\Vl} = f(\Vl, \dots); \;\; \tilde{\Rl} = g( \Rl, \dots)"/></p>
+</div><p>So that the law can be written as a genuine Signorini-Coulomb law able to be solved by LMGC90 solver:</p>
+<div class="math">
+<p><img src="_images/math/1eebd14ea10aed6f46c160cd3bf8b7d3cff58e0f.png" alt="\tilde{\Vl}_n \geq 0; \;\; \tilde{\Rl}_n \geq 0; \;\; \tilde{\Vl}_n \cdot \tilde{\Rl}_n = 0"/></p>
+</div><div class="math">
+<p><img src="_images/math/44623d2a215d6ec474d79fe6d42d6cb4eb7d3129.png" alt="\tilde{\Vl} = \tilde{\Vl}{}_{free} + \tilde{W} \tilde{\Rl}"/></p>
+</div><p>By defining <img class="math" src="_images/math/df7616eba0100778630faf44f09054f8b14be8c5.png" alt="H"/> as the time step and a contact length <img class="math" src="_images/math/d829930486d2b3a52cced2b6810cb1e2cf5444b2.png" alt="l"/>, the impulsion can be written:</p>
+<div class="math">
+<p><img src="_images/math/1d67a6eb969672a3f0e0a3ec0b19d60601cddfcb.png" alt="\Rl_n = Hl\sigma_n ;\;\; \gamma = g_0 . k ;\;\; g = g_{begin} + H\Vl_n"/></p>
+</div><p>And finally the mapping of the impulsion is</p>
+<div class="math">
+<p><img src="_images/math/121929e2d0d2908cd7964a5313bc6d255a1cdfde.png" alt="\sigma_n - \gamma + \sigma_n^{adh} \geq 0 \\
+Hl\sigma_n - Hl\gamma + Hl\sigma_n^{adh} \geq 0 \\
+\tilde{\Rl}_n = \Rl_n - Hl\gamma + H^2lk  \frac{g}{H} \geq 0"/></p>
+</div><p>By making this mapped impulsion to appear in the equation</p>
+<div class="math">
+<p><img src="_images/math/41b847698ad4d1ed8aea2c7b66baf33931aec91f.png" alt="\Vl = \Vl_{free} + W \Rl \\
+
+\begin{bmatrix}
+  \frac{g}{H} \\ u_t
+\end{bmatrix}
+= u_{free} +
+\begin{bmatrix} \frac{g_{begin}}{H} \\ 0 \end{bmatrix}
++ W
+\begin{bmatrix}
+  \tilde{\mathbb{I}}_n + Hl\gamma - H^2lk \frac{g}{H} \\ \mathbb{I}_t
+\end{bmatrix} \\
+
+\begin{bmatrix}
+  \frac{g}{H} \\ u_t
+\end{bmatrix}
+= u_{free} +
+\begin{bmatrix} \frac{g_{begin}}{H} \\ 0 \end{bmatrix}
++ W
+\begin{bmatrix}
+  \tilde{\mathbb{I}}_n \\ \mathbb{I}_t
+\end{bmatrix}
++ W
+\begin{bmatrix}
+  Hl\gamma - H^2lk \frac{g}{H} \\ 0
+\end{bmatrix} \\
+
+\begin{bmatrix}
+  \frac{g}{H} \\ u_t
+\end{bmatrix}
+= u_{free} +
+\begin{bmatrix} \frac{g_{begin}}{H} \\ 0 \end{bmatrix}
++ W
+\begin{bmatrix}
+  \tilde{\mathbb{I}}_n \\ \mathbb{I}_t
+\end{bmatrix}
++ Hl\gamma
+\begin{bmatrix}
+  W_{nn}  \\ W_{tn}
+\end{bmatrix}
+- H^2lk \begin{bmatrix} W_{nn}  \\ W_{tn} \end{bmatrix}  \frac{g}{H} \\
+
+\begin{bmatrix}
+  (1+H^2lkW_{nn})\frac{g}{H} \\ u_t + H^2lkW_{tn}\frac{g}{H}
+\end{bmatrix}
+= u_{free} +
+\begin{bmatrix} \frac{g_{begin}}{H} \\ 0 \end{bmatrix}
++ Hl\gamma
+\begin{bmatrix}
+  W_{nn}  \\ W_{tn}
+\end{bmatrix}
++ W
+\begin{bmatrix}
+  \tilde{\mathbb{I}}_n \\ \mathbb{I}_t
+\end{bmatrix}"/></p>
+</div><p>In the end we can write</p>
+<div class="math">
+<p><img src="_images/math/61ba2fcd7b6957c01df28faca001941ab900b2d6.png" alt="G \begin{bmatrix} \frac{g}{H} \\ u_t \end{bmatrix}
+= \tilde{u}_{free} + W \tilde{\mathbb{I}} \\
+
+\tilde{u}_{free} =  u_{free} +
+\begin{bmatrix} \frac{g_{begin}}{H} + Hl\gamma W_{nn} \\ Hl\gamma W_{tn} \end{bmatrix} \\
+
+G = \begin{bmatrix}
+1 + H^2lkW_{nn} &amp; 0 \\
+H^2lkW_{tn}     &amp; 1
+\end{bmatrix} \\"/></p>
+</div></section>
+<section id="modification-plan">
+<h2><span class="section-number">4.2. </span>Modification plan<a class="headerlink" href="#modification-plan" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>in the Core, the files to modify are:</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>shared/mod_parameters.f90</cite>: to declare the new law</p></li>
+<li><p><cite>shared/mod_tact_behav.f90</cite>: to be able to read/write the new law and access to its parameters</p></li>
+<li><p><cite>kernel/mod_nlgs.f90</cite> and/or <cite>kernel/mod_nlgs_3D.f90</cite>: to implement the behaviour</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p>in pre, the files to modify:</p></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><p>config/lmgc90_dicts.py</p></li>
+<li><p>files/tactBehavFile.py</p></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<section id="core">
+<h3><span class="section-number">4.2.1. </span>Core<a class="headerlink" href="#core" title="Permalink to this headline">¶</a></h3>
+<p>First step: choose a name (less than 30 characters) that will be the id of the
+law within LMGC90. This name as well as a corresponding unique integer id is
+defined in the <cite>parameters</cite> module.</p>
+<section id="shared-mod-parameters-f90">
+<h4><span class="section-number">4.2.1.1. </span>shared/mod_parameters.f90<a class="headerlink" href="#shared-mod-parameters-f90" title="Permalink to this headline">¶</a></h4>
+<p>In this example the ‘BRITTLE_COATING_CLB’ is the chosen name of the new law.
+Let’s add the new id of the contact law to the list of the id of the module.</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="n">i_IQS_PLAS_CLB</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">i_ELASTIC_REPELL_MAC_CZM</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"> </span><span class="c">! pta: loi iqs avec partie plastique</span>
+<span class="n">i_BRITTLE_COATING_CLB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i_IQS_PLAS_CLB</span><span class="w">           </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w">    </span><span class="c">! rm: cohesive coating</span>
+</pre></div>
+</div>
+<p>Then the mapping between the id and the string must be added in the functions
+<cite>get_inter_law_name_from_id</cite> and <cite>get_inter_law_id_from_name</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="s1">&#39;BRITTLE_COATING_CLB&#39;</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">get_inter_law_id_from_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i_BRITTLE_COATING_CLB</span><span class="w"></span>
+<span class="k">case </span><span class="n">default</span><span class="w"></span>
+<span class="w">  </span><span class="n">get_inter_law_id_from_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">99</span><span class="w"></span>
+<span class="k">end select</span><span class="w"></span>
+</pre></div>
+</div>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">get_inter_law_name_from_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;BRITTLE_COATING_CLB&#39;</span><span class="w"></span>
+<span class="k">case </span><span class="n">default</span><span class="w"></span>
+<span class="w">  </span><span class="n">get_inter_law_name_from_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;xxxxx&#39;</span><span class="w"></span>
+<span class="k">end select</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="mod-tact-behav-f90">
+<h4><span class="section-number">4.2.1.2. </span>mod_tact_behav.f90<a class="headerlink" href="#mod-tact-behav-f90" title="Permalink to this headline">¶</a></h4>
+<p>The functions to modify just to be able to read or write the new laws are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>read_xxx_tact_behav</p></li>
+<li><p>write_xxx_tact_behav</p></li>
+<li><p>tact_behav_info</p></li>
+</ul>
+</div></blockquote>
+<p>In the <cite>read_xxx_tact_behav</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="s1">&#39;BRITTLE_COATING_CLB           &#39;</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="n">nb_param</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"></span>
+
+<span class="w">   </span><span class="c">! fric, stiffness, smax, g0</span>
+<span class="w">   </span><span class="k">allocate</span><span class="p">(</span><span class="n">param</span><span class="p">(</span><span class="n">nb_param</span><span class="p">))</span><span class="w"></span>
+
+<span class="w">   </span><span class="n">iparam</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">read_single</span><span class="p">(</span><span class="n">behav</span><span class="p">,</span><span class="n">param</span><span class="p">,</span><span class="n">iparam</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">read_G_clin</span><span class="p">())</span><span class="w"> </span><span class="k">goto</span><span class="w"> </span><span class="mi">10</span><span class="w"></span>
+<span class="w">   </span><span class="n">iparam</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">read_single</span><span class="p">(</span><span class="n">behav</span><span class="p">,</span><span class="n">param</span><span class="p">,</span><span class="n">iparam</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">read_G_clin</span><span class="p">())</span><span class="w"> </span><span class="k">goto</span><span class="w"> </span><span class="mi">10</span><span class="w"></span>
+<span class="w">   </span><span class="n">iparam</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">read_single</span><span class="p">(</span><span class="n">behav</span><span class="p">,</span><span class="n">param</span><span class="p">,</span><span class="n">iparam</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">read_G_clin</span><span class="p">())</span><span class="w"> </span><span class="k">goto</span><span class="w"> </span><span class="mi">10</span><span class="w"></span>
+<span class="w">   </span><span class="n">iparam</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">read_single</span><span class="p">(</span><span class="n">behav</span><span class="p">,</span><span class="n">param</span><span class="p">,</span><span class="n">iparam</span><span class="p">)</span><span class="w"></span>
+
+<span class="k">case </span><span class="n">default</span><span class="w"></span>
+<span class="w">   </span><span class="k">write</span><span class="p">(</span><span class="n">cout</span><span class="p">,</span><span class="s1">&#39;(A6,A30,A8)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;lawty &#39;</span><span class="p">,</span><span class="n">lawty</span><span class="p">,</span><span class="s1">&#39; unknown&#39;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In the <cite>write_xxx_tact_behav</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">write_single</span><span class="p">(</span><span class="n">clin</span><span class="w"> </span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param_name</span><span class="p">,</span><span class="n">nfich</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">write_single</span><span class="p">(</span><span class="n">clin0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param_name</span><span class="p">,</span><span class="n">nfich</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">write_single</span><span class="p">(</span><span class="n">clin0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param_name</span><span class="p">,</span><span class="n">nfich</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">write_single</span><span class="p">(</span><span class="n">clin0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param_name</span><span class="p">,</span><span class="n">nfich</span><span class="p">)</span><span class="w"></span>
+
+<span class="k">case </span><span class="n">default</span><span class="w"></span>
+<span class="w">   </span><span class="k">write</span><span class="p">(</span><span class="n">cout</span><span class="p">,</span><span class="s1">&#39;(A6,A30)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;lawty &#39;</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">lawty</span><span class="w"></span>
+</pre></div>
+</div>
+<p>And finally in the <cite>tact_behav_info</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">nb_param</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"></span>
+<span class="w">  </span><span class="k">allocate</span><span class="p">(</span><span class="n">param_name</span><span class="p">(</span><span class="n">nb_param</span><span class="p">))</span><span class="w"></span>
+<span class="w">  </span><span class="n">param_name</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;fric &#39;</span><span class="w"></span>
+<span class="w">  </span><span class="n">param_name</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;F/gap&#39;</span><span class="w"></span>
+<span class="w">  </span><span class="n">param_name</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;snmax&#39;</span><span class="w"></span>
+<span class="w">  </span><span class="n">param_name</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;g0   &#39;</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">nb_internal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The parameters of the law are <img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/>, <img class="math" src="_images/math/5785043104ea92529f489acccbf61619e881f3d1.png" alt="k"/>, <img class="math" src="_images/math/67c2123bf6f24f3d6d0f96a143007fe8e486a952.png" alt="\sigma_{crit}"/> and <img class="math" src="_images/math/f0e0c2732f70f66671b3ebd3d28404bf65f2babc.png" alt="g_0"/>.
+The contact solver, when using the law must be able to get back the value of the parameters.
+At this step of the implementation, the important thing to do is to check if another contact
+law already defined such a parameter so that the getter already exists (and only need to be
+modify) or if a new getter must be implemented.</p>
+<p>For our four parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>get_fric</cite> exists for <img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/></p></li>
+<li><p><cite>get_forcePERgap</cite> exists for <img class="math" src="_images/math/5785043104ea92529f489acccbf61619e881f3d1.png" alt="k"/></p></li>
+<li><p><cite>get_snmax</cite> exists for <img class="math" src="_images/math/67c2123bf6f24f3d6d0f96a143007fe8e486a952.png" alt="\sigma_{crit}"/></p></li>
+<li><p><cite>get_g0</cite> does not exist yet</p></li>
+</ul>
+</div></blockquote>
+<p>The <cite>tact_behav_info</cite>, is the place where the name of the parameter is
+linked to its place in the array of the parameter. Thus the implementation
+of this particular subroutine will have an influence on the implementation
+of the getters of the parameter.</p>
+<p>For <cite>get_fric</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="n">i_VEL_SGR_CLB</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="n">get_fric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>For <cite>get_forcePERgap</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_ELASTIC_REPELL_MAC_CZM</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="n">forcePERgap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"></span>
+<span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="n">forcePERgap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"></span>
+<span class="k">case</span><span class="p">(</span><span class="n">i_ER_MAC_CZM</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="n">forcePERgap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"></span>
+<span class="k">case </span><span class="n">default</span><span class="w"></span>
+<span class="w">   </span><span class="k">write</span><span class="p">(</span><span class="n">cout</span><span class="p">,</span><span class="s1">&#39;(A7,A30,A16)&#39;</span><span class="p">)</span><span class="s1">&#39; lawty &#39;</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">lawty</span><span class="p">,</span><span class="s1">&#39; not implemented&#39;</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">FATERR</span><span class="p">(</span><span class="n">IAM</span><span class="p">,</span><span class="n">cout</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>For <cite>get_snmax</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_ELASTIC_WIRE</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">     </span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="n">snmax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>And finally the implementation of the function <cite>get_gap0</cite>:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="c">!&gt; get g0 parameter for a law</span>
+<span class="k">subroutine </span><span class="n">get_g0</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">g0</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">implicit none</span><span class="w"></span>
+<span class="w">  </span><span class="c">!&gt; contact law id</span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibehav</span><span class="w"></span>
+<span class="w">  </span><span class="c">!&gt; g0 parameter of the law</span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w">   </span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">g0</span><span class="w"></span>
+<span class="w">  </span><span class="c">!</span>
+<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">IAM</span><span class="w"></span>
+<span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cout</span><span class="w"></span>
+<span class="w">  </span><span class="c">!     123456789012345678</span>
+<span class="w">  </span><span class="n">IAM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;tact_behav::get_g0&#39;</span><span class="w"></span>
+<span class="w">  </span><span class="n">g0</span><span class="w">  </span><span class="o">=</span><span class="w">  </span><span class="mf">0.d0</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">select case</span><span class="p">(</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">ilaw</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">case</span><span class="p">(</span><span class="w"> </span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">g0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">param</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">case </span><span class="n">default</span><span class="w"></span>
+<span class="w">    </span><span class="k">write</span><span class="p">(</span><span class="n">cout</span><span class="p">,</span><span class="s1">&#39;(A7,A30,A16)&#39;</span><span class="p">)</span><span class="s1">&#39; lawty &#39;</span><span class="p">,</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">ibehav</span><span class="p">)%</span><span class="n">lawty</span><span class="p">,</span><span class="s1">&#39; not implemented&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="k">call </span><span class="n">FATERR</span><span class="p">(</span><span class="n">IAM</span><span class="p">,</span><span class="n">cout</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">end select</span>
+
+<span class="k">end subroutine </span><span class="n">get_g0</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Since the module defines everything private by default and that this function is going to be
+needed by the nlgs module, do not foget to render it public:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">public </span><span class="n">get_iser</span><span class="p">,</span><span class="n">indent_isee</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">       </span><span class="n">get_fric</span><span class="p">,</span><span class="n">get_rst</span><span class="p">,</span><span class="n">get_coh</span><span class="p">,</span><span class="n">get_forcePERgap</span><span class="p">,</span><span class="n">get_forcePERstrain</span><span class="p">,&amp;</span><span class="w"></span>
+<span class="w">       </span><span class="n">get_gap_tol</span><span class="p">,</span><span class="w"> </span><span class="n">get_g0</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In this first implementation, it is decided that the law has no internal parameters. But if that
+were the case there would be <cite>init</cite> or <cite>update</cite> functions to modify. But it should now possible
+to add a new law in the DATBOX/TACT_BEHAV.DAT file and read it, then write it and find the
+numeric value in the files.</p>
+</section>
+<section id="mod-nlgs-f90">
+<h4><span class="section-number">4.2.1.3. </span>mod_nlgs.f90<a class="headerlink" href="#mod-nlgs-f90" title="Permalink to this headline">¶</a></h4>
+<p>It is recalled that the Signorini-Coulomb solve <img class="math" src="_images/math/2599d3852ae1a76c74a4f0f996f2dd6902c6ea2d.png" alt="x \geq 0; y \geq 0; x \cdot y = 0"/>
+thanks to the equation: <img class="math" src="_images/math/5d559e0ff4128f8a61f5c7b1caec8bc0328034d6.png" alt="x = x_{free} + A y"/>. In the case of the law, if <img class="math" src="_images/math/53bb789177ec8035500778e36de7eadad636f25f.png" alt="g \geq 0"/>
+then <img class="math" src="_images/math/59f7bf6a0ceb1d317bbb6194b4c70c4d80e155be.png" alt="x = u"/>, <img class="math" src="_images/math/5968c7645e185d01e44db2eb14628c05da4cb251.png" alt="x_{free} = u_{free}"/>, <img class="math" src="_images/math/54c41c4a286d7d60478ebb9bd2db179b2d1b25fb.png" alt="y = \mathbb{I}"/> and <img class="math" src="_images/math/f5a6911119611baf642b9721389d807da2e20b8c.png" alt="A = W"/>;
+else <img class="math" src="_images/math/c773edd2a64025e693fdce90265bd4faf7c22177.png" alt="x = \begin{bmatrix} \frac{g}{H} // u_t \end{bmatrix}"/>, <img class="math" src="_images/math/5975b2f2497c14bed8f7c0081b8af435b86495d8.png" alt="x_{free} = G^{-1}
+\tilde{u}_{free}"/>, <img class="math" src="_images/math/33b81c0a34c0ed46249297fe16a2f1c0f1ccef97.png" alt="y = \tilde{\mathbb{I}}"/> and <img class="math" src="_images/math/e94977d8fe4306c173e4a2afc959b21ac6d06b18.png" alt="A = G^{-1} W"/>.</p>
+<p>The resolution is split in three main steps, the preparing of the resolution before starting
+the iterations of the NLGS algorithm, an iteration, and a post-iteration step. The first one
+is done in the <cite>prep_nlgs</cite> subroutine. The second and third steps are done in the <cite>solve_nlgs</cite>.</p>
+<p>In the <cite>prep_nlgs</cite> function the part of the change of variable which does not change during
+the iteration is done. In this function there is a block of code were the specific behaviour
+of the contact law is implemented, there it will be tested if the change of variable is needed
+and it is, then add it.
+In the code <img class="math" src="_images/math/dd8aefb5461f4a288e1cbe97aaae85beaa9b14b3.png" alt="vvlocfreeik = x_{free}"/>, <img class="math" src="_images/math/6698cec08da5e524e752d29bcb86c6d4b8820a47.png" alt="\tilde{u}_{free} = u_{free} + covfree"/>.</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="s1">&#39;BRITTLE_COATING_CLB           &#39;</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">i_law</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i_BRITTLE_COATING_CLB</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">call </span><span class="n">get_g0</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">g0</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">get_forcePERgap</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">forcePERgap</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">get_snmax</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">snmax</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">snmax</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">forcePERgap</span><span class="o">*</span><span class="p">(</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="o">-</span><span class="n">g0</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">     </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">covfreen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="o">/</span><span class="n">H</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">Wnn</span><span class="o">*</span><span class="n">H</span><span class="o">*</span><span class="n">g0</span><span class="o">*</span><span class="n">forcePERgap</span><span class="p">)</span><span class="w"></span>
+<span class="w">     </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">covfreet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">Wtn</span><span class="o">*</span><span class="n">H</span><span class="o">*</span><span class="n">g0</span><span class="o">*</span><span class="n">forcePERgap</span><span class="w"></span>
+<span class="w">     </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">corln</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">H</span><span class="o">*</span><span class="p">(</span><span class="n">g0</span><span class="o">-</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="p">)</span><span class="o">*</span><span class="n">forcePERgap</span><span class="w"></span>
+<span class="w">   </span><span class="k">else</span>
+<span class="k">     </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">covfreen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">max</span><span class="p">(</span><span class="mf">0.d0</span><span class="p">,</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="o">/</span><span class="n">H</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">end if</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In the previously added code block there are some new variable. Do not forget to add their
+declaration at the beginning of the function:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">un</span><span class="w"></span>
+<span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pre_gap</span><span class="p">,</span><span class="w"> </span><span class="n">g0</span><span class="p">,</span><span class="w"> </span><span class="n">snmax</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In the <cite>solve_nlgs</cite> function the part corresponding to the change of variable and the call
+to the solver may be implemented in this way :</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">call </span><span class="n">get_g0</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">g0</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">get_forcePERgap</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">forcePERgap</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="k">call </span><span class="n">get_snmax</span><span class="p">(</span><span class="n">ibehav</span><span class="p">,</span><span class="n">snmax</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">snmax</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">forcePERgap</span><span class="o">*</span><span class="p">(</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="o">-</span><span class="n">g0</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span><span class="w"></span>
+
+<span class="w">     </span><span class="c">! G matrix computation</span>
+<span class="w">     </span><span class="n">Tnn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.d0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">H</span><span class="o">*</span><span class="n">H</span><span class="o">*</span><span class="n">forcePERgap</span><span class="o">*</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">Wnn</span><span class="w"></span>
+<span class="w">     </span><span class="n">Ttn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">H</span><span class="o">*</span><span class="n">H</span><span class="o">*</span><span class="n">forcePERgap</span><span class="o">*</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">Wtn</span><span class="w"></span>
+<span class="w">     </span><span class="n">Tnt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.d0</span><span class="w"></span>
+<span class="w">     </span><span class="n">Ttt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.d0</span><span class="w"></span>
+
+<span class="w">     </span><span class="c">! compute A = G^-1</span>
+<span class="w">     </span><span class="n">detJ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Ttt</span><span class="o">*</span><span class="n">Tnn</span><span class="o">-</span><span class="n">Ttn</span><span class="o">*</span><span class="n">Tnt</span><span class="w"></span>
+<span class="w">     </span><span class="n">Ann</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">Ttt</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">detJ</span><span class="w"></span>
+<span class="w">     </span><span class="n">Ant</span><span class="w">  </span><span class="o">=-</span><span class="n">Tnt</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">detJ</span><span class="w"></span>
+<span class="w">     </span><span class="n">Atn</span><span class="w">  </span><span class="o">=-</span><span class="n">Ttn</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">detJ</span><span class="w"></span>
+<span class="w">     </span><span class="n">Att</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">Tnn</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">detJ</span><span class="w"></span>
+
+<span class="w">     </span><span class="c">! u = G^-1 * ~ufree</span>
+<span class="w">     </span><span class="n">un</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vvlocfreenik</span><span class="o">*</span><span class="n">Ann</span><span class="o">+</span><span class="n">vvlocfreetik</span><span class="o">*</span><span class="n">Ant</span><span class="w"></span>
+<span class="w">     </span><span class="n">ut</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vvlocfreenik</span><span class="o">*</span><span class="n">Atn</span><span class="o">+</span><span class="n">vvlocfreetik</span><span class="o">*</span><span class="n">Att</span><span class="w"></span>
+<span class="w">     </span><span class="n">vvlocfreenik</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">un</span><span class="w"></span>
+<span class="w">     </span><span class="n">vvlocfreetik</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ut</span><span class="w"></span>
+
+<span class="w">     </span><span class="c">! W = G^-1 * W</span>
+<span class="w">     </span><span class="n">Ttt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Att</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWttik</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">Atn</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWntik</span><span class="p">)</span><span class="w"></span>
+<span class="w">     </span><span class="n">Ttn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Att</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWtnik</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">Atn</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWnnik</span><span class="p">)</span><span class="w"></span>
+<span class="w">     </span><span class="n">Tnt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Ant</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWttik</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">Ann</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWntik</span><span class="p">)</span><span class="w"></span>
+<span class="w">     </span><span class="n">Tnn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Ant</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWtnik</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">Ann</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">WWnnik</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">     </span><span class="n">WWttik</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Ttt</span><span class="p">;</span><span class="w"> </span><span class="n">WWtnik</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Ttn</span><span class="w"></span>
+<span class="w">     </span><span class="n">WWntik</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tnt</span><span class="p">;</span><span class="w"> </span><span class="n">WWnnik</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Tnn</span><span class="w"></span>
+
+<span class="w">     </span><span class="n">det</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">WWttik</span><span class="o">*</span><span class="n">WWnnik</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="n">WWtnik</span><span class="o">*</span><span class="n">WWntik</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">     </span><span class="n">forward</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">1.d0</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="n">fricik</span><span class="o">*</span><span class="n">WWntik</span><span class="o">/</span><span class="n">WWnnik</span><span class="p">)</span><span class="w"></span>
+<span class="w">     </span><span class="n">backward</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.d0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">fricik</span><span class="o">*</span><span class="n">WWntik</span><span class="o">/</span><span class="n">WWnnik</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">else</span>
+<span class="k">     </span><span class="n">det</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">det</span><span class="w"></span>
+<span class="w">     </span><span class="n">forward</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">forward</span><span class="w"></span>
+<span class="w">     </span><span class="n">backward</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">backward</span><span class="w"></span>
+
+<span class="w">   </span><span class="k">end if</span>
+
+<span class="k">   call </span><span class="n">mu_SC_std_solver</span><span class="p">(</span><span class="n">det</span><span class="p">,</span><span class="n">forward</span><span class="p">,</span><span class="n">backward</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                         </span><span class="n">fricik</span><span class="p">,</span><span class="w"> </span><span class="n">WWttik</span><span class="p">,</span><span class="n">WWtnik</span><span class="p">,</span><span class="n">WWntik</span><span class="p">,</span><span class="n">WWnnik</span><span class="p">,</span><span class="n">vvlocfreetik</span><span class="p">,</span><span class="n">vvlocfreenik</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span><span class="w"></span>
+<span class="w">                         </span><span class="n">sstatusik</span><span class="p">,</span><span class="n">rrltik</span><span class="p">,</span><span class="n">rrlnik</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Finally after that there is another <cite>select case</cite> to revert the change of variable which conduct
+to:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">case</span><span class="p">(</span><span class="n">i_BRITTLE_COATING_CLB</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">snmax</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">forcePERgap</span><span class="o">*</span><span class="p">(</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="o">+</span><span class="n">H</span><span class="o">*</span><span class="p">(</span><span class="n">Wrlniki</span><span class="o">+</span><span class="n">vlocfreenik</span><span class="p">)</span><span class="o">-</span><span class="n">g0</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">     </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">corln</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">H</span><span class="o">*</span><span class="p">(</span><span class="n">g0</span><span class="o">-</span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">gapTTbegin</span><span class="o">-</span><span class="n">H</span><span class="o">*</span><span class="p">(</span><span class="n">Wrlniki</span><span class="o">+</span><span class="n">vlocfreenik</span><span class="p">))</span><span class="o">*</span><span class="n">forcePERgap</span><span class="w"></span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">     </span><span class="n">this</span><span class="p">(</span><span class="n">ik</span><span class="p">)%</span><span class="n">corln</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.d0</span><span class="w"></span>
+<span class="w">  </span><span class="k">end if</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Please note that the value of the gap computed by the solver must be used
+and not the <cite>gapTTbegin</cite>, thus the way to compute the <cite>corln</cite> value changed.</p>
+<p>Again do not forget to add the declaration of the variable that were introduced at the beginning
+of the subroutine:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="n">snmax</span><span class="p">,</span><span class="w"> </span><span class="n">forcePERgap</span><span class="p">,</span><span class="w"> </span><span class="n">g0</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If the contact law had internal values, then it may needed to update some of them, in which
+case the <cite>update_internal</cite> function would have to be modified.</p>
+</section>
+</section>
+<section id="pre">
+<h3><span class="section-number">4.2.2. </span>pre<a class="headerlink" href="#pre" title="Permalink to this headline">¶</a></h3>
+<p>If you only try to use a new law:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">law</span> <span class="o">=</span> <span class="n">tact_behav</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nlaw0&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;BRITTLE_COATING_CLB&#39;</span><span class="p">,</span> <span class="n">fric</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="mf">1.e4</span><span class="p">,</span> <span class="n">Fmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">g0</span><span class="o">=</span><span class="mf">5.e2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note: name must be a five characters string and type a string of maximum thrity characters.</p>
+<p>You will get the following error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ERROR</span>
+<span class="n">Type</span> <span class="n">de</span> <span class="n">loi</span> <span class="n">d</span><span class="s1">&#39;interaction inconnu</span>
+ <span class="n">le</span> <span class="nb">type</span> <span class="n">doit</span> <span class="n">etre</span> <span class="n">choisi</span> <span class="n">dans</span><span class="p">:</span>
+<span class="n">VEL_SGR_CLB</span>
+<span class="n">IQS_MOHR_DS_CLB</span>
+<span class="n">MAL_CZM</span>
+<span class="n">ELASTIC_ROD</span>
+<span class="n">IQS_TH_CZM</span>
+<span class="n">BRITTLE_ELASTIC_WIRE</span>
+<span class="n">IQS_CLB_g0</span>
+<span class="n">IQS_MAC_CZM</span>
+<span class="n">TH_CZM</span>
+<span class="n">MP3_CZM</span>
+<span class="n">ELASTIC_WIRE</span>
+<span class="n">RST_CLB</span>
+<span class="n">GAP_SGR_CLB</span>
+<span class="n">MAC_CZM</span>
+<span class="n">GAP_MOHR_DS_CLB</span>
+<span class="n">IQS_DS_CLB</span>
+<span class="n">ELASTIC_REPELL_CLB</span>
+<span class="n">NORMAL_COUPLED_DOF</span>
+<span class="n">MP_CZM</span>
+<span class="n">COUPLED_DOF</span>
+<span class="n">IQS_CLB</span>
+<span class="n">IQS_MAL_CZM</span>
+<span class="n">IQS_WET_DS_CLB</span>
+<span class="n">GAP_SGR_CLB_g0</span>
+</pre></div>
+</div>
+<p>Thus you must make pre aware of the existence of the new law. It is done by modifying the
+<cite>tactBehavOptions</cite> dictionnary in config/lmgc90dicts.py:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tactBehavOptions</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;IQS_CLB&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;fric&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;BRITTLE_COATING_CLB&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;fric&#39;</span><span class="p">,</span><span class="s1">&#39;stiffness&#39;</span><span class="p">,</span><span class="s1">&#39;Fmax&#39;</span><span class="p">,</span><span class="s1">&#39;g0&#39;</span><span class="p">]</span>
+                   <span class="p">}</span>
+</pre></div>
+</div>
+<p>Then, trying your script will next generate:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ERROR</span>
+<span class="n">interaction</span> <span class="p">:</span> <span class="n">POLYR</span> <span class="p">(</span><span class="n">BLUEx</span><span class="p">)</span> <span class="o">/</span> <span class="n">POLYR</span> <span class="p">(</span><span class="n">BLUEx</span><span class="p">)</span>
+<span class="n">Les</span> <span class="n">deux</span> <span class="n">contacteurs</span> <span class="n">sont</span> <span class="n">des</span> <span class="n">contacteurs</span> <span class="n">rigides</span><span class="o">.</span>
+<span class="n">Il</span> <span class="n">n</span><span class="s1">&#39;est donc possible de n&#39;</span><span class="n">utiliser</span> <span class="n">qu</span><span class="s1">&#39;une loi ad hoc, i.e. doit etre choisie dans:</span>
+<span class="n">IQS_CLB</span>
+<span class="n">IQS_CLB_g0</span>
+<span class="n">IQS_DS_CLB</span>
+<span class="n">RST_CLB</span>
+<span class="n">IQS_WET_DS_CLB</span>
+<span class="n">IQS_MOHR_DS_CLB</span>
+<span class="n">IQS_MAC_CZM</span>
+<span class="n">IQS_MAL_CZM</span>
+<span class="n">IQS_TH_CZM</span>
+<span class="n">ou</span> <span class="n">une</span> <span class="n">loi</span> <span class="n">compatible</span> <span class="n">avec</span> <span class="n">tout</span> <span class="nb">type</span> <span class="n">de</span> <span class="n">paire</span> <span class="n">de</span> <span class="n">contacteur</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">doit</span> <span class="n">etre</span> <span class="n">choisie</span> <span class="n">dans</span><span class="p">:</span>
+<span class="n">COUPLED_DOF</span>
+<span class="n">NORMAL_COUPLED_DOF</span>
+<span class="n">ELASTIC_REPELL_CLB</span>
+</pre></div>
+</div>
+<p>In the <cite>contactorPairsToTactBehav</cite> dictionnary, you can specify which laws are usable for a pair of body type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">contactorPairToTactBehav</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;rigid/rigid&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;IQS_CLB&#39;</span><span class="p">,</span> <span class="s1">&#39;BRITTLE_COATING_CLB&#39;</span><span class="p">]</span>
+                           <span class="p">}</span>
+</pre></div>
+</div>
+<p>Some consistency checks can be done in the constructor of the class <cite>tact_behav</cite> of file <cite>shared/tact_behav.py</cite>
+But at this point you’ll get the following message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Debut</span> <span class="n">d</span> <span class="n">Ecriture</span> <span class="n">dans</span>         <span class="p">:</span>       <span class="n">TACT_BEHAV</span><span class="o">.</span><span class="n">DAT</span>
+<span class="n">Type</span> <span class="n">d</span> <span class="n">interaction</span> <span class="n">non</span> <span class="n">definie</span> <span class="p">:</span>    <span class="n">BRITTLE_COATING_CLB</span> <span class="n">pour</span> <span class="n">l</span> <span class="n">ecriture</span>
+<span class="n">Fin</span> <span class="n">Ecriture</span> <span class="n">du</span> <span class="n">fichier</span>       <span class="p">:</span>       <span class="n">TACT_BEHAV</span><span class="o">.</span><span class="n">DAT</span>
+</pre></div>
+</div>
+<p>And you will find out, if you check the content of DATBOX/TACT_BEHAV.DAT, that the new law has not been written.
+You have to add the writing rules of the new law in <cite>files/tactBehavFile.py</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">inTactBehav</span><span class="p">(</span><span class="n">tact</span><span class="p">,</span><span class="n">chemin</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+  <span class="n">writeBehav</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;IQS_CLB&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">writeStatFric</span><span class="p">],</span> <span class="s1">&#39;IQS_CLB_g0&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">writeStatFric</span><span class="p">],</span> <span class="s1">&#39;IQS_DS_CLB&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">writeDyStFr</span><span class="p">],</span>
+                <span class="s1">&#39;BRITTLE_COATING_CLB&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">writeStatFric</span><span class="p">,</span><span class="n">writeStiffness</span><span class="p">,</span><span class="n">writeFmax</span><span class="p">,</span><span class="n">writeG0</span><span class="p">]</span>
+               <span class="p">}</span>
+</pre></div>
+</div>
+<p>The content of the list associated to the key contact law are functions which will take as an input the value of the parameter
+and will generate the string to write to the file. If the parameters is a new one, you’ll also have to add the new writing function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">writeG0</span><span class="p">(</span><span class="n">tact</span><span class="p">):</span>
+        <span class="c1"># on genere la chaine a ecrire dans le fichier</span>
+        <span class="n">out</span> <span class="o">=</span>  <span class="s1">&#39;G0  =</span><span class="si">%14.7e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">tact</span><span class="o">.</span><span class="n">g0</span>    <span class="c1">#</span>
+
+        <span class="c1"># on renvoie le resultat sous la forme d&#39;une liste (a un element)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">out</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Finally you are able to write your contact law. And the results appear in <cite>DATBOX/TACT_BEHAV.DAT</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$behav
+ nlaw1  BRITTLE_COATING_CLB             fric= 3.0000000e-01
+                                        F/gp= 1.0000000e+03
+                                        Fmax= 1.0000000e-01
+                                        G0  = 1.0000000e-01
+</pre></div>
+</div>
+</section>
+</section>
+<section id="test">
+<h2><span class="section-number">4.3. </span>Test<a class="headerlink" href="#test" title="Permalink to this headline">¶</a></h2>
+<p>Last step: testing ! Here are a <a class="reference download internal" download="" href="_downloads/bd90d03ace88e3c025b778cfeaf9f914/gen_sample.py"><code class="xref download docutils literal notranslate"><span class="pre">generation</span></code></a> and
+a <a class="reference download internal" download="" href="_downloads/dd892c6431052a615693aafde282da46/command.py"><code class="xref download docutils literal notranslate"><span class="pre">command</span></code></a> script allowing to test
+the contact law. It consist only of two disks one being fixed the other one subject
+to a force. The load on the upper disk is displayed by matplotlib module when the
+generation script is run. The graph reprensenting the contact law computed is also
+displayed at the end of the command script.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">4. How to add a contact law ?</a><ul>
+<li><a class="reference internal" href="#description">4.1. Description</a></li>
+<li><a class="reference internal" href="#modification-plan">4.2. Modification plan</a><ul>
+<li><a class="reference internal" href="#core">4.2.1. Core</a><ul>
+<li><a class="reference internal" href="#shared-mod-parameters-f90">4.2.1.1. shared/mod_parameters.f90</a></li>
+<li><a class="reference internal" href="#mod-tact-behav-f90">4.2.1.2. mod_tact_behav.f90</a></li>
+<li><a class="reference internal" href="#mod-nlgs-f90">4.2.1.3. mod_nlgs.f90</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pre">4.2.2. pre</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#test">4.3. Test</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dev_development.html"
+                        title="previous chapter"><span class="section-number">3. </span>Programming rules</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dev_cmake.html"
+                        title="next chapter"><span class="section-number">5. </span>About CMake programming</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dev_contact_law.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_cmake.html" title="5. About CMake programming"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dev_development.html" title="3. Programming rules"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" >Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">4. </span>How to add a contact law ?</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

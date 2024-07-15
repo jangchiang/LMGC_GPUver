@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.tools.containers2D &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.tools.containers2D</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.tools.containers2D</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module fournissant des macros de depot dans des conteneurs predifnis</span>
+
+<span class="c1"># import du module permettant de savoir si on pourra importer les pre_tools</span>
+<span class="kn">from</span> <span class="nn">...utilities.check_compiled_modules</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># import des des wrappers des anciens pre-processeurs pour les milieux granualaires</span>
+
+<span class="c1"># si on peut essayer d&#39;importer le module pre_tools sans tout faire planter</span>
+<span class="k">if</span> <span class="n">import_lmgc90</span><span class="p">():</span>
+   <span class="c1"># on essaye</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="kn">from</span> <span class="nn">....chipy</span> <span class="kn">import</span> <span class="n">lmgc90</span>
+   <span class="k">except</span><span class="p">:</span>
+      <span class="k">raise</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c1"># ATTENTION : radii peut etret modifie suite a l&#39;appel a ces fonctions!</span>
+
+<span class="c1"># fonction qui depose les particules dans une boite rectangulaire</span>
+<div class="viewcode-block" id="depositInBox2D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInBox2D">[docs]</a><span class="k">def</span> <span class="nf">depositInBox2D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInBox2D(radii, lx, ly, deposited_radii=None, deposited_coor=None):</span>
+
+<span class="sd">   this function deposits circular particles in a box</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - lx: length of the box</span>
+<span class="sd">   - ly: heigth of the box</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be in the box before the deposit</span>
+<span class="sd">   - deposited_coor=None: radii of these deposited particles  </span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, x2, y2, ...]</span>
+
+<span class="sd">   WARNING: </span>
+
+<span class="sd">   1. this function changes the radii list since it nullifies radii of the </span>
+<span class="sd">      particles out of the box. So, after calling this function, only the </span>
+<span class="sd">      first nb_remaining_particles particles are of interest </span>
+<span class="sd">   2. to avoid interpenetrations between particles and walls, this function</span>
+<span class="sd">      uses a shrink based on the size of the particles&#39;&#39;&#39;</span>
+  
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+   <span class="c1"># on recupere le rayon du plus gros grain</span>
+   <span class="n">radius_max</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+
+   <span class="c1"># on depose les grains sous gravite</span>
+
+   <span class="c1"># si on a donne une liste de particules deja presentes dans la boite</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+      <span class="c1"># on utilise la methode qui en tient compte</span>
+      <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_GravityAndBigParticles</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> 
+         <span class="n">deposited_radii</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+   <span class="c1"># sinon,</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on utilise la methode de base </span>
+      <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_Gravity</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="c1"># on definit la polyligne adaptee pour une boite : une ligne horizontale</span>
+   <span class="c1"># en y=ly - radius_max </span>
+   <span class="n">slope_coor</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span> <span class="o">-</span> <span class="n">radius_max</span><span class="p">,</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span> <span class="o">-</span> <span class="n">radius_max</span><span class="p">]</span>
+   <span class="c1"># N.B.: on definit dans une ligne legerement plus basse, pour eliminer les</span>
+   <span class="c1">#       les interpentrations avec le bord superireur de la boite</span>
+   <span class="c1"># on enleve les grains au-dessus de la ligne</span>
+   <span class="n">nb_remaining_particles</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">cut2D_Cut</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">coor</span><span class="p">,</span> <span class="n">slope_coor</span><span class="p">)</span>
+   
+   <span class="c1"># on renvoie le nombre de prticules restantes et les coordonnees des </span>
+   <span class="c1"># particules</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_remaining_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+
+<span class="c1"># fonction qui depose les particules dans un dique</span>
+<div class="viewcode-block" id="depositInDisk2D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInDisk2D">[docs]</a><span class="k">def</span> <span class="nf">depositInDisk2D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInDisk2D(radii, r, deposited_radii=None, deposited_coor=None):</span>
+
+<span class="sd">   this function deposits circular particles in a circular container</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - r: radius of the container </span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be in the box before the deposit</span>
+<span class="sd">   - deposited_coor=None: radii of these deposited particles  </span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, x2, y2, ...]</span>
+
+<span class="sd">   WARNING: this function changes the radii list since it nullifies radii of </span>
+<span class="sd">   the particles out of the box. So, after calling this function, only</span>
+<span class="sd">   the first nb_remaining_particles particles are of interest&#39;&#39;&#39;</span>
+
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+
+   <span class="c1"># on realise un depot sous gravite, dans une boite de largueur 2.*r</span>
+
+   <span class="c1"># si on a donne une liste de particules deja presentes dans la boite</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+      <span class="c1"># on utilise la methode qui en tient compte</span>
+      <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_GravityAndBigParticles</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">,</span>
+         <span class="n">deposited_radii</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+   <span class="c1"># sinon,</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on utilise la methode de base </span>
+      <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_Gravity</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="c1"># on definit un contour circulaire, de rayon r et centre en [r, r]</span>
+   <span class="n">slope_coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">slope_coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">r</span> <span class="o">+</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.025</span><span class="p">))</span>
+      <span class="n">slope_coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">r</span> <span class="o">+</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.025</span><span class="p">))</span>
+   <span class="c1"># on enleve les grains hors du contour</span>
+   <span class="n">nb_remaining_particles</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">cut2D_Cut</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">coor</span><span class="p">,</span> <span class="n">slope_coor</span><span class="p">)</span>
+  
+   <span class="c1"># on renvoie le nombre de prticules restantes et les coordonnees des </span>
+   <span class="c1"># particules</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_remaining_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+
+<span class="c1"># fonction qui depose les particules dans un &quot;cylindre&quot;, pour un cisaillement</span>
+<span class="c1"># de Couette</span>
+<div class="viewcode-block" id="depositInCouette2D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInCouette2D">[docs]</a><span class="k">def</span> <span class="nf">depositInCouette2D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">rint</span><span class="p">,</span> <span class="n">rext</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInCouetteD(radii, rint, rext, deposited_radii=None, deposited_coor=None):</span>
+
+<span class="sd">   this function deposits circular particles in container designed for a Couette shear</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - rint: internal radius of the ring occupied by particles</span>
+<span class="sd">   - rext: external radius of the ring occupied by particles</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be in the box before the deposit</span>
+<span class="sd">   - deposited_coor=None: radii of these deposited particles  </span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, x2, y2, ...]</span>
+
+<span class="sd">   WARNING: </span>
+
+<span class="sd">   1. this function changes the radii list since it nullifies radii of the </span>
+<span class="sd">      particles out of the box. So, after calling this function, only the </span>
+<span class="sd">      first nb_remaining_particles particles are of interest </span>
+<span class="sd">   2. to avoid interpenetrations between particles and walls, this function</span>
+<span class="sd">      uses a shrink based on the size of the particles&#39;&#39;&#39;</span>
+
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+   <span class="c1"># on recupere le rayon du plus gros grain</span>
+   <span class="n">radius_max</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+   <span class="c1"># on place une grosse particule pour represente le cylindre interieur</span>
+   <span class="n">big_radii</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rint</span><span class="p">])</span>
+   <span class="n">big_coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rext</span><span class="p">,</span> <span class="n">rext</span><span class="p">])</span>
+   <span class="c1"># si on a donne une liste de grosses particules a ajouter au depot</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+      <span class="c1"># on les ajoute</span>
+      <span class="n">big_radii</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="p">(</span><span class="n">big_radii</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="p">)</span> <span class="p">)</span>
+      <span class="n">big_coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="p">(</span><span class="n">big_coor</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on realise un depot autour de grosses particules, dans une boite de </span>
+   <span class="c1"># largueur 2.*rext</span>
+   <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_Heterogeneous</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="mf">2.</span><span class="o">*</span><span class="n">rext</span><span class="p">,</span> <span class="n">big_radii</span><span class="p">,</span> <span class="n">big_coor</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+   <span class="c1"># on definit un contour circulaire, de rayon rext et centre en [rext, rext]</span>
+   <span class="c1"># N.B.: on definit dans un container legerement plus petit, pour eliminer les</span>
+   <span class="c1">#       les interpentrations avec le cylindre exterieur</span>
+   <span class="n">slope_coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">162</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">slope_coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">rext</span> <span class="o">+</span> <span class="p">(</span><span class="n">rext</span> <span class="o">-</span> <span class="n">radius_max</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.025</span><span class="p">))</span>
+      <span class="n">slope_coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">rext</span> <span class="o">+</span> <span class="p">(</span><span class="n">rext</span> <span class="o">-</span> <span class="n">radius_max</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.025</span><span class="p">))</span>
+
+   <span class="c1"># on enleve les grains hors du contour</span>
+   <span class="n">nb_remaining_particles</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">cut2D_Cut</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">coor</span><span class="p">,</span> <span class="n">slope_coor</span><span class="p">)</span>
+  
+   <span class="c1"># on renvoie le nombre de prticules restantes et les coordonnees des </span>
+   <span class="c1"># particules</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_remaining_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+
+<span class="c1"># fonction qui depose les particules de sorte a remplir un demi-tambour</span>
+<div class="viewcode-block" id="depositInDrum2D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInDrum2D">[docs]</a><span class="k">def</span> <span class="nf">depositInDrum2D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInDrum2D(radii, deposited_radii=None, deposited_coor=None):</span>
+
+<span class="sd">   this function deposits circular particles in the lower half part of a drum</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - r: radius of the container </span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be in the box before the deposit</span>
+<span class="sd">   - deposited_coor=None: radii of these deposited particles  </span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, x2, y2, ...]</span>
+
+<span class="sd">   WARNING: </span>
+
+<span class="sd">   1. this function changes the radii list since it nullifies radii of the </span>
+<span class="sd">      particles out of the box. So, after calling this function, only the </span>
+<span class="sd">      first nb_remaining_particles particles are of interest </span>
+<span class="sd">   2. to avoid interpenetrations between particles and walls, this function</span>
+<span class="sd">      uses a shrink based on the size of the particles&#39;&#39;&#39;</span>
+
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+   <span class="c1"># on recupere le rayon du plus gros grain</span>
+   <span class="n">radius_max</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+
+   <span class="c1"># on realise un depot sous gravite, dans une boite de largueur 2.*r</span>
+
+   <span class="c1"># si on a donne une liste de particules deja presentes dans la boite</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+      <span class="c1"># on utilise la methode qui en tient compte</span>
+      <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_GravityAndBigParticles</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">,</span>
+         <span class="n">deposited_radii</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+   <span class="c1"># sinon,</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on utilise la methode de base </span>
+      <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit2D_Gravity</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="c1"># on definit le contour a utiliser...</span>
+   <span class="n">slope_coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">84</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+   <span class="c1"># ... en deux parties :</span>
+   <span class="c1">#   - une ligne horizontale pour remplir a moitie</span>
+   <span class="n">slope_coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">radius_max</span>
+   <span class="n">slope_coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">r</span>
+   <span class="c1">#   - un demi-cercle pour decrire le fond du demi-tambour</span>
+   <span class="c1"># N.B.: on definit dans un container legerement plus petit, pour eliminer les</span>
+   <span class="c1">#       les interpentrations avec la paroi</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="n">slope_coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">r</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">radius_max</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="mf">0.025</span><span class="p">)</span>
+      <span class="n">slope_coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">r</span> <span class="o">-</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">radius_max</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="mf">0.025</span><span class="p">)</span>
+
+   <span class="c1"># on enleve les grains hors du contour</span>
+   <span class="n">nb_remaining_particles</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">cut2D_Cut</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">coor</span><span class="p">,</span> <span class="n">slope_coor</span><span class="p">)</span>
+  
+   <span class="c1"># on renvoie le nombre de prticules restantes et les coordonnees des </span>
+   <span class="c1"># particules</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_remaining_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.tools.containers2D</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

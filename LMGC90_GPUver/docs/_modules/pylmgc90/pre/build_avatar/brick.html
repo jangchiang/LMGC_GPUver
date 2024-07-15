@@ -1,0 +1,570 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.brick &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.brick</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.brick</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module qui fournit une classe brique 2D, ou 3D</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">..avatar.bulk.rigid2d</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulk.element</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># macros pour generer des maillages de rectangles (2D)</span>
+<span class="kn">from</span> <span class="nn">.mesh2D</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># classe brique 2D</span>
+<div class="viewcode-block" id="brick2D"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.brick2D">[docs]</a><span class="k">class</span> <span class="nc">brick2D</span><span class="p">():</span>
+   <span class="sd">&#39;&#39;&#39;class designed to build rigid or deformable bricks in 2D</span>
+
+<span class="sd">   Methods:</span>
+
+<span class="sd">   - __init__</span>
+<span class="sd">   - rigidBrick</span>
+<span class="sd">   - deformableBrick</span>
+<span class="sd">   - explodedDeformableBrick&#39;&#39;&#39;</span>
+
+   <span class="c1"># constructeur</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;__init__(self, name, lx, ly):</span>
+
+<span class="sd">      creates a new brick</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the new object, itself</span>
+<span class="sd">      - name: name of the brick; useful to define special bricks, to </span>
+<span class="sd">        define a door or a window for example</span>
+<span class="sd">      - lx: length of the brick</span>
+<span class="sd">      - ly: heigth of the brick&#39;&#39;&#39;</span>
+
+      <span class="c1"># stockage du nom de la brique</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+      <span class="c1"># stockage des dimensions de la brique</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="o">=</span><span class="n">lx</span> <span class="c1"># longueur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">ly</span><span class="o">=</span><span class="n">ly</span> <span class="c1"># hauteur</span>
+
+   <span class="c1"># creation d&#39;une brique rigide</span>
+<div class="viewcode-block" id="brick2D.rigidBrick"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.brick2D.rigidBrick">[docs]</a>   <span class="k">def</span> <span class="nf">rigidBrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;rigidBrick(self, center, model, material, color=&#39;BLUEx&#39;, number=None):</span>
+
+<span class="sd">      this function build and returns a rigid brick</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the object brick itself</span>
+<span class="sd">      - center: position of the center of inertia in the global frame</span>
+<span class="sd">      - model: rigid model for the brick</span>
+<span class="sd">      - material: the brick is made of this material</span>
+
+<span class="sd">      optional parameter :</span>
+
+<span class="sd">      - color=&#39;BLUEx&#39;: color of the contactor polygon</span>
+<span class="sd">      - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+      <span class="c1"># creation d&#39;une nouvelle brique rigide</span>
+      <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">)</span> 
+      <span class="c1"># on lui attribue un comportement volumique de type rigide</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span> 
+      <span class="c1"># ajout de la position du centre d&#39;inertie de la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+      <span class="c1"># on definit les groupes pour la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+      <span class="c1"># on affecte son modele rigide a la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+      <span class="c1"># on affecte son materiau a la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+      <span class="c1"># definition du contacteur polygone pour la brique :</span>
+
+      <span class="c1"># on cree une matrice de double a la bonne taille</span>
+      <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+      <span class="c1"># on caclule les positions des sommets par rapport au centre d&#39;inertie:</span>
+      <span class="c1">#  3 *-------* 2              </span>
+      <span class="c1">#    |   +   |</span>
+      <span class="c1">#  0 *-------* 1</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="c1"># on peut alors ajouter son contacteur polygone a la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> 
+         <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+      <span class="c1"># on calcule la surface et l&#39;inertie de la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+
+      <span class="c1"># on renvoie le corps genere</span>
+      <span class="k">return</span> <span class="n">body</span></div>
+
+   <span class="c1"># creation d&#39;une brique deformable</span>
+<div class="viewcode-block" id="brick2D.deformableBrick"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.brick2D.deformableBrick">[docs]</a>   <span class="k">def</span> <span class="nf">deformableBrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">mesh_type</span><span class="o">=</span><span class="s1">&#39;4T3&#39;</span><span class="p">,</span> 
+      <span class="n">nb_elem_x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_elem_y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">apabh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apabv</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apabhc</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">apabvc</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+      <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;HORIx&#39;</span><span class="p">,</span> <span class="s1">&#39;VERTx&#39;</span><span class="p">,</span> <span class="s1">&#39;HORIx&#39;</span><span class="p">,</span> <span class="s1">&#39;VERTx&#39;</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;deformableBrick(self, center, material, model, number, mesh_type=&#39;4T3&#39;, </span>
+<span class="sd">      nb_elem_x=1, nb_elem_y=1, apabh=None, apabv=None, apabhc=0.25, apabvc=0.25,</span>
+<span class="sd">      colors=[&#39;HORIx&#39;, &#39;VERTx&#39;, &#39;HORIx&#39;, &#39;VERTx&#39;]):</span>
+
+<span class="sd">      this function builds and returns a deformable brick</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the object brick itself</span>
+<span class="sd">      - center: position of the center of inertia in the global frame</span>
+<span class="sd">      - material: the brick is made of this material</span>
+<span class="sd">      - model: mechanical model for the brick</span>
+
+<span class="sd">      optional parameters :</span>
+
+<span class="sd">      - mesh_type=&#39;4T3&#39;: meshing strategy for the brick</span>
+<span class="sd">        (possible values: &#39;Q4&#39;, &#39;Q8&#39;, &#39;2T3&#39; and &#39;4T3&#39;)</span>
+<span class="sd">      - nb_elem_x: number of elements Q4 following direction Ox</span>
+<span class="sd">      - nb_elem_y: number of elements Q4 following direction Oy</span>
+<span class="sd">      - apabh: curvilign abscissas used to put candidate points on horizontal lines</span>
+<span class="sd">      - apabv: curvilign abscissas used to put candidate points on vertical lines</span>
+<span class="sd">      - apabhc: curvilign abscissa used to put candidate point near</span>
+<span class="sd">        a corner, on an horizontal line</span>
+<span class="sd">      - apabvc: curvilign abscissa used to put candidate point near</span>
+<span class="sd">        a corner, on an vertical line</span>
+<span class="sd">      - colors=[&#39;HORIx&#39;, &#39;VERTx&#39;, &#39;HORIx&#39;, &#39;VERTx&#39;]: colors of the </span>
+<span class="sd">        contactors for each side of the brick, given in the </span>
+<span class="sd">        following order: &#39;down&#39;, &#39;right&#39;, &#39;up&#39;, &#39;left&#39; </span>
+<span class="sd">      - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+      <span class="c1"># on calcule la position du coin inferieur gauche de la brique</span>
+      <span class="n">x0</span><span class="o">=</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span>
+      <span class="n">y0</span><span class="o">=</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span>
+      <span class="c1"># on genere le maillage de la brique</span>
+      <span class="n">mesh_brick</span><span class="o">=</span><span class="n">buildMesh2D</span><span class="p">(</span><span class="n">mesh_type</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ly</span><span class="p">,</span> <span class="n">nb_elem_x</span><span class="p">,</span> <span class="n">nb_elem_y</span><span class="p">)</span> 
+      <span class="c1"># on contruit un corps maille a partir du maillage de la brique</span>
+      <span class="n">body</span><span class="o">=</span><span class="n">buildMeshedAvatar</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh_brick</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+      <span class="c1"># on ajoute les contacteurs :</span>
+      <span class="c1">#    * une ligne antagoniste sur le dessus du bloc</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ALpxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+      <span class="c1">#    * les points candidats sur le dessous du bloc</span>
+      <span class="c1"># si on donne des positions pour le points de contacts, on les</span>
+      <span class="c1"># utilise</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="n">apabh</span> <span class="p">):</span>
+         <span class="c1"># fd pas comprendre </span>
+         <span class="c1">#body.addContactors(group=&#39;down&#39;,shape=&#39;CLxxx&#39;,color=colors[0],</span>
+         <span class="c1">#   connex=&#39;no&#39;, weights=apabh)</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;down&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">weights</span><span class="o">=</span><span class="n">apabh</span><span class="p">)</span>
+      <span class="c1"># sinon, </span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># on les place aux sommets du maillage</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;down&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+         <span class="c1"># on deplace les noeuds situes :</span>
+         <span class="c1">#    * dans le coin inferieur gauche de la brique</span>
+         <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabhc</span><span class="p">)</span>
+         <span class="c1">#    * dans le coin inferieur droit de la brique</span>
+         <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabhc</span><span class="p">)</span>
+
+      <span class="c1">#    * une ligne antagoniste sur le cote gauche du bloc</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ALpxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+      <span class="c1">#    * les points candidats sur le cote droit du bloc</span>
+      <span class="c1"># si on donne des positions pour le points de contacts, on les</span>
+      <span class="c1"># utilise</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="n">apabv</span> <span class="p">):</span>
+         <span class="c1">#body.addContactors(group=&#39;right&#39;,shape=&#39;CLxxx&#39;,color=colors[1],</span>
+         <span class="c1">#   connex=&#39;no&#39;, weights=apabv)</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">weights</span><span class="o">=</span><span class="n">apabv</span><span class="p">)</span>
+      <span class="c1"># sinon,</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># on les place aux sommets </span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+         <span class="c1"># on deplace les noeuds situes :</span>
+         <span class="c1">#    * dans le coin inferieur droit de la brique</span>
+         <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabvc</span><span class="p">)</span>
+         <span class="c1">#    * dans le coin superieur droit de la brique</span>
+         <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ly</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabvc</span><span class="p">)</span>
+
+      <span class="c1"># on renvoie le corps genere</span>
+      <span class="k">return</span> <span class="n">body</span>               </div>
+
+    <span class="c1"># creation d&#39;une brique deformable, explosee</span>
+<div class="viewcode-block" id="brick2D.explodedDeformableBrick"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.brick2D.explodedDeformableBrick">[docs]</a>   <span class="k">def</span> <span class="nf">explodedDeformableBrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">mesh_type</span><span class="o">=</span><span class="s1">&#39;4T3&#39;</span><span class="p">,</span> 
+      <span class="n">nb_elem_x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_elem_y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">apabh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apabv</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apabhc</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">apabvc</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+      <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;HORIx&#39;</span><span class="p">,</span> <span class="s1">&#39;VERTx&#39;</span><span class="p">,</span> <span class="s1">&#39;HORIx&#39;</span><span class="p">,</span> <span class="s1">&#39;VERTx&#39;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;explodedDeformableBrick(self, center, material, model, mesh_type=&#39;4T3&#39;, </span>
+<span class="sd">      nb_elem_x=1, nb_elem_y=1, apabh=None, apabv=None, apabhc=0.25, apabvc=0.25,</span>
+<span class="sd">      colors=[&#39;HORIx&#39;, &#39;VERTx&#39;, &#39;HORIx&#39;, &#39;VERTx&#39;], color=&#39;BLUEx&#39;, shift=0):</span>
+
+<span class="sd">      this function builds and returns a deformable brick</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the object brick itself</span>
+<span class="sd">      - center: position of the center of inertia in the global frame</span>
+<span class="sd">      - material: the brick is made of this material</span>
+<span class="sd">      - model: mechanical model for the brick</span>
+
+<span class="sd">      optional parameters :</span>
+
+<span class="sd">      - mesh_type=&#39;4T3&#39;: meshing strategy for the brick</span>
+<span class="sd">        (possible values: &#39;Q4&#39;, &#39;Q8&#39;, &#39;2T3&#39; and &#39;4T3&#39;)</span>
+<span class="sd">      - nb_elem_x: number of elements Q4 following direction Ox</span>
+<span class="sd">      - nb_elem_y: number of elements Q4 following direction Oy</span>
+<span class="sd">      - apabh: curvilign abscissas used to put candidate points on horizontal lines</span>
+<span class="sd">      - apabv: curvilign abscissas used to put candidate points on vertical lines</span>
+<span class="sd">      - apabhc: curvilign abscissa used to put candidate point near</span>
+<span class="sd">        a corner, on an horizontal line</span>
+<span class="sd">      - apabvc: curvilign abscissa used to put candidate point near</span>
+<span class="sd">        a corner, on an vertical line</span>
+<span class="sd">      - color: color of contactors used to set cohesive zones</span>
+<span class="sd">      - colors=[&#39;HORIx&#39;, &#39;VERTx&#39;, &#39;HORIx&#39;, &#39;VERTx&#39;]: colors of the </span>
+<span class="sd">        contactors for each side of the brick, given in the </span>
+<span class="sd">        following order: &#39;down&#39;, &#39;right&#39;, &#39;up&#39;, &#39;left&#39;</span>
+<span class="sd">      - shift: shift in the bodies numbering (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+      <span class="c1"># on calcule la position du coin inferieur gauche de la brique</span>
+      <span class="n">x0</span><span class="o">=</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span>
+      <span class="n">y0</span><span class="o">=</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span>
+      <span class="c1"># on genere le maillage de la brique</span>
+      <span class="n">mesh_brick</span><span class="o">=</span><span class="n">buildMesh2D</span><span class="p">(</span><span class="n">mesh_type</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ly</span><span class="p">,</span> <span class="n">nb_elem_x</span><span class="p">,</span> <span class="n">nb_elem_y</span><span class="p">)</span> 
+      <span class="c1"># on contruit un corps maille a partir du maillage de la brique</span>
+      <span class="n">body</span><span class="o">=</span><span class="n">buildMeshedAvatar</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh_brick</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+      <span class="c1"># on explose le corps maille represenant la brique</span>
+      <span class="n">bodies</span><span class="o">=</span><span class="n">explodeMeshedAvatar2D</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">nbPoints</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+      <span class="c1"># pour chaque corps resultant</span>
+      <span class="k">for</span> <span class="n">new_body</span> <span class="ow">in</span> <span class="n">bodies</span><span class="p">:</span>
+         <span class="c1"># on ajoute les contacteurs :</span>
+         <span class="c1">#    * une ligne antagoniste sur le dessus du bloc</span>
+         <span class="k">if</span> <span class="n">new_body</span><span class="o">.</span><span class="n">hasGroup</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">):</span>
+            <span class="n">new_body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ALpxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+         <span class="c1">#    * les points candidats sur le dessous du bloc</span>
+         <span class="k">if</span> <span class="n">new_body</span><span class="o">.</span><span class="n">hasGroup</span><span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">):</span>
+            <span class="c1"># si on donne des positions pour le points de contacts, on les</span>
+            <span class="c1"># utilise</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">apabh</span> <span class="p">):</span>
+               <span class="c1">#body.addContactors(group=&#39;down&#39;,shape=&#39;CLxxx&#39;,color=colors[0],</span>
+               <span class="c1">#   connex=&#39;no&#39;, weights=apabh)</span>
+               <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;down&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                  <span class="n">weights</span><span class="o">=</span><span class="n">apabh</span><span class="p">)</span>
+            <span class="c1"># sinon,  </span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="c1"># on les place aux sommets </span>
+               <span class="n">new_body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;down&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+               <span class="c1"># on deplace les noeuds situes :</span>
+               <span class="c1">#    * dans le coin inferieur gauche de la brique</span>
+               <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">new_body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabhc</span><span class="p">)</span>
+               <span class="c1">#    * dans le coin inferieur droit de la brique</span>
+               <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">new_body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabhc</span><span class="p">)</span>
+
+         <span class="c1">#    * une ligne antagoniste sur le cote gauche du bloc</span>
+         <span class="k">if</span> <span class="n">new_body</span><span class="o">.</span><span class="n">hasGroup</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">):</span>
+            <span class="n">new_body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ALpxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+         <span class="c1">#    * les points candidats sur le cote droit du bloc</span>
+         <span class="k">if</span> <span class="n">new_body</span><span class="o">.</span><span class="n">hasGroup</span><span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">):</span>
+            <span class="c1"># si on donne des positions pour le points de contacts, on les</span>
+            <span class="c1"># utilise</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">apabv</span> <span class="p">):</span>
+               <span class="c1">#body.addContactors(group=&#39;right&#39;,shape=&#39;CLxxx&#39;,color=colors[1],</span>
+               <span class="c1">#   connex=&#39;no&#39;, weights=apabv)</span>
+               <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                  <span class="n">weights</span><span class="o">=</span><span class="n">apabv</span><span class="p">)</span>
+            <span class="c1"># sinon, </span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="c1"># on les place aux sommets </span>
+               <span class="n">new_body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+               <span class="c1"># on deplace les noeuds situes :</span>
+               <span class="c1">#    * dans le coin inferieur droit de la brique</span>
+               <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">new_body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabvc</span><span class="p">)</span>
+               <span class="c1">#    * dans le coin superieur droit de la brique</span>
+               <span class="n">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="p">[</span><span class="n">x0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ly</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">new_body</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">apab</span><span class="o">=</span><span class="n">apabvc</span><span class="p">)</span>
+
+      <span class="c1"># on renvoie la liste de corps generee</span>
+      <span class="k">return</span> <span class="n">bodies</span></div></div>
+
+<span class="c1"># classe brique 3D</span>
+<div class="viewcode-block" id="brick3D"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.brick3D">[docs]</a><span class="k">class</span> <span class="nc">brick3D</span><span class="p">():</span>
+   <span class="sd">&#39;&#39;&#39;class designed to build rigid bricks in 3D</span>
+<span class="sd">   Methods:</span>
+
+<span class="sd">   - __init__</span>
+<span class="sd">   - rigidBrick</span>
+<span class="sd">   &#39;&#39;&#39;</span>
+
+   <span class="c1"># constructeur</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lz</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;__init__(self, name, lx, ly, lz):</span>
+
+<span class="sd">      creates a new brick</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the new object, itself</span>
+<span class="sd">      - name: name of the brick; useful to define special bricks, to </span>
+<span class="sd">        define a door or a window for example</span>
+<span class="sd">      - lx: length of the brick</span>
+<span class="sd">      - ly: depth of the brick</span>
+<span class="sd">      - lz: heigth of the brick&#39;&#39;&#39;</span>
+
+      <span class="c1"># stockage du nom de la brique</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+      <span class="c1"># stockage des dimensions de la brique</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="o">=</span><span class="n">lx</span> <span class="c1"># longueur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">ly</span><span class="o">=</span><span class="n">ly</span> <span class="c1"># largeur</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">lz</span><span class="o">=</span><span class="n">lz</span> <span class="c1"># hauteur</span>
+
+   <span class="c1"># creation d&#39;une brique rigide</span>
+<div class="viewcode-block" id="brick3D.rigidBrick"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.brick3D.rigidBrick">[docs]</a>   <span class="k">def</span> <span class="nf">rigidBrick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;rigidBrick(self, center, model, material, color=&#39;BLUEx&#39;):</span>
+<span class="sd">      this function build and returns a rigid brick</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the object brick itself</span>
+<span class="sd">      - center: position of the center of inertia in the global frame</span>
+<span class="sd">      - model: rigid model for the brick</span>
+<span class="sd">      - material: the brick is made of this material</span>
+
+<span class="sd">      optional parameter :</span>
+
+<span class="sd">      - color=&#39;BLUEx&#39;: color of the contactor polhedron</span>
+<span class="sd">      &#39;&#39;&#39;</span>
+
+      <span class="c1"># creation d&#39;une nouvelle brique rigide</span>
+      <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> 
+      <span class="c1"># on lui attribue un comportement volumique de type rigide</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid3d</span><span class="p">()</span> <span class="p">)</span> 
+      <span class="c1"># ajout de la position du centre d&#39;inertie de la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+      <span class="c1"># on definit les groupes pour la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+      <span class="c1"># on affecte son modele rigide a la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+      <span class="c1"># on affecte son materiau a la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+      <span class="c1"># definition du contacteur polyedre pour la brique :</span>
+
+      <span class="c1"># on cree une matrice :</span>
+      <span class="c1">#    - de double, pour les coordonnees des sommets</span>
+      <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+      <span class="c1">#    - d&#39;entiers, pour la connectivite des faces</span>
+      <span class="n">connectivity</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;i&#39;</span><span class="p">)</span>
+
+      <span class="c1"># on caclule les positions des sommets par rapport au centre d&#39;inertie:</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ly</span> 
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span>  <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">lz</span> 
+      <span class="c1"># on donne la connnectivite des faces triangulaires</span>
+      <span class="c1"># dans le plan (x, y, zG - lz)</span>
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">2</span>  
+
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">4</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span>  
+      <span class="c1"># dans le plan (x, y, zG + lz)</span>
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">6</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">7</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">8</span>  
+
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">6</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">8</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">5</span>  
+      <span class="c1"># dans le plan (x, yG - ly, z)</span>
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">2</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">5</span>  
+
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">2</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">6</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">5</span>  
+      <span class="c1"># dans le plan (x, yG + ly, z)</span>
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">4</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">7</span>  
+
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">4</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">8</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">7</span>  
+      <span class="c1"># dans le plan (xG - lx, y, z)</span>
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">5</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">8</span>  
+
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">8</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">4</span>  
+      <span class="c1"># dans le plan (xG + lx, y, z)</span>
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">2</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">6</span>  
+
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">7</span>  
+      <span class="n">connectivity</span><span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">6</span>  
+
+      <span class="c1"># on peut alors ajouter son contacteur polygone a la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYR&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">nb_faces</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> 
+         <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">connectivity</span><span class="p">)</span>
+
+      <span class="c1"># on calcule le volume et l&#39;inertie de la brique</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+
+      <span class="c1"># on renvoie le corps genere</span>
+      <span class="k">return</span> <span class="n">body</span></div></div>
+
+<span class="c1"># fonction qui deplace un contacteur CLxxx situe sur un noeud sommet,</span>
+<span class="c1"># de sorte que la distance entre le noeud et le contacteur soit apab </span>
+<span class="k">def</span> <span class="nf">_moveContactorCLxxx</span><span class="p">(</span><span class="n">coor</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">apab</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;_moveContactorCLxxx(coor, body, color, apab):</span>
+<span class="sd">   this function move a contactor CLxxx placed on a vertex</span>
+<span class="sd">   so as to the distance between the vertex and the contactor is apab</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - coor: coordinates of the vertex</span>
+<span class="sd">   - body: given body</span>
+<span class="sd">   - color: color of the considered contactor</span>
+<span class="sd">   - apab: distance between the vertex and the contactor,</span>
+<span class="sd">     following the considerd line&quot;&quot;&quot;</span>
+   
+   <span class="c1"># on recupere l&#39;indice du noeud ayant les coordonnees donnees </span>
+   <span class="n">index</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">findNode</span><span class="p">(</span><span class="n">coor</span><span class="p">)</span>
+   <span class="c1"># s&#39;il n&#39;esiste pas</span>
+   <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="c1"># on affiche un warning</span>
+      <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;no node in this avatar have the searched coordinates&quot;</span><span class="p">)</span>
+      <span class="c1"># on quitte la fonction</span>
+      <span class="k">return</span>
+
+   <span class="c1"># pour chaque contacteur du corps</span>
+   <span class="k">for</span> <span class="n">contact</span> <span class="ow">in</span> <span class="n">body</span><span class="o">.</span><span class="n">contactors</span><span class="p">:</span>
+      <span class="c1"># si le contacteur n&#39;est pas un CLxxx</span>
+      <span class="k">if</span> <span class="n">contact</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="s1">&#39;CLxxx&#39;</span><span class="p">:</span>
+         <span class="c1"># on passe au suivant</span>
+         <span class="k">continue</span>
+      <span class="c1"># si le contacteur n&#39;a pas la bonne couleur</span>
+      <span class="k">if</span> <span class="n">contact</span><span class="o">.</span><span class="n">color</span> <span class="o">!=</span> <span class="n">color</span><span class="p">:</span>
+         <span class="c1"># on passe au suivant</span>
+         <span class="k">continue</span>
+      <span class="c1"># pour chaque element supportant le contacteur</span>
+      <span class="k">for</span> <span class="n">ie</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">contact</span><span class="o">.</span><span class="n">elements</span><span class="p">):</span>
+         <span class="c1"># on recupere la connectivite de l&#39;element supportant</span>
+         <span class="c1"># le contacteur</span>
+         <span class="n">connectivity</span> <span class="o">=</span> <span class="n">ele</span><span class="o">.</span><span class="n">connectivity</span>
+         <span class="c1"># si le noeud cherche est dans la connectivite de l&#39;element</span>
+         <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">connectivity</span><span class="p">:</span>
+            <span class="c1"># si le noeud est le premier dans la connectivite, et</span>
+            <span class="c1"># que l&#39;abscisse du noeud est nulle</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">contact</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">ie</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+               <span class="c1"># la nouvelle abscisse est celle donnee en parametre </span>
+               <span class="n">contact</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">ie</span><span class="p">]</span> <span class="o">=</span> <span class="n">apab</span>
+            <span class="c1"># si le noeud est le deuxieme dans la connectivite, et</span>
+            <span class="c1"># que l&#39;abscisse du noeud est egale a 1</span>
+            <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">contact</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">ie</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.</span><span class="p">:</span>
+               <span class="c1"># la nouvelle abscisse est le complementaire de </span>
+               <span class="c1"># celle donnee en parametre </span>
+               <span class="n">contact</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">ie</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">apab</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.brick</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

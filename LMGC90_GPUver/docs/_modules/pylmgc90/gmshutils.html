@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.gmshutils &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.gmshutils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.gmshutils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">collections</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">gmsh</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span> <span class="s2">&quot;ERROR: &#39;gmsh&#39; python module not found. Before importing gmshutils submodule,&quot;</span> <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span> <span class="s2">&quot;       please install gmsh API python module  with &#39;pip install gmsh&#39;&quot;</span> <span class="p">)</span>
+
+<span class="n">is_init</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">def</span> <span class="nf">initGmsh</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A function to initialize gmsh instance with global options...</span>
+
+<span class="sd">    TODO : improve to set options instead of defaulting ?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">is_init</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s2">&quot;General.Terminal&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># 1: MeshAdapt, 2: Automatic, 5: Delaunay, 6: Frontal-Delaunay, 7: BAMG,</span>
+    <span class="c1"># 8: Frontal-Delaunay for Quads, 9: Packing of Parallelograms</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s2">&quot;Mesh.Algorithm&quot;</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="c1"># 1: Delaunay, 4: Frontal, 7: MMG3D, 9: R-tree, 10: HXT</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s2">&quot;Mesh.Algorithm3D&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1">#gmsh.option.setNumber(&quot;Mesh.Smoothing&quot;, 100)</span>
+    <span class="c1">#gmsh.option.setNumber(&quot;Mesh.CharacteristicLengthMin&quot;, lc_);</span>
+    <span class="c1">#gmsh.option.setNumber(&quot;Mesh.CharacteristicLengthMax&quot;, lc_);</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s1">&#39;Mesh.Optimize&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">is_init</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="getMeshAsGModel"><a class="viewcode-back" href="../../gmsh_classes.html#pylmgc90.gmshutils.getMeshAsGModel">[docs]</a><span class="k">def</span> <span class="nf">getMeshAsGModel</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a gmsh.model object from nodes and bulks stored in the mesh object</span>
+
+<span class="sd">    Only element of type S2xxx, T3xxx and Q4xxx are read</span>
+<span class="sd">    to generate a surfacic model of gmsh.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    - mesh: the pre.mesh object to read to fill gmsh.model.geo</span>
+<span class="sd">    - groups: the groups of element to use, use everything if None</span>
+
+<span class="sd">    Optionnal parameters:</span>
+
+<span class="sd">    - lc: the charactheristic length to use when adding points</span>
+<span class="sd">    - name: the name to set when adding the geometry to gmsh model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">is_init</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_init</span><span class="p">:</span>
+      <span class="n">initGmsh</span><span class="p">()</span>
+
+
+    <span class="c1"># parameters and options settings</span>
+    <span class="n">lc</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;lc&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;lc&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="mf">1.e0</span>
+    <span class="n">geo_name</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;pylmgc90_mesh&quot;</span>
+
+    <span class="c1"># creating the geometric model</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">geo_name</span><span class="p">)</span>
+
+    <span class="c1"># feeding geo model with the nodes</span>
+    <span class="k">for</span> <span class="n">kno</span><span class="p">,</span> <span class="n">no</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">no</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">no</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">no</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">lc</span><span class="p">,</span> <span class="n">kno</span><span class="p">)</span> 
+        <span class="c1">#print( f&quot;adding node {kno} at {no.coor}&quot;)</span>
+
+    <span class="c1"># feeding geo model with the elements:</span>
+    <span class="n">pG</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">line_count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">surf_count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">bulks</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">groups</span> <span class="ow">and</span> <span class="n">el</span><span class="o">.</span><span class="n">physicalGroup</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;S2xxx&#39;</span><span class="p">:</span>
+            <span class="c1"># add 1 line</span>
+            <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">connectivity</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> <span class="n">line_count</span><span class="p">)</span>
+            <span class="c1">#print( f&quot;adding line {line_count} between nodes {S1} and {S2}&quot;)</span>
+            <span class="n">pG</span><span class="p">[</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">)</span> <span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">line_count</span> <span class="p">)</span>
+            <span class="n">line_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">el</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;T3xxx&#39;</span><span class="p">:</span>
+            <span class="c1"># add 3 lines and 1 surface</span>
+            <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> <span class="n">S3</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">connectivity</span>
+            <span class="n">surf</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="nb">range</span><span class="p">(</span><span class="n">line_count</span><span class="p">,</span> <span class="n">line_count</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span> <span class="p">)</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S2</span><span class="p">,</span> <span class="n">S3</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S3</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addCurveLoop</span><span class="p">(</span><span class="n">surf</span><span class="p">,</span> <span class="n">surf_count</span><span class="p">)</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addPlaneSurface</span><span class="p">([</span><span class="n">surf_count</span><span class="p">],</span> <span class="n">surf_count</span><span class="p">)</span>
+            <span class="n">pG</span><span class="p">[</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">)</span> <span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">surf_count</span> <span class="p">)</span>
+            <span class="n">line_count</span> <span class="o">+=</span> <span class="mi">3</span>
+            <span class="n">surf_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">el</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;Q4xxx&#39;</span><span class="p">:</span>
+            <span class="c1"># add 4 lines and 1 surface</span>
+            <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> <span class="n">S3</span><span class="p">,</span> <span class="n">S4</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">connectivity</span>
+            <span class="n">surf</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="nb">range</span><span class="p">(</span><span class="n">line_count</span><span class="p">,</span> <span class="n">line_count</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span> <span class="p">)</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S2</span><span class="p">,</span> <span class="n">S3</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S3</span><span class="p">,</span> <span class="n">S4</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">S4</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">surf</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addCurveLoop</span><span class="p">(</span><span class="n">surf</span><span class="p">,</span> <span class="n">surf_count</span><span class="p">)</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addPlaneSurface</span><span class="p">([</span><span class="n">surf_count</span><span class="p">],</span> <span class="n">surf_count</span><span class="p">)</span>
+            <span class="n">pG</span><span class="p">[</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">)</span> <span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">surf_count</span> <span class="p">)</span>
+            <span class="n">line_count</span> <span class="o">+=</span> <span class="mi">4</span>
+            <span class="n">surf_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">gr</span> <span class="ow">in</span> <span class="n">pG</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="p">:</span>
+        <span class="n">pdim</span><span class="p">,</span> <span class="n">pname</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span><span class="n">pdim</span><span class="p">,</span> <span class="n">gr</span><span class="p">)</span> 
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">setPhysicalName</span><span class="p">(</span><span class="n">pdim</span><span class="p">,</span> <span class="n">ps</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">removeAllDuplicates</span><span class="p">()</span>
+    
+    <span class="c1"># important to synchronize since the segment of each</span>
+    <span class="c1"># element is added when only one would be needed !</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+    <span class="c1"># is this ok ?</span>
+    <span class="k">return</span> <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span></div>
+ 
+<div class="viewcode-block" id="addVolumesToGeo"><a class="viewcode-back" href="../../gmsh_classes.html#pylmgc90.gmshutils.addVolumesToGeo">[docs]</a><span class="k">def</span> <span class="nf">addVolumesToGeo</span><span class="p">(</span><span class="n">vol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add volumes to the geometry of the active gmsh.model</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">    vol: a dictionnary where keys will be the physical volume name</span>
+<span class="sd">         and the associated value must be a list of physical surfaces</span>
+<span class="sd">         defining the named volume. If there is a closed surface in the</span>
+<span class="sd">         list of surfaces, it substract it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># generate a dict associating physical group with their entities</span>
+    <span class="n">pname2pent</span> <span class="o">=</span> <span class="p">{</span> <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getPhysicalName</span><span class="p">(</span><span class="o">*</span><span class="n">group</span><span class="p">)</span> <span class="p">:</span> <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getEntitiesForPhysicalGroup</span><span class="p">(</span><span class="o">*</span><span class="n">group</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">getPhysicalGroups</span><span class="p">()</span>
+                 <span class="p">}</span>
+
+    <span class="c1"># first making surface loop for each groups of surface to use:</span>
+    <span class="n">surf_list</span> <span class="o">=</span> <span class="p">{</span> <span class="n">s_name</span> <span class="k">for</span> <span class="n">surf</span> <span class="ow">in</span> <span class="n">vol</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">s_name</span> <span class="ow">in</span> <span class="n">surf</span> <span class="p">}</span>
+    <span class="n">sname2id</span>  <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">surf_count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">surf</span> <span class="ow">in</span> <span class="n">surf_list</span><span class="p">:</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addSurfaceLoop</span><span class="p">(</span> <span class="n">pname2pent</span><span class="p">[</span><span class="n">surf</span><span class="p">],</span> <span class="n">surf_count</span> <span class="p">)</span>
+        <span class="n">sname2id</span><span class="p">[</span><span class="n">surf</span><span class="p">]</span> <span class="o">=</span> <span class="n">surf_count</span>
+        <span class="n">surf_count</span> <span class="o">+=</span> <span class="mi">1</span>   
+    
+    <span class="n">vol_count</span>  <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># now creating volume and physical entity associated to it</span>
+    <span class="k">for</span> <span class="n">vol_name</span><span class="p">,</span> <span class="n">surf_list</span> <span class="ow">in</span> <span class="n">vol</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">surf_list_id</span> <span class="o">=</span> <span class="p">[</span> <span class="n">sname2id</span><span class="p">[</span><span class="n">s_name</span><span class="p">]</span> <span class="k">for</span> <span class="n">s_name</span> <span class="ow">in</span> <span class="n">surf_list</span> <span class="p">]</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">addVolume</span><span class="p">(</span> <span class="n">surf_list_id</span><span class="p">,</span> <span class="n">vol_count</span> <span class="p">)</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">addPhysicalGroup</span><span class="p">(</span> <span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="n">vol_count</span><span class="p">],</span> <span class="n">vol_count</span><span class="p">)</span>
+        <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">setPhysicalName</span><span class="p">(</span>  <span class="mi">3</span><span class="p">,</span> <span class="n">vol_count</span><span class="p">,</span> <span class="n">vol_name</span> <span class="p">)</span>
+        <span class="n">vol_count</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="meshAndSave"><a class="viewcode-back" href="../../gmsh_classes.html#pylmgc90.gmshutils.meshAndSave">[docs]</a><span class="k">def</span> <span class="nf">meshAndSave</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mesh the model in the gmsh module and save it.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+
+<span class="sd">    name: the name of file in which to save</span>
+<span class="sd">    dim: the dimension of the mesh</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">geo</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">gmsh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.gmshutils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

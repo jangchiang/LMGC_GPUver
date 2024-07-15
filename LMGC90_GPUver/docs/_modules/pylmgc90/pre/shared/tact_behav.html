@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.shared.tact_behav &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.shared.tact_behav</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.shared.tact_behav</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">..utilities.error</span>    <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..config.lmgc90dicts</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="see_table"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.see_table">[docs]</a><span class="k">class</span> <span class="nc">see_table</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;class see_table()</span>
+
+<span class="sd">    this class defines objects to store the see tables used by the contact detection</span>
+
+<span class="sd">    methods:</span>
+
+<span class="sd">    - __init__: constructor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CorpsCandidat</span><span class="p">,</span> <span class="n">candidat</span><span class="p">,</span> <span class="n">colorCandidat</span><span class="p">,</span> <span class="n">behav</span><span class="p">,</span>
+                 <span class="n">CorpsAntagoniste</span><span class="p">,</span> <span class="n">antagoniste</span><span class="p">,</span> <span class="n">colorAntagoniste</span><span class="p">,</span> <span class="n">alert</span><span class="p">,</span> <span class="n">halo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; __init__(self, CorpsCandidat, candidat, colorCandidat, behav,</span>
+<span class="sd">        CorpsAntagoniste, antagoniste, colorAntagoniste, alert, halo=None, name=None):</span>
+
+<span class="sd">        this method builds a new see table</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the see table itself</span>
+<span class="sd">        - CorpsCandidat: candidate body type</span>
+<span class="sd">        - candidat: candidate contactor type</span>
+<span class="sd">        - colorCandidat: candidate contactor color</span>
+<span class="sd">        - behav: name of a contact law. It can be undefined when the see table is </span>
+<span class="sd">          declared, but have to be defined when files are write down, in order </span>
+<span class="sd">          to ensure data consitency</span>
+<span class="sd">        - CorpsAntagoniste: antagonist body type</span>
+<span class="sd">        - antagoniste: antagonist contactor type</span>
+<span class="sd">        - colorAntagoniste: antagonist contactor color</span>
+<span class="sd">        - alert: alert distance used to activate contact between the candidate body</span>
+<span class="sd">          and the antagonist body</span>
+
+<span class="sd">        optional parameters:</span>
+
+<span class="sd">        - halo=None: optional second alert distance used to detect contact between </span>
+<span class="sd">          two deformable bodies, in order to avoid some numerical artefacts</span>
+<span class="sd">        - name=None: name of the see table (still present to ensure compatibility)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># si l&#39;utilisateur attribue un nom a la table de visibilite</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="c1"># on lui indique qu&#39;il ne sera pas utilise</span>
+           <span class="n">shwoWarning</span><span class="p">(</span><span class="s1">&#39;assign a name to a see table is useless, and will be forbidden!&#39;</span><span class="p">)</span>
+
+        <span class="c1"># verification de la coherence des donnees</span>
+
+        <span class="c1"># si on reconnait le type du corps candidat </span>
+        <span class="k">if</span> <span class="n">CorpsCandidat</span> <span class="ow">in</span> <span class="n">listeBodyType</span><span class="p">:</span>
+           <span class="c1"># on le stocke</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">CorpsCandidat</span> <span class="o">=</span> <span class="n">CorpsCandidat</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+           <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Type of candidate body unknown</span><span class="se">\n</span><span class="s2"> it must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeBodyType</span><span class="p">:</span>
+               <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+           <span class="c1"># on l&#39;affiche</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># si on reconnait le type du corps antagoniste</span>
+        <span class="k">if</span> <span class="n">CorpsAntagoniste</span> <span class="ow">in</span> <span class="n">listeBodyType</span><span class="p">:</span>
+           <span class="c1"># on le stocke</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">CorpsAntagoniste</span> <span class="o">=</span> <span class="n">CorpsAntagoniste</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+           <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Type of antagonist body unknown</span><span class="se">\n</span><span class="s2"> it must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeBodyType</span><span class="p">:</span>
+               <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+           <span class="c1"># on l&#39;affiche</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># si on reconnait le type du contacteur candidat</span>
+        <span class="k">if</span> <span class="n">candidat</span> <span class="ow">in</span> <span class="n">listeCandidat</span><span class="p">:</span>
+           <span class="c1"># si le type de contacteur candidat est compatible avec le </span>
+           <span class="c1"># type de corps candidat</span>
+           <span class="k">if</span> <span class="n">candidat</span> <span class="ow">in</span> <span class="n">bodyType2contactor</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CorpsCandidat</span><span class="p">]:</span>
+              <span class="c1"># on le stocke </span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">candidat</span> <span class="o">=</span> <span class="n">candidat</span>
+           <span class="c1"># sinon,</span>
+           <span class="k">else</span><span class="p">:</span>
+              <span class="c1"># on construit un message d&#39;erreur rappelant les types compatibles</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Type of candidate contactor incompatible with a body of type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">CorpsCandidat</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+                    <span class="s2">&quot; the contactor type must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">bodyType2contactor</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CorpsCandidat</span><span class="p">]:</span>
+                 <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+              <span class="c1"># on l&#39;affiche</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+           <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Type of candidate contactor unknown</span><span class="se">\n</span><span class="s2"> the type must be among:</span><span class="se">\n</span><span class="s2">&quot;</span> 
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeCandidat</span><span class="p">:</span>
+               <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+           <span class="c1"># on l&#39;affiche</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># si on reconnait le type du contacteur antagoniste</span>
+        <span class="k">if</span> <span class="n">antagoniste</span> <span class="ow">in</span> <span class="n">listeAntagoniste</span><span class="p">:</span>
+           <span class="c1"># si le type de contacteur antagoniste est compatible avec le </span>
+           <span class="c1"># type de corps antagoniste</span>
+           <span class="k">if</span> <span class="n">antagoniste</span> <span class="ow">in</span> <span class="n">bodyType2contactor</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CorpsAntagoniste</span><span class="p">]:</span>
+              <span class="c1"># on le stocke </span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">antagoniste</span> <span class="o">=</span> <span class="n">antagoniste</span>
+           <span class="c1"># sinon,</span>
+           <span class="k">else</span><span class="p">:</span>
+              <span class="c1"># on construit un message d&#39;erreur rappelant les types compatibles</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Type of antagonist contactor incompatible with a body of type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">CorpsAntagoniste</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+                    <span class="s2">&quot; the contactor type must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">bodyType2contactor</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CorpsAntagoniste</span><span class="p">]:</span>
+                 <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+              <span class="c1"># on l&#39;affiche</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+           <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Type of antagonist contactor unknown</span><span class="se">\n</span><span class="s2"> the type must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeAntagoniste</span><span class="p">:</span>
+               <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+           <span class="c1"># on l&#39;affiche</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># on verifie la couleur des contacteurs</span>
+        
+        <span class="c1"># si la couleur du contacteur candidat n&#39;est pas une chaine</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colorCandidat</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">shwoError</span><span class="p">(</span><span class="s2">&quot;color of the candidate contactor must be a 5 characters string!&quot;</span><span class="p">)</span>
+ 
+        <span class="c1"># si la chaine ne fait pas cinq caracteres </span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorCandidat</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;color of the candidate contactor must be a 5 characters string!&quot;</span><span class="p">)</span>
+ 
+        <span class="c1"># si tout est bon, on stocke la couleur du contacteur candidat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorCandidat</span> <span class="o">=</span> <span class="n">colorCandidat</span>
+
+        <span class="c1"># si la couleur du contacteur antagoniste n&#39;est pas une chaine</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colorAntagoniste</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;color of the antagonist contactor must be a 5 characters string!&quot;</span><span class="p">)</span>
+ 
+        <span class="c1"># si la chaine ne fait pas cinq caracteres </span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorAntagoniste</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+           <span class="c1"># on affiche un messge d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;color of the antagonist contactor must be a 5 characters string!&quot;</span><span class="p">)</span>
+ 
+        <span class="c1"># si tout est bon, on stocke la couleur du contacteur antagoniste</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorAntagoniste</span> <span class="o">=</span> <span class="n">colorAntagoniste</span>
+
+        <span class="c1"># verification de la validite de la loi d&#39;interaction</span>
+
+        <span class="c1"># on construit une chaine paermettant d&#39;identifier la table de visibilite</span>
+        <span class="n">id_see</span><span class="o">=</span><span class="s2">&quot;interaction : &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidat</span> <span class="o">+</span> <span class="s2">&quot; (&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorCandidat</span> <span class="o">+</span> <span class="s2">&quot;) / &quot;</span> <span class="o">+</span> \
+               <span class="bp">self</span><span class="o">.</span><span class="n">antagoniste</span> <span class="o">+</span> <span class="s2">&quot; (&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorAntagoniste</span> <span class="o">+</span> <span class="s2">&quot;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="c1"># si la loi d&#39;interaction est une instance de la classe tact_behav</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">behav</span><span class="p">,</span> <span class="n">tact_behav</span><span class="p">):</span>
+           <span class="c1"># si la loi n&#39;est pas compatible avec tout type de paire de contacteurs</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="n">behav</span><span class="o">.</span><span class="n">law</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/any&#39;</span><span class="p">]:</span>
+              <span class="c1"># si au moins un des deux contacteurs est un contacteur point</span>
+              <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidat</span> <span class="ow">in</span> <span class="n">pointContactor</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">antagoniste</span> <span class="ow">in</span> <span class="n">pointContactor</span><span class="p">:</span>
+                 <span class="c1"># si l&#39;autre n&#39;est pas un contacteur point</span>
+                 <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidat</span> <span class="ow">in</span> <span class="n">pointContactor</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">antagoniste</span> <span class="ow">in</span> <span class="n">pointContactor</span><span class="p">:</span>
+                    <span class="c1"># on explique a l&#39;utilsateur que quand seul un des deux contacteurs consideres</span>
+                    <span class="c1"># est un point, il doit utiliser une loi compatible avec n&#39;importe quel type de</span>
+                    <span class="c1"># paire de contacteur :</span>
+                    <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">id_see</span> <span class="o">+</span> <span class="s2">&quot;Only one of the two is point type contactor.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>\
+                          <span class="s2">&quot;A contact law compatible with any pair of contactors must be used, &quot;</span> <span class="o">+</span>\
+                          <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/any&#39;</span><span class="p">]:</span>
+                        <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="c1"># on l&#39;affiche</span>
+                    <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                 <span class="c1"># sinon (i.e. si les deux contacteurs sont des contacteurs point)</span>
+                 <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># si la loi n&#39;est pas une loi reservee aux interactions point/point</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">behav</span><span class="o">.</span><span class="n">law</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;point/point&#39;</span><span class="p">]:</span>
+                       <span class="c1"># on explique a l&#39;utilsateur que quand les deux contacteurs consideres</span>
+                       <span class="c1"># sont des points, il doit utiliser une loi ad hoc ou une loi compatible avec </span>
+                       <span class="c1"># n&#39;importe quel type de paire de contacteur :</span>
+                       <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+                       <span class="n">msg</span> <span class="o">=</span> <span class="n">id_see</span> <span class="o">+</span> <span class="s2">&quot;The two contactors are of point type contactors.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>\
+                             <span class="s2">&quot;It is possible to use only a dedicated law, &quot;</span> <span class="o">+</span>\
+                             <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;point/point&#39;</span><span class="p">]:</span>
+                           <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                       <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;or a law compatible with any pair of contactors, &quot;</span> <span class="o">+</span>\
+                              <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/any&#39;</span><span class="p">]:</span>
+                           <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                       <span class="c1"># on l&#39;affiche</span>
+                       <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+              <span class="c1"># sinon, si les deux contacteurs sont des contacteurs rigides</span>
+              <span class="k">elif</span> <span class="n">candidat</span> <span class="ow">in</span> <span class="n">rigidContactor</span> <span class="ow">and</span> <span class="n">antagoniste</span> <span class="ow">in</span> <span class="n">rigidContactor</span><span class="p">:</span>
+                 <span class="c1"># si la loi n&#39;est pas une loi reserve aux interactions rigide/rigide (incluant les interaction de type :</span>
+                 <span class="c1"># avatar MAILx + contacteur POLYD / avatar MAILx + contacteur POLYD ou avatar RBDY3 + contacteur qq)</span>
+                 <span class="k">if</span> <span class="ow">not</span> <span class="n">behav</span><span class="o">.</span><span class="n">law</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;rigid/rigid&#39;</span><span class="p">]:</span>
+                    <span class="c1"># on explique a l&#39;utilsateur que quand les deux contacteurs consideres sont rigides,</span>
+                    <span class="c1"># il doit utiliser soit une loi ad hoc, soit une loi compatible avec n&#39;importe quel type de paire</span>
+                    <span class="c1"># de contacteur :</span>
+                    <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">id_see</span> <span class="o">+</span> <span class="s2">&quot;The two contactors are of rigid type contactors.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>\
+                          <span class="s2">&quot;It is possible to use only a dedicated law, &quot;</span> <span class="o">+</span>\
+                          <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;rigid/rigid&#39;</span><span class="p">]:</span>
+                        <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;or a law compatible with any pair of contactors, &quot;</span> <span class="o">+</span>\
+                           <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/any&#39;</span><span class="p">]:</span>
+                        <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="c1"># on l&#39;affiche</span>
+                    <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+              <span class="c1"># sinon (i.e. au moins un des contacteurs est un contacteur deformable)</span>
+              <span class="k">else</span><span class="p">:</span>
+                 <span class="c1"># si la loi n&#39;est pas une loi reserve aux interactions rigide/defo ou defo/defo</span>
+                 <span class="k">if</span> <span class="ow">not</span> <span class="n">behav</span><span class="o">.</span><span class="n">law</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/defo&#39;</span><span class="p">]:</span>
+                    <span class="c1"># on explique a l&#39;utilsateur que quand au moins l&#39;un des deux contacteurs consideres est deformable,</span>
+                    <span class="c1"># il doit utiliser soit une loi ad hoc, soit une loi compatible avec n&#39;importe quel type de paire</span>
+                    <span class="c1"># de contacteur :</span>
+                    <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">id_see</span> <span class="o">+</span> <span class="s2">&quot;At a least one contactor is of a deformable type.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>\
+                          <span class="s2">&quot;It is possible to use only a dedicated law, &quot;</span> <span class="o">+</span>\
+                          <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/defo&#39;</span><span class="p">]:</span>
+                        <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;or a law compatible with any pair of contactors, &quot;</span> <span class="o">+</span>\
+                           <span class="s2">&quot;i.e. must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">contactorPair2TactBehav</span><span class="p">[</span><span class="s1">&#39;any/any&#39;</span><span class="p">]:</span>
+                        <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="c1"># on l&#39;affiche</span>
+                    <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+           <span class="c1"># ici, on est sur que la loi et la paire de contacteurs consideres sont compatibles</span>
+           <span class="c1"># on stocke le nom de la loi d&#39;interaction</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">behav</span> <span class="o">=</span> <span class="n">behav</span><span class="o">.</span><span class="n">nom</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># si la loi d&#39;interaction n&#39;est pas une chaine non plus</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">behav</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;given interaction law must be a tact_behav instance or a five caracters string!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># ici, on est sur que la loi d&#39;interaction est une chaine</span>
+           <span class="c1"># si la chaine ne fait pas 5 caracteres</span>
+           <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">behav</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;given interaction law must be a tact_behav instance or a five caracters string!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># ici, on est sur que la chaine est valide</span>
+           <span class="c1"># on affiche un message avertissant que la compatibilite entre la loi d&#39;interaction et </span>
+           <span class="c1"># le type de contacteurs ne sera pas verifiee</span>
+           <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;consistancy check between interaction law and contactor pair cannot be performed, since the given law is a string&quot;</span><span class="p">)</span>
+           <span class="c1"># on stocke le nom de la loi d&#39;interaction</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">behav</span> <span class="o">=</span> <span class="n">behav</span>
+
+        <span class="c1"># stockage de :</span>
+        <span class="c1">#    * la distance d&#39;alerte </span>
+        <span class="c1"># on tente de convertir en reel la distance d&#39;alerte </span>
+        <span class="k">try</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">alert</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">alert</span><span class="p">)</span>
+        <span class="c1"># si on echoue</span>
+        <span class="k">except</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the alert distance must be a real value!&quot;</span><span class="p">)</span>
+        <span class="c1">#    * le halo (ou seconde distance d&#39;alerte optionnelle)</span>
+        <span class="c1"># si le halo n&#39;a pas ete defini</span>
+        <span class="k">if</span> <span class="n">halo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="c1"># on le stocke tel quel</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">halo</span> <span class="o">=</span> <span class="n">halo</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on tente de le convertir en reel</span>
+           <span class="k">try</span><span class="p">:</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">halo</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">halo</span><span class="p">)</span>
+           <span class="c1"># si on echoue</span>
+           <span class="k">except</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the halo must be a real value!&quot;</span><span class="p">)</span></div>
+            
+<span class="c1">##############################################</span>
+
+<div class="viewcode-block" id="tact_behav"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.tact_behav">[docs]</a><span class="k">class</span> <span class="nc">tact_behav</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;class behav()</span>
+<span class="sd">       defines a interaction behaviour defined in &#39;behavOptions&#39;</span>
+<span class="sd">       associated methodes:</span>
+<span class="sd">       -__init__</span>
+<span class="sd">       -addOption</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">law</span><span class="p">,</span><span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; __init__(self,name,law,**kargs)</span>
+<span class="sd">           kargs is a dictionary defining the parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># si le nom de la loi n&#39;est pas une chaine de caracteres</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;name of the law must be a 5 characters string!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># si la chaine ne fait pas cinq caracteres </span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;name of the law must be a 5 characters string!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># si le nom de la loi est correct, on le stocke</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nom</span>  <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># si on reconnait le type de loi d&#39;interaction</span>
+        <span class="k">if</span> <span class="n">law</span> <span class="ow">in</span> <span class="n">listeTactBehav</span><span class="p">:</span>
+            <span class="c1"># on le stocke</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">law</span> <span class="o">=</span> <span class="n">law</span>
+        <span class="c1"># sinon</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Unknown interaction law type</span><span class="se">\n</span><span class="s2"> must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeTactBehav</span><span class="p">:</span>
+                <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="c1"># on l&#39;affiche</span>
+            <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># affectation de ses options a la loi d&#39;interaction</span>
+
+        <span class="c1"># on recupere la liste des options a affecter a la loi d&#39;interaction</span>
+        <span class="n">cles</span> <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">kargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="c1"># on ajoute les options a la loi d&#39;interaction</span>
+
+        <span class="c1"># on initialise le nombre d&#39;options stockees a 0</span>
+        <span class="n">nb_options</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># pour chaque option</span>
+        <span class="k">for</span> <span class="n">cle</span> <span class="ow">in</span> <span class="n">cles</span><span class="p">:</span>
+           <span class="c1"># si l&#39;option courante ne fait pas partie des options de la loi d&#39;interaction</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="n">cle</span> <span class="ow">in</span> <span class="n">tactBehavOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">law</span><span class="p">]:</span>
+              <span class="c1"># on affiche un warning</span>
+              <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;the option </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">cle</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> is not compatible with an interaction law of type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">law</span>
+              <span class="n">showWarning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+              <span class="c1"># on passe a la suivante</span>
+              <span class="k">continue</span>
+
+           <span class="c1"># ici, on est sur que l&#39;option est attendue par la loi d&#39;interaction</span>
+
+           <span class="c1"># on tente de convertir la valeur en reel</span>
+           <span class="k">try</span><span class="p">:</span>
+              <span class="n">kargs</span><span class="p">[</span><span class="n">cle</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">kargs</span><span class="p">[</span><span class="n">cle</span><span class="p">])</span>
+           <span class="c1"># si on echoue</span>
+           <span class="k">except</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the option </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">cle</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> expect a real value!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># ici, on est sur que la valeur de l&#39;option courante est valide</span>
+
+           <span class="c1"># on stocke l&#39;option dans la loi d&#39;interaction</span>
+           <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cle</span><span class="p">,</span> <span class="n">kargs</span><span class="p">[</span><span class="n">cle</span><span class="p">])</span>
+           <span class="c1"># on incremente le nombre d&#39;options stockees par la loi d&#39;ineteraction</span>
+           <span class="n">nb_options</span> <span class="o">+=</span> <span class="mi">1</span> 
+
+        <span class="c1"># si le nombre d&#39;options stockees par la loi d&#39;interaction n&#39;est pas egal au nombre d&#39;options attendues par une loi de ce type</span>
+        <span class="k">if</span> <span class="n">nb_options</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tactBehavOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">law</span><span class="p">]):</span>
+           <span class="c1"># on construit un message d&#39;erreur listant les options manquantes</span>
+           <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Incomplete interaction law.</span><span class="se">\n</span><span class="s2">A value must be assigned to the following options:</span><span class="se">\n</span><span class="s2">&quot;</span>
+           <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">tactBehavOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">law</span><span class="p">]:</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+                 <span class="n">msg</span> <span class="o">+=</span> <span class="n">option</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+           <span class="c1"># on l&#39;affiche</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># Pour la loi MAL_CZM, on verifie que dt soit positif</span>
+        <span class="k">if</span> <span class="n">law</span> <span class="o">==</span> <span class="s2">&quot;MAL_CZM&quot;</span><span class="p">:</span>
+           <span class="c1"># Pour verifier que dt soit positif, une division par cn est necessaire.</span>
+           <span class="c1"># On verifie donc que cn soit different de zero</span>
+           <span class="n">test</span> <span class="o">=</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;cn&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+           <span class="k">if</span> <span class="n">test</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;cn must be strictly positive&quot;</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+           <span class="c1"># Pour verifier que dt soit positif, une division par ct est necessaire.</span>
+           <span class="c1"># On verifie donc que ct soit different de zero</span>
+           <span class="n">test</span> <span class="o">=</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;ct&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+           <span class="k">if</span> <span class="n">test</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;ct must be strictly positive&quot;</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+           <span class="c1">#On verifie que la valeur de G1 donne un dt1 positif </span>
+           <span class="n">test</span> <span class="o">=</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;G1&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;s1&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;s1&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;cn&quot;</span><span class="p">]</span>
+           <span class="k">if</span> <span class="n">test</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Incompatibilite des parametres</span><span class="se">\n</span><span class="s2">G1 doit etre superieur a 0.5 * s1 * s1 /cn&quot;</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+           <span class="c1">#On verifie que la valeur de G2 donne un dt2 positif </span>
+           <span class="n">test</span> <span class="o">=</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;G2&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;s2&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;s2&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">kargs</span><span class="p">[</span><span class="s2">&quot;ct&quot;</span><span class="p">]</span>
+           <span class="k">if</span> <span class="n">test</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Incompatibilite des parametres</span><span class="se">\n</span><span class="s2">G2 doit etre superieur a 0.5 * s2 * s2 /ct&quot;</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.shared.tact_behav</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

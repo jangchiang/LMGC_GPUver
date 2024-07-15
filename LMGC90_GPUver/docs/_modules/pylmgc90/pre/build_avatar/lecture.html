@@ -1,0 +1,1232 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.lecture &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.lecture</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.lecture</h1><div class="highlight"><pre>
+<span></span><span class="c1"># MODULE lecture</span>
+<span class="c1"># </span>
+<span class="c1"># Module permettant la lecture des differents formats</span>
+<span class="c1"># des fichiers de maillages :</span>
+<span class="c1">#     1: Gmsh</span>
+<span class="c1"># Une fois le fichier lu, l ensemble des donnees est</span>
+<span class="c1"># stockes dans des objets (Noeud,iterNoeuds,element,</span>
+<span class="c1"># iterElement) qui sont definis dans &#39;nodes,bulks&#39;.</span>
+<span class="c1">#</span>
+<span class="c1"># Pour Ajouter un format de lecture, il faut ajouter</span>
+<span class="c1"># dans la fonction &#39;lecture&#39; le type de fichier</span>
+<span class="c1"># + creer la fonction d interface.</span>
+<span class="c1"># </span>
+<span class="c1"># MODULES IMPORTES:</span>
+<span class="c1">#     - os,string,sys</span>
+<span class="c1">#     - gmsh2lmgc</span>
+<span class="c1"># FONCTIONS:</span>
+<span class="c1">#     - lecture(nom,repertoire_travail) =&gt; nodes_set,bulks_set</span>
+<span class="c1">#     - lectureFichier(nom,extension,repertoire_travail) =&gt; lignes</span>
+<span class="c1">#     - gmsh(nom,repertoire_travail) =&gt; nodes_set,bulks_set</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">..config.readMeshFormat</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..config.lmgc90dicts</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">..avatar.nodes</span>        <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.node.node</span>    <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulks</span>        <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulk.element</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">.mesh</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">..utilities.error</span>    <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1">## routine de lecture du fichier maillage</span>
+<div class="viewcode-block" id="readMesh"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.readMesh">[docs]</a><span class="k">def</span> <span class="nf">readMesh</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">incomplete_elements</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;readMesh(name, dim):</span>
+
+<span class="sd">    this function builds sets of nodes and elements by reading a file</span>
+<span class="sd">    wherein a mesh is stored</span>
+
+<span class="sd">    parameters:</span>
+
+<span class="sd">    - mesh_file_name: a string giving the nameof the file in which the mesh is stored</span>
+<span class="sd">      supported file extensions are:</span>
+
+<span class="sd">      * &#39;.msh&#39;: for gmsh outputs</span>
+<span class="sd">      * &#39;.txt&#39;: for sysweld outputs</span>
+<span class="sd">      * &#39;.vtu&#39;: for vtk file</span>
+<span class="sd">      * &#39;.inp&#39;: for abaqus file</span>
+
+<span class="sd">    - dim: dim=2, in 2D and dim=3, in 3D</span>
+
+<span class="sd">    optional parameters:</span>
+
+<span class="sd">    - keep_elements: this parameter is used to filter elements, if</span>
+<span class="sd">      keep_elements=None, no filter used, else keep_elements is the list</span>
+<span class="sd">      of elements types that can be stored in the built mesh, others will be</span>
+<span class="sd">      forgotten</span>
+<span class="sd">    - scale_factor=None: this parameter is used to rescale the read mesh</span>
+<span class="sd">    - incomplete_elements: used to reduce the order of an element</span>
+
+<span class="sd">    returned value:    </span>
+
+<span class="sd">    - read_mesh: the built mesh</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+   
+    <span class="c1"># filtre sur le type d&#39;elements</span>
+    <span class="k">if</span> <span class="n">keep_elements</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+       <span class="n">keep_elements</span><span class="o">=</span><span class="p">[]</span>                  
+    <span class="k">else</span><span class="p">:</span>
+       <span class="c1"># on recupere la liste des elements geometriques</span>
+       <span class="n">l_geo</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">geo2element</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+       <span class="c1"># on enumere les elements de la liste des elements a conserver</span>
+       <span class="k">for</span> <span class="n">i_ele</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keep_elements</span><span class="p">):</span>
+          <span class="c1"># si l&#39;element n&#39;est pas un element geometrique connu </span>
+          <span class="k">if</span> <span class="ow">not</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">l_geo</span><span class="p">:</span>
+             <span class="c1"># on affiche un warning</span>
+             <span class="n">showWarning</span><span class="p">(</span><span class="s1">&#39;unhandled element cannot be considered!&#39;</span><span class="p">)</span>
+             <span class="c1"># on supprime l&#39;element de la liste</span>
+             <span class="n">keep_elements</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i_ele</span><span class="p">)</span>
+
+    <span class="c1"># on choisit la methode pour le lire en fonction de sont type</span>
+    <span class="c1">#   * cas du maillage maillage gmsh</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;msh&#39;</span><span class="p">):</span> 
+        <span class="c1"># check file format</span>
+
+        <span class="n">mesh_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="c1"># &quot;MeshFormat&quot; not on first line... then reopening the file for v1 reading</span>
+        <span class="k">if</span> <span class="s1">&#39;$MeshFormat&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">mesh_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">readGmshv1</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># checking on next line if v2 or v4:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+            <span class="n">version</span><span class="p">,</span> <span class="n">binary</span><span class="p">,</span> <span class="n">dsize</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">binary</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span> <span class="p">:</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;[readMesh]: gmsh binary files not supported&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">):</span>
+                <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">readGmshv2</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">,</span> <span class="n">incomplete_elements</span><span class="p">)</span>
+                <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># beurk</span>
+            <span class="k">elif</span> <span class="n">version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;4&quot;</span><span class="p">):</span>
+                <span class="n">major_minor</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+                <span class="n">minor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">major_minor</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">major_minor</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">readGmshv4</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">minor</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">,</span> <span class="n">incomplete_elements</span><span class="p">)</span>
+                <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># beurk</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># beurk</span>
+                <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;[readMesh]: unknown version of gmsh file format&#39;</span><span class="p">)</span>
+
+
+    <span class="c1">#   * cas du maillage maillage sysweld</span>
+    <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;txt&#39;</span><span class="p">):</span>
+         <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">readSysweld</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="c1">#   * cas du maillage maillage au format MED</span>
+    <span class="c1">#   * cas du maillage maillage au format VTK</span>
+    <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;vtu&#39;</span><span class="p">):</span>
+         <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">readVtu</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;inp&#39;</span><span class="p">):</span>
+         <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">readInp</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">)</span>
+
+    <span class="c1"># si on a donne un facteur d&#39;echelle</span>
+    <span class="k">if</span> <span class="n">scale_factor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+       <span class="c1"># pour chaque noeud du maillage lu</span>
+       <span class="k">for</span> <span class="n">nod</span> <span class="ow">in</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+          <span class="c1"># on met a l&#39;echelle les coordonnees</span>
+          <span class="n">nod</span><span class="o">.</span><span class="n">coor</span> <span class="o">*=</span> <span class="n">scale_factor</span>
+      
+    <span class="c1"># on renvoie le maillage lu dans le fichier</span>
+    <span class="k">return</span> <span class="n">read_mesh</span></div>
+   
+<span class="n">lecture</span> <span class="o">=</span> <span class="n">readMesh</span>
+
+<span class="k">def</span> <span class="nf">readGmshv1</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readGmshv1(mesh_file, dim):</span>
+
+<span class="sd">      this function builds sets of nodes and elements from a mesh</span>
+<span class="sd">      built by gmsh, and using format 1.0</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - mesh_file: a file object coresponding to the file wherein the mesh is stored</span>
+<span class="sd">        N.B.: the file is supposed to be open for reading</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      
+      <span class="c1"># on declare la liste des mots clefs, qu&#39;on s&#39;attend a trouver dans le fichier</span>
+      <span class="n">motCleMesh</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;$NOD&#39;</span><span class="p">,</span> <span class="s1">&#39;$ENDNOD&#39;</span><span class="p">,</span> <span class="s1">&#39;$ELM&#39;</span><span class="p">,</span> <span class="s1">&#39;$ENDELM&#39;</span><span class="p">)</span>
+
+      <span class="c1"># on definit le maillage</span>
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="c1"># pour chaque ligne du fichier</span>
+      <span class="k">for</span> <span class="n">ligne</span> <span class="ow">in</span> <span class="n">mesh_file</span><span class="p">:</span>
+         <span class="c1"># on separe les colonnes de la ligne courante</span>
+         <span class="n">res</span> <span class="o">=</span> <span class="n">ligne</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+         <span class="c1"># si la chaine de la premiere colonne est un mot-clef</span>
+         <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">motCleMesh</span><span class="p">:</span>
+            <span class="c1"># on le stocke </span>
+            <span class="n">motcle</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des noeuds,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne donnant le nombre de noeuds</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$NOD&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;$NOD&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># si on est en 2D</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+               <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+            <span class="c1"># si on est en 3D</span>
+            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+               <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+            <span class="c1"># on ajoute le noeud lu au maillage</span>
+            <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des elements,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne donnant le nombre d&#39;elements</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$ELM&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;$ELM&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+            <span class="c1"># on lit le nouvel element et on l&#39;ajoute au maillage</span>
+            <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshElementPoint</span><span class="p">:</span>
+              <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">:])),</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshElementLine</span><span class="p">:</span>
+              <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">:])),</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshElementSurface</span><span class="p">:</span>
+              <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">:])),</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshElementVolume</span><span class="p">:</span>
+              <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">:])),</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::gmsh] : unknown gmsh element type: &quot;</span><span class="o">+</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+      <span class="c1"># on renvoie le maillage ainsi construit</span>
+      <span class="k">return</span> <span class="n">read_mesh</span>
+
+<span class="k">def</span> <span class="nf">readGmshv2</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">,</span> <span class="n">incomplete_elements</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readGmshv2(mesh_file, dim, keep_elements, incomplete_elements):</span>
+
+<span class="sd">      this function builds sets of nodes and elements from a mesh</span>
+<span class="sd">      built by gmsh, and using format 2.x</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - mesh_file: a file object coresponding to the file in wherein the mesh is stored</span>
+<span class="sd">        N.B.: the file is supposed to be open for reading</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - keep_elements: this parameter is used to filter elements, if</span>
+<span class="sd">        keep_elements=None, no filter used, else keep_elements is the list</span>
+<span class="sd">        of elements types that can be stored in the built mesh, other will be</span>
+<span class="sd">        forgotten</span>
+<span class="sd">      - incomplete_elements: used to reduce the order of an element</span>
+
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      
+      <span class="c1"># on declare la liste des mots clefs, qu&#39;on s&#39;attend a trouver dans le fichier</span>
+      <span class="n">motCleMesh</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;$MeshFormat&#39;</span><span class="p">,</span> <span class="s1">&#39;$Nodes&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;$Elements&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndElements&#39;</span><span class="p">,</span> \
+                    <span class="s1">&#39;$PhysicalNames&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndPhysicalNames&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndMeshFormat&#39;</span><span class="p">)</span>
+
+      <span class="c1"># on definit le dictionnaire associant un nom a certaines entites physiques</span>
+      <span class="n">physicalEntity2physicalName</span><span class="o">=</span><span class="p">{}</span>
+
+      <span class="c1"># on definit le maillage</span>
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="c1"># pour chaque ligne du fichier</span>
+      <span class="k">for</span> <span class="n">ligne</span> <span class="ow">in</span> <span class="n">mesh_file</span><span class="p">:</span>
+         <span class="c1"># on separe les colonnes de la ligne courante</span>
+         <span class="n">res</span> <span class="o">=</span> <span class="n">ligne</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+         <span class="c1"># si la chaine de la premiere colonne est un mot-clef</span>
+         <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">motCleMesh</span><span class="p">:</span>
+            <span class="c1"># on le stocke </span>
+            <span class="n">motcle</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des noeuds,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne donnant le nombre de noeuds</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$Nodes&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;$Nodes&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># si on est en 2D</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+               <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+            <span class="c1"># si on est en 3D</span>
+            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+               <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+            <span class="c1"># on ajoute le noeud lu au maillage</span>
+            <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des elements,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne donnant le nombre d&#39;elements</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$Elements&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;$Elements&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+            <span class="c1"># on lit le nouvel element et on l&#39;ajoute a la liste des elements</span>
+ 
+            <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshv2ElementPoint</span><span class="p">:</span>
+              <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshv2ElementLine</span><span class="p">:</span>
+              <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshv2ElementSurface</span><span class="p">:</span>
+              <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">gmshv2ElementVolume</span><span class="p">:</span>
+              <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readGmshv2] : unknown gmsh element type: &quot;</span><span class="o">+</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># on recupere :</span>
+            <span class="c1">#   * le nombre de tags (et on le passe en entier) </span>
+            <span class="n">nb_tags</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="c1"># s&#39;il y a au moins un tag</span>
+            <span class="k">if</span> <span class="n">nb_tags</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+               <span class="c1">#   * on peut recuperer le numero de &quot;physical entity&quot;</span>
+               <span class="n">pE</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="c1"># s&#39;il y a au moins deux tags</span>
+            <span class="k">if</span> <span class="n">nb_tags</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+               <span class="c1">#   * on peut recuperer le numero de &quot;geometrical entity&quot;</span>
+               <span class="n">gE</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="c1">#   * la connectivite de l&#39;element (et on les numeros de noeuds en entiers)</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">nb_tags</span><span class="p">:]))</span>
+
+            <span class="c1"># si le filtrage des elements est active et que l&#39;element ne fait pas</span>
+            <span class="c1"># partie des elements conserves</span>
+            <span class="k">if</span> <span class="n">keep_elements</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">elem_dim</span> <span class="ow">in</span> <span class="n">keep_elements</span><span class="p">:</span>
+               <span class="c1"># on passe au suivant</span>
+               <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;11&#39;</span><span class="p">:</span> <span class="c1"># TE10</span>
+               <span class="c1"># on permute la numerotation des noeuds de l&#39;element pour retrouver l&#39;ordre choisi dans LMGC90 </span>
+               <span class="n">conn_TE10</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                            <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">]]</span>
+
+               <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+               <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn_TE10</span><span class="p">,</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">pE</span><span class="p">,</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="n">gE</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+
+            <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;13&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;18&#39;</span> <span class="ow">and</span> <span class="n">incomplete_elements</span><span class="p">)</span> <span class="p">:</span>
+               <span class="c1"># on permute la numerotation des noeuds de l&#39;element pour retrouver l&#39;ordre choisi dans LMGC90</span>
+               <span class="n">conn_PRI15</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="p">,</span>
+                             <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span>
+                             <span class="n">conn</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">11</span><span class="p">]]</span>
+
+               <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+               <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn_PRI15</span><span class="p">,</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">pE</span><span class="p">,</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="n">gE</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;17&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;12&#39;</span> <span class="ow">and</span> <span class="n">incomplete_elements</span><span class="p">)</span> <span class="p">:</span>
+               <span class="c1"># on permute la numerotation des noeuds de l&#39;element pour retrouver l&#39;ordre choisi dans LMGC90 </span>
+               <span class="n">conn_H20</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="p">,</span>
+                           <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+                           <span class="n">conn</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">16</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">18</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">19</span><span class="p">],</span>
+                           <span class="n">conn</span><span class="p">[</span><span class="mi">17</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">15</span><span class="p">]]</span>
+
+               <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+               <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn_H20</span><span class="p">,</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">pE</span><span class="p">,</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="n">gE</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+
+            <span class="k">elif</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;10&#39;</span> <span class="ow">and</span> <span class="n">incomplete_elements</span><span class="p">:</span>
+
+               <span class="c1"># si l&#39;element est un Q9 on lit un Q8</span>
+               <span class="n">conn_Q8</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>  <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">]]</span>
+
+               <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+               <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn_Q8</span><span class="p">,</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">pE</span><span class="p">,</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="n">gE</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+
+               
+            <span class="k">else</span><span class="p">:</span>
+               <span class="c1"># si pas cas particulier</span>
+               <span class="c1"># on utilise la connectivite de l&#39;element telle qu&#39;on l&#39;a lue</span>
+
+               <span class="c1"># pour le 2D on verifie que l&#39;element est oriente suivant z sinon on retourne</span>
+               <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                   <span class="c1">#print conn</span>
+                   <span class="n">v1</span> <span class="o">=</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span> <span class="o">-</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                   <span class="n">v2</span> <span class="o">=</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span> <span class="o">-</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                   <span class="c1">#print v1</span>
+                   <span class="c1">#print v2</span>
+
+                   <span class="n">xx</span> <span class="o">=</span>  <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                   <span class="c1">#print xx </span>
+
+                   <span class="k">if</span> <span class="n">xx</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">:</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span><span class="o">==</span><span class="mi">6</span> <span class="p">:</span>
+                       <span class="n">conn0</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+                       <span class="n">conn</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> 
+                     <span class="k">else</span><span class="p">:</span>
+                       <span class="c1">#print &#39;silence on tourne &#39;+str(conn) </span>
+                       <span class="n">conn</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+                   <span class="c1">#print &#39;+&#39;,conn</span>
+
+               <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+
+               <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">pE</span><span class="p">,</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="n">gE</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des noms des entites physiques,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne donnant le nombre de noms d&#39;entites physiques</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$PhysicalNames&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;$PhysicalNames&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+            <span class="c1"># on lit le nom d&#39;une nouvelle entite physique et on l&#39;ajoute au dictionnaire associant un nom a</span>
+            <span class="c1"># certaines entites physiques</span>
+ 
+            <span class="c1"># on recupere :</span>
+            <span class="c1">#   * la dimension de l&#39;entite physique (inutilisee pour l&#39;instant)</span>
+            <span class="n">physicalDim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1">#   * le numero d&#39;entite physique</span>
+            <span class="n">physicalEntity</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1">#   * le nom associe a cette entite physique</span>
+            <span class="c1"># N.B.:  si le nom de l&#39;entite physique contient des espaces, on doit concatener plusieurs colonnes</span>
+            <span class="n">physicalName</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)):</span>
+               <span class="n">physicalName</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># on retire les guillemets au debut et a la fin de la chaine</span>
+            <span class="n">physicalName</span> <span class="o">=</span> <span class="n">physicalName</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># on ajoute l&#39;entite physique au dictionnaire</span>
+            <span class="n">physicalEntity2physicalName</span><span class="p">[</span><span class="n">physicalEntity</span><span class="p">]</span><span class="o">=</span><span class="n">physicalName</span>
+
+      <span class="c1"># si certaines entites physiques possedent un nom</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">physicalEntity2physicalName</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="c1"># le nom remplace le numero d&#39;entite physique pour les elements concernes</span>
+         
+         <span class="c1"># on recupere la liste des numeros d&#39;entite physiques concernes</span>
+         <span class="n">named_physicalEntities</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">physicalEntity2physicalName</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+         <span class="c1"># pour chaque element</span>
+         <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+            <span class="c1"># si un nom est associe a son numero d&#39;entite physique</span>
+            <span class="k">if</span> <span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="ow">in</span> <span class="n">named_physicalEntities</span><span class="p">:</span>
+               <span class="c1"># on remplace le numero par le nom</span>
+               <span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="o">=</span> <span class="n">physicalEntity2physicalName</span><span class="p">[</span><span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">]</span>
+
+      <span class="c1"># on renvoie le maillage ainsi construit</span>
+      <span class="k">return</span> <span class="n">read_mesh</span>
+  
+<span class="k">def</span> <span class="nf">readGmshv4</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">minor</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">,</span> <span class="n">incomplete_elements</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readGmshv4(mesh_file, dim, minor, keep_elements, incomplete_elements):</span>
+
+<span class="sd">      this function builds sets of nodes and elements from a mesh</span>
+<span class="sd">      built by gmsh, and using format 4.x</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - mesh_file: a file object coresponding to the file in wherein the mesh is stored</span>
+<span class="sd">        N.B.: the file is supposed to be open for reading</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+<span class="sd">      - minor: the x of format 4.x</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - keep_elements: this parameter is used to filter elements, if</span>
+<span class="sd">        keep_elements=None, no filter used, else keep_elements is the list</span>
+<span class="sd">        of elements types that can be stored in the built mesh, other will be</span>
+<span class="sd">        forgotten</span>
+<span class="sd">      - incomplete_elements: used to reduce the order of an element</span>
+
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      
+      <span class="c1"># on declare la liste des mots clefs, qu&#39;on s&#39;attend a trouver dans le fichier</span>
+      <span class="n">motCleMesh</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;$MeshFormat&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndMeshFormat&#39;</span><span class="p">,</span> <span class="s1">&#39;$Entities&#39;</span><span class="p">,</span><span class="s1">&#39;$EndEntities&#39;</span><span class="p">,</span><span class="s1">&#39;$Nodes&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;$Elements&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndElements&#39;</span><span class="p">,</span> \
+                    <span class="s1">&#39;$PhysicalNames&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndPhysicalNames&#39;</span><span class="p">,</span> <span class="s1">&#39;$PartitionedEntities&#39;</span><span class="p">,</span><span class="s1">&#39;$EndPartitionedEntities&#39;</span><span class="p">,</span><span class="s1">&#39;$Periodic&#39;</span><span class="p">,</span><span class="s1">&#39;$EndPeriodic&#39;</span><span class="p">,</span>\
+                    <span class="s1">&#39;$GhostElements&#39;</span><span class="p">,</span><span class="s1">&#39;$EndGhostElements&#39;</span><span class="p">,</span><span class="s1">&#39;$NodeData&#39;</span><span class="p">,</span><span class="s1">&#39;$EndNodeData&#39;</span><span class="p">,</span><span class="s1">&#39;$ElementData&#39;</span><span class="p">,</span><span class="s1">&#39;$EndElementData&#39;</span><span class="p">,</span> \
+                    <span class="s1">&#39;$ElementNodeData&#39;</span><span class="p">,</span><span class="s1">&#39;$EndElementNodeData&#39;</span><span class="p">,</span> <span class="s1">&#39;$InterpolationScheme&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndInterpolationScheme&#39;</span><span class="p">)</span>
+      <span class="n">skipKeyWord</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;$PartitionedEntities&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndPartitionedEntities&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;$Periodic&#39;</span>           <span class="p">,</span> <span class="s1">&#39;$EndPeriodic&#39;</span>           <span class="p">,</span>
+                     <span class="s1">&#39;$GhostElements&#39;</span>      <span class="p">,</span> <span class="s1">&#39;$EndGhostElements&#39;</span>      <span class="p">,</span>
+                     <span class="s1">&#39;$NodeData&#39;</span>           <span class="p">,</span> <span class="s1">&#39;$EndNodeData&#39;</span>           <span class="p">,</span>
+                     <span class="s1">&#39;$ElementData&#39;</span>        <span class="p">,</span> <span class="s1">&#39;$EndElementData&#39;</span>        <span class="p">,</span>
+                     <span class="s1">&#39;$InterpolationScheme&#39;</span><span class="p">,</span> <span class="s1">&#39;$EndInterpolationScheme&#39;</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+      <span class="c1"># on definit le dictionnaire associant un nom a certaines entites physiques</span>
+      <span class="n">physicalEntity2physicalName</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span> <span class="nb">dict</span> <span class="p">)</span>
+      
+      <span class="n">Entity2PhysicalGroup</span> <span class="o">=</span> <span class="p">{}</span>
+
+      <span class="c1"># on definit le maillage</span>
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="n">motcle</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+      <span class="n">skip</span><span class="o">=</span><span class="kc">False</span>   
+      <span class="c1"># pour chaque ligne du fichier</span>
+      <span class="k">for</span> <span class="n">ligne</span> <span class="ow">in</span> <span class="n">mesh_file</span><span class="p">:</span>
+         <span class="c1"># on separe les colonnes de la ligne courante</span>
+         <span class="n">res</span> <span class="o">=</span> <span class="n">ligne</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+         <span class="c1"># si la chaine de la premiere colonne est un mot-clef</span>
+         <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">motCleMesh</span><span class="p">:</span>
+            <span class="c1"># on le stocke </span>
+            <span class="n">motcle</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      
+         <span class="c1"># les mots clefs non traites</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="ow">in</span> <span class="n">skipKeyWord</span><span class="p">:</span>
+           <span class="n">skip</span><span class="o">=</span><span class="kc">True</span>  
+ 
+         <span class="k">if</span> <span class="n">skip</span> <span class="p">:</span> <span class="k">continue</span>             
+
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$Entities&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;$Entities&#39;</span><span class="p">:</span>
+
+            <span class="c1"># next line contains : numPoints numCurves numSurfaces numVolumes             </span>
+            <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span>
+            <span class="n">res_</span><span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">dim_list</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">i_dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">i_dim</span> <span class="ow">in</span> <span class="n">res_</span> <span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">i_dim</span><span class="p">,</span> <span class="n">nb_idim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span> <span class="n">dim_list</span> <span class="p">)</span> <span class="p">:</span>
+
+              <span class="n">Entity2PhysicalGroup</span><span class="p">[</span><span class="n">i_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span> <span class="nb">list</span> <span class="p">)</span>
+
+              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_idim</span><span class="p">):</span>
+
+                <span class="c1"># if minor &gt; 0 and entity dim = 0, then next line is:</span>
+                <span class="c1"># tag  X  Y  Z  numPhysicals physicalTag ... numBoundingPoints tagPoint ... </span>
+                <span class="c1"># otherwise</span>
+                <span class="c1"># tag boxMinX boxMinY boxMinZ boxMaxX boxMaxY boxMaxZ numPhysicals physicalTag ... numBoundingPoints tagPoint ... </span>
+
+                <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+                <span class="n">res_</span><span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">i_dim</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">minor</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">:</span>
+                  <span class="c1"># python 3 only...</span>
+                  <span class="c1">#tag, minx, miny, minz, *phy_tags = res_</span>
+                  <span class="n">tag</span>      <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                  <span class="n">minx</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                  <span class="n">miny</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                  <span class="n">minz</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                  <span class="n">phy_tags</span> <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+                <span class="k">else</span><span class="p">:</span>
+                  <span class="c1"># python 3 only...</span>
+                  <span class="c1">#tag, minx, maxx, miny, maxy, minz, maxz, *phy_tags = res_</span>
+                  <span class="n">tag</span>      <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                  <span class="n">minx</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                  <span class="n">maxx</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                  <span class="n">miny</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                  <span class="n">maxy</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+                  <span class="n">minz</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+                  <span class="n">maxz</span>     <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+                  <span class="n">phy_tags</span> <span class="o">=</span> <span class="n">res_</span><span class="p">[</span><span class="mi">7</span><span class="p">:]</span>
+
+                <span class="n">nb_tags</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">phy_tags</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">nb_tags</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">:</span>
+                  <span class="k">if</span> <span class="n">nb_tags</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;Multiple physical group by entity (&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i_dim</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;D) not managed yet, keep first&quot;</span><span class="p">)</span>
+                  <span class="n">Entity2PhysicalGroup</span><span class="p">[</span><span class="n">i_dim</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">tag</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">phy_tags</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+            <span class="k">continue</span>
+
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des noeuds,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$Nodes&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;$Nodes&#39;</span><span class="p">:</span>
+
+           <span class="c1"># next line contains: numEntityBlocks numNodes and for 4.1 and above minNodeTag and maxNodeTag</span>
+           <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+
+           <span class="c1"># python 3 only</span>
+           <span class="c1">#nb_blocks, nb_nodes, *_ = ( int(v) for v in nextline.split() )</span>
+           <span class="n">nb_blocks</span><span class="p">,</span> <span class="n">nb_nodes</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+
+           <span class="c1"># reading nodes by block</span>
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">nb_blocks</span> <span class="p">)</span> <span class="p">:</span>
+
+             <span class="k">if</span> <span class="n">minor</span><span class="p">:</span>
+                 <span class="c1"># next line contains: entDim, entTag, parametric, numNodesInBloc</span>
+                 <span class="n">nextline</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span>
+                 <span class="n">edim</span><span class="p">,</span> <span class="n">blockTag</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">nodesInBlock</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="p">)</span>
+
+                 <span class="n">node_list</span> <span class="o">=</span> <span class="p">[]</span>
+                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nodesInBlock</span><span class="p">):</span>
+                   <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span>
+                   <span class="n">node_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">nextline</span><span class="p">)</span> <span class="p">)</span>
+
+                 <span class="k">for</span> <span class="n">node_tag</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">:</span>
+                   <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span>
+                   <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span> <span class="p">)</span>
+                   <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                     <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">]</span> <span class="p">)</span>
+                   <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                     <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="p">]</span> <span class="p">)</span>
+                   <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="n">node_tag</span><span class="p">)</span> <span class="p">)</span>
+
+             <span class="k">else</span><span class="p">:</span>
+
+                 <span class="n">nextline</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span>
+                 <span class="n">blockTag</span><span class="p">,</span> <span class="n">bockDim</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">nodesInBlock</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="p">)</span>
+
+                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">nodesInBlock</span> <span class="p">):</span>
+
+                   <span class="c1"># next line contains: tag(int) x(double) y(double) z(double)</span>
+                   <span class="n">nextline</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span>
+                   <span class="n">res_</span><span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                   <span class="n">node_tag</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">res_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                   <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">res_</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="p">)</span>
+                   <span class="c1"># si on est en 2D</span>
+                   <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                     <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">]</span> <span class="p">)</span>
+                   <span class="c1"># si on est en 3D</span>
+                   <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                     <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="p">]</span> <span class="p">)</span>
+                   <span class="c1"># on ajoute le noeud lu au maillage</span>
+                   <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="n">node_tag</span><span class="p">))</span>
+
+           <span class="c1"># next line</span>
+           <span class="k">continue</span>
+
+     
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des elements,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$Elements&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;$Elements&#39;</span><span class="p">:</span>
+
+            <span class="c1"># next line contains: numEntityBlocks numElements minElemTag maxElemTag</span>
+            <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+            <span class="c1"># python 3 only...</span>
+            <span class="c1">#nb_blocks, nb_elems, *_ = ( int(v) for v in nextline.split() )</span>
+            <span class="n">nb_blocks</span><span class="p">,</span> <span class="n">nb_elems</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of entity blocks for element: &quot;</span><span class="p">,</span> <span class="n">nb_blocks</span><span class="p">,</span> <span class="s2">&quot; Number of elements: &quot;</span><span class="p">,</span> <span class="n">nb_elems</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">nb_blocks</span> <span class="p">):</span>
+
+              <span class="c1"># next line contains : tagBlock dimEle typeEle numElementsInBlock</span>
+              <span class="n">nextline</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+              <span class="n">res_</span><span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+              <span class="c1"># if _4_1:</span>
+              <span class="k">if</span> <span class="n">minor</span> <span class="p">:</span>
+                  <span class="n">dimE</span><span class="p">,</span> <span class="n">geoE</span><span class="p">,</span> <span class="n">typeE</span><span class="p">,</span> <span class="n">elemsInBlock</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_</span> <span class="p">)</span>
+              <span class="k">else</span><span class="p">:</span>
+                  <span class="n">geoE</span><span class="p">,</span> <span class="n">dimE</span><span class="p">,</span> <span class="n">typeE</span><span class="p">,</span> <span class="n">elemsInBlock</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_</span> <span class="p">)</span>
+
+              <span class="c1"># rm : seriously...</span>
+              <span class="n">typeEle</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">typeE</span><span class="p">)</span>
+
+              <span class="k">if</span> <span class="n">typeEle</span> <span class="ow">in</span> <span class="n">gmshv2ElementPoint</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">0</span>
+              <span class="k">elif</span> <span class="n">typeEle</span> <span class="ow">in</span> <span class="n">gmshv2ElementLine</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">1</span>
+              <span class="k">elif</span> <span class="n">typeEle</span> <span class="ow">in</span> <span class="n">gmshv2ElementSurface</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">2</span>
+              <span class="k">elif</span> <span class="n">typeEle</span> <span class="ow">in</span> <span class="n">gmshv2ElementVolume</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">3</span>
+              <span class="k">else</span><span class="p">:</span>
+                <span class="n">showError</span><span class="p">(</span> <span class="s2">&quot;[readGmshv4]: unknown gmsh element type: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">typeE</span><span class="p">)</span> <span class="p">)</span>
+
+              <span class="k">if</span> <span class="n">elem_dim</span> <span class="o">!=</span> <span class="n">dimE</span> <span class="p">:</span>
+                 <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;[readGmshv4]: unexpected data in $Elements&#39;</span><span class="p">)</span>
+
+              <span class="c1"># be carefull geometrical entity can support several physical entity</span>
+              <span class="n">pE</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+              <span class="k">if</span> <span class="n">dimE</span> <span class="ow">in</span> <span class="n">Entity2PhysicalGroup</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">geoE</span> <span class="ow">in</span> <span class="n">Entity2PhysicalGroup</span><span class="p">[</span><span class="n">dimE</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                  <span class="n">pE</span> <span class="o">=</span> <span class="n">Entity2PhysicalGroup</span><span class="p">[</span><span class="n">dimE</span><span class="p">][</span><span class="n">geoE</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                  <span class="c1">#print( f&#39;element of dim {dimE} tagged {geoE} is in group {pE}&#39; )</span>
+
+              <span class="c1"># on lit les elements et on les ajoute a la liste des elements</span>
+              <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">elemsInBlock</span> <span class="p">):</span>
+
+                <span class="c1"># next line contains: tag numVert ... </span>
+                <span class="n">nextline</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+                <span class="n">res_</span> <span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+                <span class="n">elemTag</span> <span class="o">=</span>  <span class="nb">int</span><span class="p">(</span><span class="n">res_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="c1">#   * the element connectivity</span>
+                <span class="n">conn</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">]</span>
+
+                <span class="c1"># si le filtrage des elements est active et que l&#39;element ne fait pas</span>
+                <span class="c1"># partie des elements conserves</span>
+                <span class="k">if</span> <span class="n">keep_elements</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">elem_dim</span> <span class="ow">in</span> <span class="n">keep_elements</span><span class="p">:</span>
+                  <span class="c1"># on passe au suivant</span>
+                  <span class="k">continue</span>
+
+                <span class="c1">#print(&quot;element type:&quot;,tE,&quot; connectivity: &quot;,conn)</span>
+
+                <span class="c1"># connectivity permutation in some particular case:</span>
+                <span class="k">if</span> <span class="n">typeE</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span> <span class="c1"># TE10</span>
+                  <span class="c1"># on permute la numerotation des noeuds de l&#39;element pour retrouver l&#39;ordre choisi dans LMGC90 </span>
+                  <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">typeE</span> <span class="o">==</span> <span class="mi">13</span> <span class="ow">or</span> <span class="p">(</span><span class="n">typeE</span><span class="o">==</span><span class="mi">18</span> <span class="ow">and</span> <span class="n">incomplete_elements</span><span class="p">)</span> <span class="p">:</span>
+                  <span class="c1"># on permute la numerotation des noeuds de l&#39;element pour retrouver l&#39;ordre choisi dans LMGC90</span>
+                  <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">=</span> \
+                  <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">typeE</span> <span class="o">==</span> <span class="mi">17</span> <span class="ow">or</span> <span class="p">(</span><span class="n">typeE</span><span class="o">==</span><span class="mi">12</span> <span class="ow">and</span> <span class="n">incomplete_elements</span><span class="p">)</span> <span class="p">:</span>
+                  <span class="c1"># on permute la numerotation des noeuds de l&#39;element pour retrouver l&#39;ordre choisi dans LMGC90 </span>
+                  <span class="n">conn</span><span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="p">,</span>
+                         <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+                         <span class="n">conn</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">16</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">18</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">19</span><span class="p">],</span>
+                         <span class="n">conn</span><span class="p">[</span><span class="mi">17</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">15</span><span class="p">]]</span>
+                <span class="k">elif</span> <span class="n">typeE</span> <span class="o">==</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">incomplete_elements</span><span class="p">:</span>
+                  <span class="c1"># si l&#39;element est un Q9 on lit un Q8</span>
+                  <span class="n">conn</span> <span class="o">=</span> <span class="n">conn</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span>
+
+                <span class="c1"># si pas cas particulier</span>
+                <span class="c1"># on utilise la connectivite de l&#39;element telle qu&#39;on l&#39;a lue</span>
+
+                <span class="c1"># pour le 2D on verifie que l&#39;element est oriente suivant z sinon on retourne</span>
+                <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">v1</span> <span class="o">=</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span> <span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span> <span class="o">-</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                    <span class="n">v2</span> <span class="o">=</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span> <span class="o">-</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+ 
+                    <span class="n">xx</span> <span class="o">=</span>  <span class="n">v1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">v2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">v2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">xx</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">:</span>
+                      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span><span class="o">==</span><span class="mi">6</span> <span class="p">:</span>
+                        <span class="n">conn0</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+                        <span class="n">conn</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span><span class="n">conn0</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> 
+                      <span class="k">else</span><span class="p">:</span>
+                        <span class="n">conn</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+                <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+                <span class="c1">#print( f&quot;add bulk of dim {elem_dim}, of conn {conn}, with tags {pE}/{gE} and id {res_[0]}&quot;)</span>
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span> \
+                                           <span class="n">physicalEntity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">pE</span><span class="p">),</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">geoE</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="n">elemTag</span><span class="p">))</span>
+            <span class="k">continue</span>
+
+         <span class="c1"># si le dernier mot-clef lu est le debut de la section des noms des entites physiques,</span>
+         <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+         <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;$PhysicalNames&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;$PhysicalNames&#39;</span><span class="p">:</span>
+            <span class="c1"># next line contains: numPhysicalNames</span>
+            <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+            <span class="n">res_</span><span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of named physical group: &quot;</span><span class="p">,</span><span class="n">res_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">res_</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+              <span class="c1"># next line contains: dimension tag name</span>
+              <span class="n">nextline</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">)</span> 
+              <span class="n">res_</span><span class="o">=</span> <span class="n">nextline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+ 
+              <span class="c1"># on recupere :</span>
+              <span class="c1">#   * la dimension de l&#39;entite physique </span>
+              <span class="c1">#   * le numero d&#39;entite physique</span>
+              <span class="n">physicalDim</span><span class="p">,</span> <span class="n">physicalEntity</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res_</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+              <span class="c1">#   * le nom associe a cette entite physique</span>
+              <span class="c1"># N.B.:  si le nom de l&#39;entite physique contient des espaces, on doit concatener plusieurs colonnes</span>
+              <span class="n">physicalName</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">res_</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+              <span class="c1"># on retire les guillemets au debut et a la fin de la chaine</span>
+              <span class="n">physicalName</span> <span class="o">=</span> <span class="n">physicalName</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+              <span class="c1"># on ajoute l&#39;entite physique au dictionnaire</span>
+              <span class="c1"># la clef etant la combinaison (dimension, id) de la physical entity</span>
+              <span class="n">physicalEntity2physicalName</span><span class="p">[</span><span class="n">physicalDim</span><span class="p">][</span><span class="n">physicalEntity</span><span class="p">]</span> <span class="o">=</span> <span class="n">physicalName</span>
+            <span class="k">continue</span>
+        
+      <span class="c1"># si certaines entites physiques possedent un nom</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">physicalEntity2physicalName</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="c1"># le nom remplace le numero d&#39;entite physique pour les elements concernes</span>
+         
+         <span class="c1"># on recupere la liste des numeros d&#39;entite physiques concernes</span>
+         <span class="n">named_physicalEntities</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">physicalEntity2physicalName</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+         <span class="c1"># pour chaque element</span>
+         <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+            <span class="c1"># si un nom est associe a son numero d&#39;entite physique</span>
+            <span class="n">elem_dim</span> <span class="o">=</span> <span class="n">geoElement2dimension</span><span class="p">[</span><span class="n">ele</span><span class="o">.</span><span class="n">etype</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">)</span> <span class="ow">in</span> <span class="n">physicalEntity2physicalName</span><span class="p">[</span><span class="n">elem_dim</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">:</span>
+               <span class="c1"># on remplace le numero par le nom</span>
+               <span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="o">=</span> <span class="n">physicalEntity2physicalName</span><span class="p">[</span><span class="n">elem_dim</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">)]</span>
+
+      <span class="c1"># on renvoie le maillage ainsi construit</span>
+      <span class="k">return</span> <span class="n">read_mesh</span>
+
+  
+  
+<span class="k">def</span> <span class="nf">readSysweld</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readSysweld(fname, dim):</span>
+
+<span class="sd">      this function builds sets of nodes and elements from a mesh</span>
+<span class="sd">      built by sysweld</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - fname: a file in which the mesh is stored</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      
+      <span class="c1"># on declare la liste des mots clefs, qu&#39;on s&#39;attend a trouver dans le fichier</span>
+      <span class="n">motCleMesh</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;NOEUD&#39;</span><span class="p">,</span> <span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span>
+
+      <span class="c1"># on declare le dictionnaire utilise pour passer de l&#39;information NOEUD PRIMAIRE,</span>
+      <span class="c1"># a l&#39;information NOEUD</span>
+      <span class="n">dic</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Y=&#39;</span><span class="p">:</span><span class="s1">&#39;Y= &#39;</span><span class="p">,</span><span class="s1">&#39;X=&#39;</span> <span class="p">:</span> <span class="s1">&#39;X= &#39;</span><span class="p">,</span><span class="s1">&#39;Z=&#39;</span><span class="p">:</span><span class="s1">&#39;Z= &#39;</span><span class="p">}</span>
+      <span class="c1"># on stocke les clefs de ce dictionnaire</span>
+      <span class="n">dic_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+      <span class="c1"># on definit le maillage</span>
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mesh_file</span> <span class="p">:</span> 
+          <span class="c1"># pour chaque ligne du fichier</span>
+          <span class="k">for</span> <span class="n">ligne</span> <span class="ow">in</span> <span class="n">mesh_file</span><span class="p">:</span>
+             <span class="c1"># On supprime l information NOEUD PRIMAIRE du fichier qui crera un conflit avec NOEUD</span>
+             <span class="k">if</span> <span class="n">ligne</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;PRIMAIRE&#39;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">dic_keys</span><span class="p">:</span>
+                   <span class="n">ligne</span><span class="o">=</span><span class="n">ligne</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">dic</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+
+             <span class="c1"># on separe les colonnes de la ligne courante</span>
+             <span class="n">res</span> <span class="o">=</span> <span class="n">ligne</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+             <span class="c1"># si la chaine de la premiere colonne est un mot-clef</span>
+             <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">motCleMesh</span><span class="p">:</span>
+                <span class="c1"># on le stocke </span>
+                <span class="n">motcle</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+             <span class="c1"># si la ligne courante decrit un noeud</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;NOEUD&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;NOEUD&#39;</span><span class="p">:</span>
+                <span class="c1"># si on est en 2D</span>
+                <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                   <span class="n">coor</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+                <span class="c1"># si on est en 3D</span>
+                <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                   <span class="n">coor</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">7</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">9</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+             <span class="c1"># si la ligne courante est la premiere des deux lignes decrivant un element</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;ELEMENT&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">:</span>
+                <span class="c1"># on recupere le type, le numero et le groupe du nouvel element</span>
+                <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sysweldElementSurface</span><span class="p">:</span>
+                  <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readSysweld] : unknown sysweld element type: &quot;</span><span class="o">+</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                <span class="n">num</span>   <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+             <span class="c1"># si la ligne courante est la seconde des deux lignes decrivant un element</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;ELEMENT&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">:</span>
+                <span class="c1"># on complete la description du nouvel element et on l&#39;ajoute au maillage</span>
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">group</span><span class="p">))</span>
+
+      <span class="c1"># on renvoie le maillage ainsi construit</span>
+      <span class="k">return</span> <span class="n">read_mesh</span>
+
+<span class="k">def</span> <span class="nf">readMail</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readMail(fname, dim):</span>
+
+<span class="sd">      this function builds a mesh by reading a file using the &#39;mail&#39; format</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - fname: a file in which the mesh is stored</span>
+<span class="sd">        N.B.: the file is supposed to be open for reading</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      
+      <span class="c1"># on declare la liste des mots clefs, qu&#39;on s&#39;attend a trouver dans le fichier</span>
+      <span class="n">motCleMesh</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;COOR_3D&#39;</span><span class="p">,</span> <span class="c1"># liste de noeuds en avec des coordonnees en 3D</span>
+                    <span class="s1">&#39;GROUP_MA&#39;</span><span class="p">,</span> <span class="c1"># groupe d&#39;elements</span>
+                    <span class="s1">&#39;GROUP_NO&#39;</span><span class="p">,</span> <span class="c1"># groupe de noeuds</span>
+                    <span class="s1">&#39;FINSF&#39;</span><span class="p">,</span> <span class="c1"># fin de section</span>
+                    <span class="s1">&#39;FIN&#39;</span><span class="p">)</span> <span class="c1"># fin du fichier</span>
+
+      <span class="c1"># on definit le maillage</span>
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="c1"># on initialise a vide le dictionnaire qui associe l&#39;identifiant d&#39;un noeud a son numero</span>
+      <span class="n">node_id2num</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="c1"># on initialise a 0 le numero du noeud courant</span>
+      <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+
+      <span class="c1"># on initialise le type d&#39;element de la liste d&#39;elements courante a vide</span>
+      <span class="n">type_ele</span><span class="o">=</span><span class="kc">None</span>
+      <span class="c1"># on initialise le type d&#39;element corespondant, dans la nomencalture de LMGC90</span>
+      <span class="n">type_ele_lmgc</span><span class="o">=</span><span class="kc">None</span>
+      <span class="c1"># on initialise a vide le dictionnaire qui associe l&#39;identifiant d&#39;un element a l&#39;objet bulk qui lui</span>
+      <span class="c1"># corespond</span>
+      <span class="n">ele_id2bulk</span> <span class="o">=</span> <span class="p">{}</span>
+
+      <span class="c1"># on indique que le nom du groupe n&#39;a pas encore ete lu</span>
+      <span class="n">is_read</span><span class="o">=</span><span class="kc">False</span>
+      <span class="c1"># on initialise le nom du groupe courant a vide</span>
+      <span class="n">group_name</span><span class="o">=</span><span class="kc">None</span>
+
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mesh_file</span> <span class="p">:</span> 
+          <span class="c1"># pour chaque ligne du fichier</span>
+          <span class="k">for</span> <span class="n">ligne</span> <span class="ow">in</span> <span class="n">mesh_file</span><span class="p">:</span>
+             <span class="c1"># on separe les colonnes de la ligne courante</span>
+             <span class="n">res</span> <span class="o">=</span> <span class="n">ligne</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+             <span class="c1"># si la chaine de la premiere colonne est un mot-clef</span>
+             <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">motCleMesh</span><span class="p">:</span>
+                <span class="c1"># on verifie la validite du mot-clef :</span>
+                <span class="c1">#    * si le mot-clef est &#39;COOR_3D&#39; et que le maillage est 2D</span>
+                <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;COOR_3D&#39;</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                   <span class="c1"># on affiche un message d&#39;erreur</span>
+                   <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readMail] : The file decribes 3D coordinates while you want to build a 2D mesh!&quot;</span><span class="p">)</span>
+
+                <span class="c1"># si le mot clef est valide, on le stocke </span>
+                <span class="n">motcle</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+             <span class="c1"># si la chaine de la premiere colonne est un nom d&#39;element</span>
+             <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">mailElementSurface</span><span class="p">:</span>
+                <span class="c1"># on stocke le type d&#39;element decrit dans la prochaine liste d&#39;elements</span>
+                <span class="n">type_ele</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1"># on le stocke comme un mot clef</span>
+                <span class="n">motcle</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+             <span class="k">else</span><span class="p">:</span>
+                <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readMail] : unknown mail element type: &quot;</span><span class="o">+</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+             <span class="c1"># si le dernier mot-clef lu est le debut d&#39;une de noeuds, avec des coordonnees 3D,</span>
+             <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+             <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne qui contient le mot-clef</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;COOR_3D&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;FINSF&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+                <span class="c1"># on incremente le numero du noeud courant</span>
+                <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c1"># on associe l&#39;identifiant du noeud courant a son numero</span>
+                <span class="n">node_id2num</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">num</span>
+                <span class="n">coor</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="p">]</span> <span class="p">)</span>
+                <span class="c1"># on ajoute le noeud lu au maillage</span>
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span> <span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">num</span><span class="p">))</span>
+             <span class="c1"># si le dernier mot-clef lu est un type d&#39;element</span>
+             <span class="c1"># et qu&#39;on a pas atteint la fin de la liste des elements de ce type</span>
+             <span class="c1"># N.B.: le test &#39;len(res) &gt; 1&#39; permet de sauter la ligne qui contient le type de l&#39;element</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="n">type_ele</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;FINSF&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+                <span class="c1"># on recupere la connectivite de l&#39;element, decrite comme la liste des identifiants</span>
+                <span class="c1"># des noeuds</span>
+                <span class="n">conn_id</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="c1"># on construit la connectivite du nouvel element, a partir des la liste des identifiants</span>
+                <span class="c1"># des noeuds</span>
+
+                <span class="c1"># on initialise la connectivite a vide</span>
+                <span class="n">conn</span><span class="o">=</span><span class="p">[]</span>
+                <span class="c1"># pour chaque identifiant de noeud</span>
+                <span class="k">for</span> <span class="n">id_node</span> <span class="ow">in</span> <span class="n">conn_id</span><span class="p">:</span>
+                   <span class="c1"># on ajoute le numero du noeud associe a cet identifiant a la connectivite de l&#39;element</span>
+                   <span class="n">conn</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node_id2num</span><span class="p">[</span><span class="n">id_node</span><span class="p">])</span>
+
+                <span class="c1"># on peut alors construire le nouvel element</span>
+                <span class="n">ele</span><span class="o">=</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn</span><span class="p">)</span>
+                <span class="c1"># on l&#39;ajoute au maillage</span>
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span>
+                <span class="c1"># on associe le nouvel element a son identifiant</span>
+                <span class="n">ele_id2bulk</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ele</span>
+             <span class="c1"># si le dernier mot-clef lu est le debut d&#39;un groupe d&#39;elements</span>
+             <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;GROUP_MA&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;FINSF&#39;</span><span class="p">:</span>
+                <span class="c1"># si on est toujours sur la ligne declarant le nouveau groupe</span>
+                <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;GROUP_MA&#39;</span><span class="p">:</span>
+                   <span class="c1"># on indique que le nom du groupe n&#39;a pas encore ete lu</span>
+                   <span class="n">is_read</span><span class="o">=</span><span class="kc">False</span>
+                   <span class="c1"># on passe a la ligne suivante</span>
+                   <span class="k">continue</span>
+                <span class="c1"># sinon, si on a pas encore lu le nom du groupe</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">is_read</span><span class="p">:</span>
+                   <span class="c1"># on le stocke</span>
+                   <span class="n">group_name</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                   <span class="c1"># on indique que le nom de groupe a ete lu</span>
+                   <span class="n">is_read</span><span class="o">=</span><span class="kc">True</span>
+                   <span class="c1"># on passe a la ligne suivante</span>
+                   <span class="k">continue</span>
+                <span class="c1"># sinon,</span>
+                <span class="k">else</span><span class="p">:</span>
+                   <span class="c1"># on est en train de parcourir la liste des identifiants d&#39;elements</span>
+                   <span class="c1"># et on indique que l&#39;element associe a l&#39;identifiant courant appartient</span>
+                   <span class="c1"># au groupe courant</span>
+
+                   <span class="c1"># si on a deja associe un groupe a l&#39;element</span>
+                   <span class="k">if</span> <span class="n">ele_id2bulk</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="o">!=</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span>
+                      <span class="c1"># on affiche un message d&#39;erreur</span>
+                      <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readMail] : A group have been already added to this element!&quot;</span><span class="p">)</span>
+                   <span class="c1"># sinon,</span>
+                   <span class="k">else</span><span class="p">:</span>
+                      <span class="c1"># on associe le groupe courant l&#39;element identifie par l&#39;identifiant courant</span>
+                      <span class="n">ele_id2bulk</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">=</span><span class="n">group_name</span> 
+             <span class="c1"># si le dernier mot-clef lu est le debut d&#39;un groupe de noeuds</span>
+             <span class="c1"># et qu&#39;on a pas atteint la fin de cette section</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;GROUP_NO&#39;</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;FINSF&#39;</span><span class="p">:</span>
+                <span class="c1"># si on est toujours sur la ligne declarant le nouveau groupe</span>
+                <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;GROUP_NO&#39;</span><span class="p">:</span>
+                   <span class="c1"># on indique que le nom du groupe n&#39;a pas encore ete lu</span>
+                   <span class="n">is_read</span><span class="o">=</span><span class="kc">False</span>
+                   <span class="c1"># on passe a la ligne suivante</span>
+                   <span class="k">continue</span>
+                <span class="c1"># sinon, si on a pas encore lu le nom du groupe</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">is_read</span><span class="p">:</span>
+                   <span class="c1"># on le stocke</span>
+                   <span class="n">group_name</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                   <span class="c1"># on indique que le nom de groupe a ete lu</span>
+                   <span class="n">is_read</span><span class="o">=</span><span class="kc">True</span>
+                   <span class="c1"># on passe a la ligne suivante</span>
+                   <span class="k">continue</span>
+                <span class="c1"># sinon,</span>
+                <span class="k">else</span><span class="p">:</span>
+                   <span class="c1"># on est en train de parcourir la liste des identifiants de noeuds</span>
+                   <span class="c1"># et on cree un element point, appuye sur ce noeud, et qui appartient</span>
+                   <span class="c1"># a ce groupe</span>
+
+                   <span class="c1"># on ajoute un element point, appuye sur ce noeud, au maillage</span>
+                   <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="p">[</span><span class="n">node_id2num</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]]],</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">group_name</span><span class="p">)</span> <span class="p">)</span>
+             <span class="c1"># si le dernier mot-clef lu indique la fin du fichier</span>
+             <span class="k">if</span> <span class="n">motcle</span> <span class="o">==</span> <span class="s1">&#39;FIN&#39;</span><span class="p">:</span>
+                <span class="c1"># on arrete la lecture du fichier</span>
+                <span class="k">break</span>
+
+      <span class="c1"># on renvoie le maillage ainsi construit</span>
+      <span class="k">return</span> <span class="n">read_mesh</span>
+
+<span class="k">def</span> <span class="nf">readVtu</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readVtu(fname, dim):</span>
+
+<span class="sd">      this function builds sets of nodes and elements from a mesh</span>
+<span class="sd">      built by vtk, and using format vtu</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - mesh_file: a file in which the mesh is stored</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+<span class="sd">      </span>
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - keep_elements: this parameter is used to filter elements, if</span>
+<span class="sd">        keep_elements=None, no filter used, else keep_elements is the list</span>
+<span class="sd">        of elements types that can be stored in the built mesh, other will be</span>
+<span class="sd">        forgotten</span>
+<span class="sd">        </span>
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="kn">import</span> <span class="nn">vtk</span>
+      
+      <span class="c1"># on utilise le reader vtk des maillages non structure</span>
+      <span class="c1"># Read the source file.</span>
+      <span class="k">try</span> <span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLUnstructuredGridReader</span><span class="p">()</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkUnstructuredGridReader</span><span class="p">()</span>
+      <span class="n">reader</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+      <span class="n">reader</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+      <span class="n">datavtu</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+     
+      <span class="c1"># Recuperation du maillage</span>
+      <span class="n">nb_nodes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetNumberOfPoints</span><span class="p">())</span>
+      <span class="n">nb_cells</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetNumberOfCells</span><span class="p">())</span>
+
+      <span class="c1"># on definit le dictionnaire associant un nom a certaines entites physiques</span>
+      <span class="n">physicalEntity2physicalName</span><span class="o">=</span><span class="p">{}</span>
+
+      <span class="c1"># on definit le maillage au format LMGC90</span>
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+      
+      <span class="c1"># pour chaque noeud du maillage vtu</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_nodes</span><span class="p">):</span>
+         <span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetPoint</span><span class="p">(</span><span class="n">i</span><span class="p">))[:</span><span class="n">dim</span><span class="p">]</span>
+         <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+      
+      <span class="c1"># on charge les entites physiques et geometriques par un array nomme PhysicalGroup</span>
+      <span class="n">PhysicalGroup</span> <span class="o">=</span> <span class="n">datavtu</span><span class="o">.</span><span class="n">GetCellData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="s1">&#39;PhysicalGroup&#39;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">PhysicalGroup</span> <span class="ow">is</span> <span class="kc">None</span> <span class="p">:</span> 
+          <span class="n">showWarning</span><span class="p">(</span><span class="s1">&#39;No physical groups defined on this mesh!&#39;</span><span class="p">)</span>
+      
+      <span class="c1"># pour chaque element du maillage vtu</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_cells</span><span class="p">):</span>
+         <span class="n">vtkid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetCellType</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+         <span class="k">if</span> <span class="n">vtkid</span> <span class="ow">in</span> <span class="n">vtkElementPoint</span><span class="p">:</span>
+           <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">0</span>
+         <span class="k">elif</span> <span class="n">vtkid</span> <span class="ow">in</span> <span class="n">vtkElementLine</span><span class="p">:</span>
+           <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">1</span>
+         <span class="k">elif</span> <span class="n">vtkid</span> <span class="ow">in</span> <span class="n">vtkElementSurface</span><span class="p">:</span>
+           <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">2</span>
+         <span class="k">elif</span> <span class="n">vtkid</span> <span class="ow">in</span> <span class="n">vtkElementVolume</span><span class="p">:</span>
+           <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">3</span>
+         <span class="k">else</span><span class="p">:</span>
+           <span class="nb">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetCell</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">GetNumberOfPoints</span><span class="p">()))</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readVtu] : unknown vtk element type: &quot;</span><span class="o">+</span><span class="n">vtkid</span><span class="p">)</span>
+
+         <span class="c1"># filtre des elements non interressant</span>
+         <span class="k">if</span> <span class="n">keep_elements</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">elem_dim</span> <span class="ow">in</span> <span class="n">keep_elements</span><span class="p">:</span>
+            <span class="c1"># on passe au suivant</span>
+            <span class="k">continue</span>
+         <span class="c1"># lecture d&#39;un element interressant</span>
+         <span class="n">conn</span> <span class="o">=</span> <span class="p">[]</span>
+         <span class="n">nb_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetCell</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">GetNumberOfPoints</span><span class="p">())</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_points</span><span class="p">):</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">datavtu</span><span class="o">.</span><span class="n">GetCell</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">GetId</span><span class="p">(</span><span class="n">j</span><span class="p">)))</span>
+
+         <span class="k">if</span> <span class="n">vtkid</span> <span class="o">==</span> <span class="s1">&#39;13&#39;</span><span class="p">:</span>
+           <span class="n">conn_PRI6</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span>
+           <span class="n">conn</span> <span class="o">=</span> <span class="n">conn_PRI6</span>
+         <span class="k">elif</span> <span class="n">vtkid</span> <span class="o">==</span> <span class="s1">&#39;26&#39;</span><span class="p">:</span>
+           <span class="n">conn_PRI15</span> <span class="o">=</span> <span class="p">[</span><span class="n">conn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="p">,</span>
+                         <span class="n">conn</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="p">,</span> <span class="n">conn</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+                         <span class="n">conn</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span> <span class="n">conn</span><span class="p">[</span><span class="mi">13</span><span class="p">]]</span>
+           <span class="n">conn</span> <span class="o">=</span> <span class="n">conn_PRI15</span>
+
+         <span class="k">if</span> <span class="n">PhysicalGroup</span> <span class="o">!=</span> <span class="kc">None</span> <span class="p">:</span>
+            <span class="c1"># on construit les entites physiques et geometriques par un array nomme PhysicalGroup</span>
+            <span class="n">pE</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">PhysicalGroup</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+            <span class="n">gE</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">PhysicalGroup</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+         <span class="k">else</span> <span class="p">:</span>
+            <span class="n">pE</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+            <span class="n">gE</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+ 
+         <span class="c1"># on construit l&#39;element et on l&#39;ajoute au maillage</span>
+         <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="n">pE</span><span class="p">,</span> <span class="n">geometricalEntity</span><span class="o">=</span><span class="n">gE</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+      
+      <span class="c1"># si certaines entites physiques possedent un nom</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">physicalEntity2physicalName</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="c1"># le nom remplace le numero d&#39;entite physique pour les elements concernes</span>
+         <span class="c1"># on recupere la liste des numeros d&#39;entite physiques concernes</span>
+         <span class="n">named_physicalEntities</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">physicalEntity2physicalName</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+         <span class="c1"># pour chaque element</span>
+         <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">read_mesh</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+            <span class="c1"># si un nom est associe a son numero d&#39;entite physique</span>
+            <span class="k">if</span> <span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="ow">in</span> <span class="n">named_physicalEntities</span><span class="p">:</span>
+               <span class="c1"># on remplace le numero par le nom</span>
+               <span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="o">=</span> <span class="n">physicalEntity2physicalName</span><span class="p">[</span><span class="n">ele</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">]</span>
+      
+      <span class="c1"># on renvoie le maillage ainsi construit</span>
+      <span class="k">return</span> <span class="n">read_mesh</span>
+
+
+<span class="k">def</span> <span class="nf">readInp</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">keep_elements</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;readInp(fname, dim):</span>
+
+<span class="sd">      Build a mesh from an Abaqus file</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - fname : a file name in which the mesh is stored</span>
+<span class="sd">      - dim: dim=2, in 2D and dim=3, in 3D</span>
+<span class="sd">      - keep_elements: this parameter is used to filter elements, if</span>
+<span class="sd">        keep_elements=None, no filter used, else keep_elements is the list</span>
+<span class="sd">        of elements types that can be stored in the built mesh, other will be</span>
+<span class="sd">        forgotten</span>
+<span class="sd">      returned value:</span>
+
+<span class="sd">      - read_mesh: the built mesh</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="n">read_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mesh_file</span> <span class="p">:</span>
+
+          <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+          <span class="k">while</span> <span class="n">line</span><span class="p">:</span>
+
+            <span class="c1"># node reading</span>
+            <span class="k">while</span> <span class="n">line</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;*NODE&quot;</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;*ELEMENT&quot;</span> <span class="p">:</span>
+              <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;*NODE&quot;</span><span class="p">:</span>
+              <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+              <span class="k">while</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">coor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">])]</span> <span class="p">)</span>
+                <span class="n">no</span> <span class="o">=</span> <span class="n">node</span><span class="p">(</span> <span class="n">coor</span><span class="o">=</span><span class="n">coor</span><span class="p">[:</span><span class="n">dim</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">)</span>
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">no</span> <span class="p">)</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+            <span class="c1"># element reading</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*ELEMENT&quot;</span><span class="p">:</span>
+
+              <span class="n">line</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+              <span class="n">etype</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+              <span class="k">if</span> <span class="n">etype</span> <span class="ow">in</span> <span class="n">inpElementPoint</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">0</span>
+              <span class="k">elif</span> <span class="n">etype</span> <span class="ow">in</span> <span class="n">inpElementLine</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">1</span>
+              <span class="k">elif</span> <span class="n">etype</span> <span class="ow">in</span> <span class="n">inpElementSurface</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">2</span>
+              <span class="k">elif</span> <span class="n">etype</span> <span class="ow">in</span> <span class="n">inpElementVolume</span><span class="p">:</span>
+                <span class="n">elem_dim</span> <span class="o">=</span> <span class="mi">3</span>
+              <span class="k">else</span><span class="p">:</span>
+                <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;[readMesh::readInp] : unknown abaqus element type: &quot;</span><span class="o">+</span><span class="n">etype</span><span class="p">)</span>
+
+
+              <span class="n">gr</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+              <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+              <span class="n">to_skip</span> <span class="o">=</span> <span class="kc">False</span>
+              <span class="k">if</span> <span class="n">keep_elements</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">elem_dim</span> <span class="ow">in</span> <span class="n">keep_elements</span><span class="p">:</span>
+                 <span class="n">to_skip</span> <span class="o">=</span> <span class="kc">True</span>
+
+              <span class="k">while</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">to_skip</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">conn</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+
+                <span class="n">elem</span> <span class="o">=</span> <span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="o">=</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span>
+                               <span class="n">physicalEntity</span><span class="o">=</span><span class="n">gr</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                              <span class="p">)</span>
+
+                <span class="n">read_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">elem</span> <span class="p">)</span>
+
+                <span class="n">line</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+      <span class="k">return</span> <span class="n">read_mesh</span>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.lecture</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

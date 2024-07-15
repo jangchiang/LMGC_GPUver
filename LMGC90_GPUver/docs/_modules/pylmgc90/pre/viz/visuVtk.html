@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.viz.visuVtk &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.viz.visuVtk</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.viz.visuVtk</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.vtkContactor</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">wedgeMap</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">))</span>
+<span class="n">wedgeMap</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="n">wedgeMap</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">1</span>
+<span class="n">wedgeMap</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="n">wedgeMap</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">4</span>
+<span class="n">wedgeMap</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="n">wedgeMap</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">6</span>
+<span class="n">wedgeMap</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span><span class="mi">11</span><span class="p">;</span> <span class="n">wedgeMap</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">wedgeMap</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">=</span><span class="mi">14</span><span class="p">;</span> <span class="n">wedgeMap</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">=</span><span class="mi">13</span>
+
+<span class="k">def</span> <span class="nf">getVtkObjectsFromAvatar</span><span class="p">(</span><span class="n">avatar</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;getVtkObjectFromAvatar(avatar):</span>
+
+<span class="sd">     Create the list of vtk objects corresponding to an avatar.</span>
+<span class="sd">     Object from the nodes of the mesh or the center of inertia</span>
+<span class="sd">     for the body and objects from its contactors for a rigid.</span>
+
+<span class="sd">     parameter:</span>
+
+<span class="sd">     - avatar: avatar object to display</span>
+<span class="sd">     - returned value: list of vtk objects to use in input in a vtkMapper</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="kn">import</span> <span class="nn">vtk</span>
+
+  <span class="n">vtk_objs</span> <span class="o">=</span> <span class="p">[]</span>
+
+  <span class="n">dim</span> <span class="o">=</span> <span class="n">avatar</span><span class="o">.</span><span class="n">dimension</span>
+
+  <span class="c1"># putting nodes in vtk</span>
+  <span class="n">points</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPoints</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avatar</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="n">points</span><span class="o">.</span><span class="n">InsertNextPoint</span><span class="p">(</span><span class="n">avatar</span><span class="o">.</span><span class="n">getNodeCoor</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avatar</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="n">coor</span> <span class="o">=</span> <span class="n">avatar</span><span class="o">.</span><span class="n">getNodeCoor</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+      <span class="n">points</span><span class="o">.</span><span class="n">InsertNextPoint</span><span class="p">(</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">0.</span><span class="p">)</span>
+
+  <span class="n">grid</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkUnstructuredGrid</span><span class="p">()</span>
+  <span class="n">grid</span><span class="o">.</span><span class="n">Allocate</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+  <span class="c1"># putting elements in vtk</span>
+  <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">avatar</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;Q4xxx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuad</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;Q8xxx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuadraticQuad</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;T3xxx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkTriangle</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;T6xxx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuadraticTriangle</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;S2xxx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkLine</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;Point&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkVertex</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;H20xx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuadraticHexahedron</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;H8xxx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkHexahedron</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;PRI6x&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkWedge</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;PRI15&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuadraticWedge</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;TE10x&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkQuadraticTetra</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;TE4xx&#39;</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkTetra</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[getVtkObjectsFromAvatar] unable to draw element of type : &#39;</span><span class="p">,</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">obj</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;PRI6x&#39;</span> <span class="ow">or</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;PRI15&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ele</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)):</span>
+          <span class="n">obj</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ele</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">wedgeMap</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ele</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)):</span>
+          <span class="n">obj</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">ele</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">grid</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetCellType</span><span class="p">(),</span><span class="n">obj</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">())</span>
+
+  <span class="n">grid</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+  <span class="n">vtk_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+
+  <span class="c1"># to improve !!!</span>
+  <span class="k">if</span> <span class="n">avatar</span><span class="o">.</span><span class="n">atype</span> <span class="o">==</span> <span class="s1">&#39;MAILx&#39;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">vtk_objs</span>
+
+  <span class="n">coor</span> <span class="o">=</span> <span class="n">avatar</span><span class="o">.</span><span class="n">getNodeCoor</span><span class="p">()</span>
+  <span class="n">frame</span><span class="o">=</span> <span class="n">avatar</span><span class="o">.</span><span class="n">getBulkFrame</span><span class="p">()</span>
+
+  <span class="c1"># drawing contactors</span>
+  <span class="k">for</span> <span class="n">contactor</span> <span class="ow">in</span> <span class="n">avatar</span><span class="o">.</span><span class="n">contactors</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">contactor</span><span class="o">.</span><span class="n">shape</span> <span class="ow">in</span> <span class="n">availables</span><span class="p">:</span>
+      <span class="n">obj</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;getVtkObjectFrom&quot;</span><span class="o">+</span><span class="n">contactor</span><span class="o">.</span><span class="n">shape</span><span class="o">+</span><span class="s2">&quot;(contactor, coor, frame)&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+        <span class="n">vtk_objs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">vtk_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Unable to create vtk object of contactor type: &#39;</span><span class="p">,</span> <span class="n">contactor</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> \
+      <span class="s1">&#39;for avatar number: &#39;</span><span class="p">,</span> <span class="n">avatar</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">vtk_objs</span>
+      
+
+<span class="k">def</span> <span class="nf">add_actors</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span> <span class="n">ren</span><span class="p">,</span> <span class="n">drvdof_color</span><span class="p">):</span>
+
+  <span class="kn">import</span> <span class="nn">vtk</span>
+
+  <span class="n">v</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkVersion</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">GetVTKVersion</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="s1">&#39;5&#39;</span><span class="p">:</span>
+
+    <span class="n">vtk</span><span class="o">.</span><span class="n">vtkLogger</span><span class="o">.</span><span class="n">SetStderrVerbosity</span><span class="p">(</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkLogger</span><span class="o">.</span><span class="n">VERBOSITY_OFF</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">avatar</span> <span class="ow">in</span> <span class="n">cont</span><span class="p">:</span>
+      <span class="n">vtk_objs</span> <span class="o">=</span> <span class="n">getVtkObjectsFromAvatar</span><span class="p">(</span><span class="n">avatar</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">vtk_objs</span><span class="p">:</span>
+
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDataSetMapper</span><span class="p">()</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">SetScalarVisibility</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAlgorithm</span><span class="p">)</span> <span class="p">:</span>
+          <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="n">actor</span>   <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+        <span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+  
+        <span class="c1"># change color of object if any dof has a BC</span>
+        <span class="k">if</span> <span class="n">drvdof_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">avatar</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">dof</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+              <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">dof</span><span class="o">.</span><span class="n">pilote</span><span class="p">):</span>
+                <span class="n">actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="n">drvdof_color</span><span class="p">[:])</span>
+                <span class="k">break</span>
+
+        <span class="c1"># for edges visualization in blue</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkExtractEdges</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAlgorithm</span><span class="p">)</span> <span class="p">:</span>
+          <span class="n">edges</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">edges</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+  
+        <span class="n">edge_mapper</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">edge_mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="n">edge_actor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">edge_actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">edge_mapper</span><span class="p">)</span>
+        <span class="n">edge_actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">edge_actor</span><span class="p">)</span>
+
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">avatar</span> <span class="ow">in</span> <span class="n">cont</span><span class="p">:</span>
+      <span class="n">vtk_objs</span> <span class="o">=</span> <span class="n">getVtkObjectsFromAvatar</span><span class="p">(</span><span class="n">avatar</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">vtk_objs</span><span class="p">:</span>
+        <span class="n">mapper</span>  <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDataSetMapper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAlgorithm</span><span class="p">)</span> <span class="p">:</span>
+          <span class="n">mapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">mapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="c1">#mapper.SetInput(obj)</span>
+        <span class="n">actor</span>   <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+        <span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+  
+        <span class="c1"># for edges visualization in blue</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkExtractEdges</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAlgorithm</span><span class="p">)</span> <span class="p">:</span>
+          <span class="n">edges</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">edges</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="n">edge_mapper</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">edge_mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="n">edge_actor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">edge_actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">edge_mapper</span><span class="p">)</span>
+        <span class="n">edge_actor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">edge_actor</span><span class="p">)</span>
+
+      
+<div class="viewcode-block" id="visuAvatars"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.visuAvatars">[docs]</a><span class="k">def</span> <span class="nf">visuAvatars</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span><span class="n">with_axis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">drvdof_color</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;visuAvatars(cont):</span>
+
+<span class="sd">     Create a visualization window of a container of avatars using vtk.</span>
+
+<span class="sd">     parameter:</span>
+
+<span class="sd">     - cont: container of avatars</span>
+<span class="sd">     - with_axis (optional) : (boolean) add normalized axis to visualization</span>
+<span class="sd">     - drvdof_color (optional) : ignored if None, otherwise must be a list of 3 values to define the color of bodies having a boundary condition</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">config</span>
+
+  <span class="c1"># In novisu mode, don&#39;t popup any window</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">config</span><span class="o">.</span><span class="n">novisu</span> <span class="p">):</span>
+    <span class="k">return</span>
+
+  <span class="k">try</span><span class="p">:</span>
+      <span class="kn">import</span> <span class="nn">vtk</span>
+  <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+      <span class="n">msg</span>  <span class="o">=</span> <span class="s1">&#39;[WARNING:pre.visuAvatars] not python vtk module found,</span><span class="se">\n</span><span class="s1">&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;please install it before trying to visualize avatars&#39;</span>
+      <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+      <span class="k">return</span>
+
+  <span class="n">ren</span>    <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderer</span><span class="p">()</span>
+  <span class="n">renWin</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderWindow</span><span class="p">()</span>
+  <span class="n">renWin</span><span class="o">.</span><span class="n">AddRenderer</span><span class="p">(</span><span class="n">ren</span><span class="p">)</span>
+  <span class="n">renWin</span><span class="o">.</span><span class="n">SetSize</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+
+  <span class="n">style</span> <span class="o">=</span>  <span class="n">vtk</span><span class="o">.</span><span class="n">vtkInteractorStyleTrackballCamera</span><span class="p">()</span>
+
+  <span class="n">iren</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderWindowInteractor</span><span class="p">()</span>
+  <span class="n">iren</span><span class="o">.</span><span class="n">SetRenderWindow</span><span class="p">(</span><span class="n">renWin</span><span class="p">)</span>
+  <span class="n">iren</span><span class="o">.</span><span class="n">SetInteractorStyle</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+
+  <span class="c1">#ren.ResetCamera()</span>
+  <span class="c1">#ren.GetActiveCamera().Azimuth(30)</span>
+  <span class="c1">#ren.GetActiveCamera().Elevation(20)</span>
+  <span class="c1">#ren.GetActiveCamera().Dolly(2.8)</span>
+  <span class="c1">#ren.ResetCameraClippingRange()</span>
+  <span class="n">ren</span><span class="o">.</span><span class="n">SetBackground</span><span class="p">(</span><span class="mf">.1</span><span class="p">,</span> <span class="mf">.2</span><span class="p">,</span> <span class="mf">.4</span><span class="p">)</span>
+
+  <span class="n">add_actors</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span><span class="n">ren</span><span class="p">,</span><span class="n">drvdof_color</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">with_axis</span><span class="p">:</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkAxesActor</span><span class="p">()</span>
+    <span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
+
+  <span class="c1"># for edges visualization</span>
+  <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span><span class="o">.</span><span class="n">SetResolveCoincidentTopologyToPolygonOffset</span><span class="p">()</span>
+
+  <span class="n">iren</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+  <span class="n">renWin</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span>
+  <span class="n">iren</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span></div>
+
+  <span class="c1">#too violent... may close automatically the window in Anaconda notebook</span>
+  <span class="c1">#iren.GetRenderWindow().Finalize()  # equivalent: renWin.Finalize()</span>
+  <span class="c1">#iren.TerminateApp()</span>
+  <span class="c1">#del renWin, iren</span>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.viz.visuVtk</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.avatars &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.avatars</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.avatars</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">.avatar.avatar</span> <span class="kn">import</span> <span class="n">avatar</span>
+
+<span class="kn">from</span> <span class="nn">.utilities.error</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1">## @class avatars : avatar list</span>
+<div class="viewcode-block" id="avatars"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars">[docs]</a><span class="k">class</span> <span class="nc">avatars</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; avatar container class</span>
+
+<span class="sd">    Methods:</span>
+
+<span class="sd">    - addAvatar</span>
+<span class="sd">    - getFemAvatar</span>
+<span class="sd">    - getRigidAvatar</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<span class="c1">#    ## add a list of avatars to container</span>
+<span class="c1">#    def addAvatar(self,*Avatar):</span>
+<span class="c1">#        &quot;&quot;&quot;addAvatar(self,avatar)</span>
+<span class="c1">#           add the input list of avatar to the container</span>
+<span class="c1">#        &quot;&quot;&quot;</span>
+<span class="c1">#        try:</span>
+<span class="c1">#          for avatar in Avatar:</span>
+<span class="c1">#            self.__dict__[avatar.number] = avatar</span>
+<span class="c1">#        except: # si l objet Part n est pas iterable il doit</span>
+<span class="c1">#            if len(Avatar) == 1:</span>
+<span class="c1">#                self.__dict__[Avatar[0].number] = Avatar[0]</span>
+<span class="c1">#            else:</span>
+<span class="c1">#                msg=&#39;addAvatar method does not apply&#39;</span>
+<span class="c1">#                showWarning(msg)</span>
+
+    <span class="c1">## add an avatar to container</span>
+<div class="viewcode-block" id="avatars.addAvatar"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.addAvatar">[docs]</a>    <span class="k">def</span> <span class="nf">addAvatar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">av</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;addAvatar(self,av):</span>
+
+<span class="sd">        this function adds the input avatar to the container</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the container itself</span>
+<span class="sd">        - av: a given avatar</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">av</span><span class="p">,</span><span class="n">avatar</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is not an avatar&quot;</span><span class="o">%</span><span class="n">av</span>
+
+        <span class="c1"># on atribue a l&#39;avatar le prochain numero disponible</span>
+        <span class="c1"># N.B.: si l&#39;avatar provient d&#39;un autre container, son</span>
+        <span class="c1">#       son numero est ecrase, et renvoie au dernier </span>
+        <span class="c1">#       container ou il a ete ajoute</span>
+        <span class="n">av</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># on ajoute l&#39;avatar dans le container</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">av</span><span class="p">)</span></div>
+   
+    <span class="c1">## add one avatar, or a list of avatars, to the container</span>
+    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;__iadd__(self,object):</span>
+
+<span class="sd">        overloads operator +=</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the container itself</span>
+<span class="sd">        - object: two cases:</span>
+
+<span class="sd">          - if object is an avatar, it is added to the container (self)</span>
+<span class="sd">          - if object is a container of avatars, each avatar of this</span>
+<span class="sd">            container is added to the container (self)&#39;&#39;&#39;</span>
+
+        <span class="c1"># en fonction du type de l&#39;objet</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span><span class="n">avatar</span><span class="p">):</span> <span class="c1"># cas d&#39;un avatar</span>
+            <span class="c1"># on l&#39;ajoute dans le conteneur</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span><span class="n">avatars</span><span class="p">):</span> <span class="c1"># cas d&#39;un conteneur d&#39;avatars</span>
+            <span class="c1"># on ajoute les avatars contenus dans ll&#39;objet, un par un</span>
+            <span class="k">for</span> <span class="n">body</span> <span class="ow">in</span> <span class="nb">object</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="c1"># sinon, on affiche un warning </span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warn</span><span class="o">=</span><span class="s1">&#39;Only one avatar object, or a list of avatars, can be added to an avatar container</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">showWarning</span><span class="p">(</span><span class="n">warn</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># on renvoie le conteneur modifie</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="avatars.getFemAvatar"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.getFemAvatar">[docs]</a>    <span class="k">def</span> <span class="nf">getFemAvatar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; getFemAvatar(self)</span>
+
+<span class="sd">        get the list of avatar of MAILx type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">atype</span> <span class="o">==</span> <span class="s1">&#39;MAILx&#39;</span> <span class="p">]</span></div>
+
+    <span class="c1">## </span>
+<div class="viewcode-block" id="avatars.getRigidAvatar"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.getRigidAvatar">[docs]</a>    <span class="k">def</span> <span class="nf">getRigidAvatar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;getRigidAvatar(self)</span>
+<span class="sd">           </span>
+<span class="sd">        get the list of avatar of RBDY2 or RBDY3 type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">atype</span> <span class="o">!=</span> <span class="s1">&#39;MAILx&#39;</span> <span class="p">]</span></div>
+
+    <span class="c1">## translate a set of avatars</span>
+    <span class="c1">#  @param dx,dy, dz tranlation vector</span>
+<div class="viewcode-block" id="avatars.translate"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.translate">[docs]</a>    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">dy</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">dz</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; usage self.tranlsate(dx=0., dy=0., dz=0.)</span>
+
+<span class="sd">        where dx, dy, dz are components of translation vector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># on translate chaque avatar de l&#39;objet</span>
+        <span class="k">for</span> <span class="n">avatar</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+             <span class="n">avatar</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dx</span><span class="o">=</span><span class="n">dx</span><span class="p">,</span><span class="n">dy</span><span class="o">=</span><span class="n">dy</span><span class="p">,</span><span class="n">dz</span><span class="o">=</span><span class="n">dz</span><span class="p">)</span></div>
+
+    <span class="c1">## translate a set of avatars</span>
+<div class="viewcode-block" id="avatars.rotate"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.rotate">[docs]</a>    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Euler&#39;</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">psi</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;rotate(self, description=&#39;Euler&#39;, phi=0., theta=0., psi=0., alpha=0., axis=[0., 0., 1.], center=[0., 0., 0.])</span>
+
+<span class="sd">        this function rotates every avatar in the set, according to the given rotation parameters and a</span>
+<span class="sd">        rotation center. Supported rotation paramters are: Euler&#39;s angles or an axis and an angle</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the avatar itself</span>
+<span class="sd">        - description=&#39;Euler&#39;: defines the rotation parameters:</span>
+
+<span class="sd">          - if description = &#39;Euler&#39;, the rotation uses Euler&#39;s angles, consequently only phi, theta, psi and</span>
+<span class="sd">            center are considered</span>
+<span class="sd">          - if description = &#39;axis&#39;, the rotation uses an axis and an angle, consequently only axis, alpha and</span>
+<span class="sd">            center are considered</span>
+
+<span class="sd">        - phi: first Euler&#39;s angle (rotation with respect to z-axis)</span>
+<span class="sd">        - theta: second Euler&#39;s angle (rotation with respect to x-axis)</span>
+<span class="sd">        - psi: third Euler&#39;s angle (rotation with respect to z-axis, the only one admissible in 2D)</span>
+<span class="sd">        - axis: a 3D vector defining rotation axis (colinear to z-axis in 2D)</span>
+<span class="sd">        - angle: rotation angle</span>
+<span class="sd">        - center: rotation center</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># on applique la rotation a chaque avatar du conteneur</span>
+        <span class="k">for</span> <span class="n">avatar</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">avatar</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">psi</span><span class="o">=</span><span class="n">psi</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">center</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="avatars.updateReferenceConfig"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.updateReferenceConfig">[docs]</a>    <span class="k">def</span> <span class="nf">updateReferenceConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update reference coordinates of all avatars</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">avatar</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">avatar</span><span class="o">.</span><span class="n">updateReferenceConfig</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="avatars.renumber"><a class="viewcode-back" href="../../../pre_classes.html#pylmgc90.pre.avatars.renumber">[docs]</a>    <span class="k">def</span> <span class="nf">renumber</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renumber in a contiguous manner all avatars</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">counting</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;RBDY2&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                     <span class="s1">&#39;RBDY3&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                     <span class="s1">&#39;MAILx&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                   <span class="p">}</span>
+        <span class="n">m_counting</span> <span class="o">=</span> <span class="p">{</span> <span class="p">(</span><span class="s1">&#39;RBDY2&#39;</span><span class="p">,</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,)</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="p">(</span><span class="s1">&#39;RBDY3&#39;</span><span class="p">,</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,)</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="p">(</span><span class="s1">&#39;MAILx&#39;</span><span class="p">,</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,)</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="p">(</span><span class="s1">&#39;MAILx&#39;</span><span class="p">,</span><span class="s1">&#39;THERx&#39;</span><span class="p">,)</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="p">(</span><span class="s1">&#39;MAILx&#39;</span><span class="p">,</span><span class="s1">&#39;POROx&#39;</span><span class="p">,)</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="p">(</span><span class="s1">&#39;MAILx&#39;</span><span class="p">,</span><span class="s1">&#39;MULTI&#39;</span><span class="p">,)</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                     <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">av</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">counting</span><span class="p">[</span> <span class="n">av</span><span class="o">.</span><span class="n">atype</span> <span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">m_counting</span><span class="p">[</span> <span class="p">(</span><span class="n">av</span><span class="o">.</span><span class="n">atype</span><span class="p">,</span><span class="n">av</span><span class="o">.</span><span class="n">modelType</span><span class="p">,)</span> <span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">av</span><span class="o">.</span><span class="n">number</span>  <span class="o">=</span> <span class="n">counting</span><span class="p">[</span> <span class="n">av</span><span class="o">.</span><span class="n">atype</span> <span class="p">]</span>
+            <span class="n">av</span><span class="o">.</span><span class="n">m_num</span>   <span class="o">=</span> <span class="n">m_counting</span><span class="p">[</span> <span class="p">(</span><span class="n">av</span><span class="o">.</span><span class="n">atype</span><span class="p">,</span><span class="n">av</span><span class="o">.</span><span class="n">modelType</span><span class="p">)</span> <span class="p">]</span></div></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.avatars</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+
+Directory with third-party libraries:
+- MUMPs library: http://mumps.enseeiht.fr/index.php?page=home in version 4.9.2
+  patched from here https://sourceforge.net/p/nuto/wiki/MUMPS%20Solver%20package/
+  to make it thread safe. Furthermore there are some homemade patchs to work with
+  our cmake and to provide scalapack if not installed on the system.
+- MatLib3.2_LMGC contains library developped by Laurent Stainier (EC Nantes)
+  with added material by Dominique Ambard (LMGC)
+- MatLib4-LMGC-2015-1 contains the latest version of the MatLib without DA materials
+- robustPredicates contains predicates functions for detections: http://www.cs.cmu.edu/~quake/robust.html
+- siconos-numerics contains sources of SiconosNumerics library (INRIA Rhône-Alpes): http://siconos.gforge.inria.fr/
+- ann-1.1.2 contains a library for proximal point research (Univerity of Maryland): https://www.cs.umd.edu/~mount/ANN/
+- rTree contains a library for pair detections from (http://www.superliminal.com/sources/sources.htm)
+- clipper-6.4 contains a library for polygon intersection (http://www.angusj.com/delphi/clipper.php)
+  (with the 'ThirdParty', 'Delphi' and 'C#' part deleted)
+- VTK_IO: a library to write VTK file from fortran. This is an old version which conducted to
+  this project https://github.com/szaghi/VTKFortran (will have to update it).

@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.tools.containers3D &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.tools.containers3D</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.tools.containers3D</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module fournissant des macros de depot dans des conteneurs predifnis</span>
+
+<span class="c1"># import du module permettant de savoir si on pourra importer les pre_tools</span>
+<span class="kn">from</span> <span class="nn">...utilities.check_compiled_modules</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># import des des wrappers des anciens pre-processeurs pour les milieux granualaires</span>
+
+<span class="c1"># si on peut essayer d&#39;importer le module pre_tools sans tout faire planter</span>
+<span class="k">if</span> <span class="n">import_lmgc90</span><span class="p">():</span>
+   <span class="c1"># on essaye</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="kn">from</span> <span class="nn">....chipy</span> <span class="kn">import</span> <span class="n">lmgc90</span>
+   <span class="k">except</span><span class="p">:</span>
+      <span class="k">raise</span>
+
+<span class="c1"># fonction qui depose les particules dans une boite paralepipedique</span>
+<div class="viewcode-block" id="depositInBox3D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInBox3D">[docs]</a><span class="k">def</span> <span class="nf">depositInBox3D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInBox3D(radii, lx, ly, lz, deposited_radii=None, deposited_coor=None):</span>
+
+<span class="sd">   this function deposits spherical particles in a box</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - lx: width of the box, following Ox axis</span>
+<span class="sd">   - ly: width of the box, following Oy axis</span>
+<span class="sd">   - lz: heigth of the box</span>
+
+<span class="sd">   N.B. a point (x, y, z) is in the box iff x is in [-lx/2, lx/2], y is in [-ly/2, ly/2] and z is in [0, lz]</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be already deposited</span>
+<span class="sd">   - deposited_coor=None: coordinates of these deposited particles  </span>
+<span class="sd">   - seed=None: an input seed to control randomness</span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, z1, x2, y2, z2, ...]</span>
+
+<span class="sd">   WARNING: this function changes the radii list since it nullifies radii of the </span>
+<span class="sd">   particles out of the box. So, after calling this function, only the </span>
+<span class="sd">   first nb_remaining_particles particles are of interest&#39;&#39;&#39;</span> 
+  
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+
+   <span class="c1"># on depose les grains sous gravite dans la boite :</span>
+   <span class="c1"># l&#39;appel varie en fonction de la presence ou non de particules deja deposees</span>
+   <span class="k">if</span> <span class="n">deposited_radii</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># cas sans particules</span>
+      <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_Box</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_Box</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="k">elif</span> <span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># cas avec particules</span>
+      <span class="c1"># deja deposees   </span>
+      <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_HeterogeneousBox</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> 
+                                                                  <span class="n">deposited_radii</span><span class="p">,</span>
+                                                                  <span class="n">deposited_coor</span><span class="p">,</span>
+                                                                  <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_HeterogeneousBox</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> 
+                                                                  <span class="n">deposited_radii</span><span class="p">,</span>
+                                                                  <span class="n">deposited_coor</span><span class="p">,</span>
+                                                                  <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="k">else</span><span class="p">:</span> <span class="c1"># cas mal defini</span>
+      <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;to compute a deposit involving already deposited particles, radii AND coordinates of the deposited particles!&#39;</span><span class="p">)</span>
+     
+   <span class="c1"># on renvoie le nombre de particules deposees par l&#39;algorithme et leur</span>
+   <span class="c1"># coordonnees</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+
+<span class="c1"># fonction qui depose les particules dans une boite cylindrique</span>
+<div class="viewcode-block" id="depositInCylinder3D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInCylinder3D">[docs]</a><span class="k">def</span> <span class="nf">depositInCylinder3D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInCylinder3D(radii, R, lz, deposited_radii=None, deposited_coor=None, seed=None):</span>
+
+<span class="sd">   this function deposits spherical particles in a cylinder</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - R: radius of the cylinder</span>
+<span class="sd">   - lz: heigth of the cylinder</span>
+
+<span class="sd">   N.B. a point (x, y, z) is in the cylinder iff x^2 + y^2 is in [0, R^2] and z is in [0, lz]</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be already deposited</span>
+<span class="sd">   - deposited_coor=None: coordinates of these deposited particles  </span>
+<span class="sd">   - seed=None: an input seed to control randomness</span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, z1, x2, y2, z2, ...]</span>
+
+<span class="sd">   WARNING: this function changes the radii list since it nullifies radii of the </span>
+<span class="sd">   particles out of the box. So, after calling this function, only the </span>
+<span class="sd">   first nb_remaining_particles particles are of interest&#39;&#39;&#39;</span> 
+  
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+   <span class="c1"># on depose les grains sous gravite dans le cylindre :</span>
+   <span class="c1"># l&#39;appel varie en fonction de la presence ou non de particules deja deposees</span>
+   <span class="k">if</span> <span class="n">deposited_radii</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># cas sans particules</span>
+      <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_Cylinder</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_Cylinder</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="k">elif</span> <span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># cas avec particules</span>
+      <span class="c1"># deja deposees   </span>
+      <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_HeterogeneousCylinder</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> 
+                                                                       <span class="n">deposited_radii</span><span class="p">,</span>
+                                                                       <span class="n">deposited_coor</span><span class="p">,</span>
+                                                                       <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_HeterogeneousCylinder</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> 
+                                                                       <span class="n">deposited_radii</span><span class="p">,</span>
+                                                                       <span class="n">deposited_coor</span><span class="p">,</span>
+                                                                       <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span> <span class="c1"># cas mal defini</span>
+      <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;to compute a deposit involving already deposited particles, radii AND coordinates of the deposited particles!&#39;</span><span class="p">)</span>
+     
+   <span class="c1"># on renvoie le nombre de particules deposees par l&#39;algorithme et leur</span>
+   <span class="c1"># coordonnees</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+
+<span class="c1"># fonction qui depose les particules dans une boite spherique</span>
+<div class="viewcode-block" id="depositInSphere3D"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.depositInSphere3D">[docs]</a><span class="k">def</span> <span class="nf">depositInSphere3D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">deposited_radii</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposited_coor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;[nb_remaining_particles, coor]=depositInSphere3D(radii, R, center, deposited_radii=None, deposited_coor=None, seed=None):</span>
+
+<span class="sd">   this function deposits spherical particles in a cylinder</span>
+
+<span class="sd">   parameters:</span>
+
+<span class="sd">   - radii: radii of the particles</span>
+<span class="sd">   - R: radius of the sphere</span>
+<span class="sd">   - center: center of the sphere</span>
+
+<span class="sd">   N.B. a point (x, y, z) is in the sphere iff (x - x_C)^2 + (y - y_C)^2 + (z - z_C)^2 is in [0, R^2]</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - deposited_radii=None: radii of particles supposed to be already deposited</span>
+<span class="sd">   - deposited_coor=None: coordinates of these deposited particles</span>
+<span class="sd">   - seed=None: an input seed to control randomness</span>
+
+<span class="sd">   returned values:</span>
+
+<span class="sd">   - nb_remaining_particles: number of deposited particles</span>
+<span class="sd">   - coor: coordinates of the deposited particles [x1, y1, z1, x2, y2, z2, ...]</span>
+
+<span class="sd">   WARNING: this function changes the radii list since it nullifies radii of the </span>
+<span class="sd">   particles out of the box. So, after calling this function, only the </span>
+<span class="sd">   first nb_remaining_particles particles are of interest&#39;&#39;&#39;</span> 
+  
+   <span class="c1"># on recupere le nombre de grains</span>
+   <span class="n">nb_particles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+
+   <span class="c1"># on depose les grains sous gravite dans la sphere :</span>
+   <span class="c1"># l&#39;appel varie en fonction de la presence ou non de particules deja deposees</span>
+   <span class="k">if</span> <span class="n">deposited_radii</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># cas sans particules</span>
+      <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_Sphere</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_Sphere</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="k">elif</span> <span class="n">deposited_radii</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">deposited_coor</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># cas avec particules</span>
+      <span class="c1"># deja deposees   </span>
+      <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_HeterogeneousSphere</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> 
+                                                                     <span class="n">deposited_radii</span><span class="p">,</span>
+                                                                     <span class="n">deposited_coor</span><span class="p">,</span>
+                                                                     <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="o">=</span><span class="n">lmgc90</span><span class="o">.</span><span class="n">deposit3D_HeterogeneousSphere</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> 
+                                                                     <span class="n">deposited_radii</span><span class="p">,</span>
+                                                                     <span class="n">deposited_coor</span><span class="p">,</span>
+                                                                     <span class="mi">3</span><span class="o">*</span><span class="n">nb_particles</span><span class="p">)</span>
+
+   <span class="k">else</span><span class="p">:</span> <span class="c1"># cas mal defini</span>
+      <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;to compute a deposit involving already deposited particles, radii AND coordinates of the deposited particles!&#39;</span><span class="p">)</span>
+     
+   <span class="c1"># on renvoie le nombre de particules deposees par l&#39;algorithme et leur</span>
+   <span class="c1"># coordonnees</span>
+   <span class="k">return</span> <span class="p">[</span><span class="n">nb_comp_particles</span><span class="p">,</span> <span class="n">coor</span><span class="p">]</span></div>
+ 
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.tools.containers3D</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

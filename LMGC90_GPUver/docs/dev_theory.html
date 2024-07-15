@@ -1,0 +1,1030 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>2. Some theory around DEM (Discrete Element Methods) &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3. Programming rules" href="dev_development.html" />
+    <link rel="prev" title="1. Structure of LMGC90" href="dev_presentation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_development.html" title="3. Programming rules"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dev_presentation.html" title="1. Structure of LMGC90"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" accesskey="U">Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">2. </span>Some theory around DEM (Discrete Element Methods)</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="some-theory-around-dem-discrete-element-methods">
+<h1><span class="section-number">2. </span>Some theory around DEM (Discrete Element Methods)<a class="headerlink" href="#some-theory-around-dem-discrete-element-methods" title="Permalink to this headline">¶</a></h1>
+<section id="preamble">
+<h2><span class="section-number">2.1. </span>Preamble<a class="headerlink" href="#preamble" title="Permalink to this headline">¶</a></h2>
+<p>Many solid materials and structures are made of components in interaction:</p>
+<ul>
+<li><p>Dry granular material (divided media):</p>
+<a class="reference internal image-reference" href="_images/ballast.jpg"><img alt="ballast sample on a railway track" src="_images/ballast.jpg" style="width: 134px; height: 205px;" /></a>
+<a class="reference internal image-reference" href="_images/sol.jpg"><img alt="sol samples" src="_images/sol.jpg" style="width: 134px; height: 205px;" /></a>
+<a class="reference internal image-reference" href="_images/dune.jpg"><img alt="_images/dune.jpg" src="_images/dune.jpg" style="width: 300px; height: 205px;" /></a>
+<ul class="simple">
+<li><p>component: grain, cluster of grain, piece of grain, coarse grain,etc.</p></li>
+<li><p>interaction: unilateral contact, elasticity or/and cohesion, friction, etc.</p></li>
+</ul>
+</li>
+<li><p>masonry structures (divided structure):</p>
+<a class="reference internal image-reference" href="_images/pontdugard.jpg"><img alt="Pont du Gard" src="_images/pontdugard.jpg" style="width: 134px; height: 205px;" /></a>
+<a class="reference internal image-reference" href="_images/arche.jpg"><img alt="Arches" src="_images/arche.jpg" style="width: 134px; height: 205px;" /></a>
+<a class="reference internal image-reference" href="_images/stairs.jpg"><img alt="" src="_images/stairs.jpg" style="width: 300px; height: 205px;" /></a>
+<ul class="simple">
+<li><p>component: brick, stone, mortar, mortar grain.</p></li>
+<li><p>interaction: unilateral contact, friction, cohesion, etc.</p></li>
+</ul>
+</li>
+<li><p>Solid grains in a solid matrix (composites, etc) and/or in a fluid matrix (colloids, concrete, etc)</p>
+<a class="reference internal image-reference" href="_images/beton.jpg"><img alt="coupe de beton" src="_images/beton.jpg" style="width: 134px; height: 205px;" /></a>
+<a class="reference internal image-reference" href="_images/ble.jpg"><img alt="ble" src="_images/ble.jpg" style="width: 134px; height: 205px;" /></a>
+</li>
+<li><p>Changing the scale a continuous media may become discontinuous:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>component: metal grain, crystal in a poly-crystal, molecules, atoms;</p></li>
+<li><p>interaction: grain bond, defects, Wan der Waals effects, Lenhard-Jones potentials, atomic bonds, etc.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>Considering divided media, it exists various space scales :</p>
+<ul class="simple">
+<li><p>microscopic</p></li>
+<li><p>mesoscopic</p></li>
+<li><p>macroscopic</p></li>
+</ul>
+<p>Behavior depends on:</p>
+<ul class="simple">
+<li><p>composition: shape (angularity, elongation, etc), dispersity</p></li>
+<li><p>state: dense-loose, confining pressure, dry-wet-composite</p></li>
+<li><p>load: static-dynamic</p></li>
+</ul>
+<p>Depending on the solicitation it may behave like: a solid, a liquid or a gas</p>
+<p>It exists numerous methods to model these kind of media and structures.</p>
+<p>At the macroscopic scale the divided media is considered as continuous. It is possible to use various discretization:</p>
+<ul class="simple">
+<li><p>classical methods (Finite Difference, Finite Element Method, Finite Volume Method, etc)</p></li>
+<li><p>dedicated methods (Thin Layer Model, Spreading-based model, etc)</p></li>
+</ul>
+<p>it needs an ad-hoc rheological model to represent the complex behavior of the media (elasticity, plasticity, visco-plasticity with threshold, fracture, etc).</p>
+<p>Drawbacks: building a model with the relevant phenomenological parameters and identifying the parameters.</p>
+<p>At the microscopic or mesoscopic scale, methods rely on a modeling of:</p>
+<ul class="simple">
+<li><p>the behavior of each component</p></li>
+<li><p>the behavior of the interactions of each component with its neighborhood</p></li>
+</ul>
+<p>A lot of methods aim to model divided media (and/or structures) at the component and interaction scale:
+Cellular Automata, SPH, Lattice Element methods, Discontinuous Deformation Analysis (DDA), etc and Discrete Element Methods (DEM).</p>
+<p>Advantages: simpler model, less parameters, easier to identify.</p>
+<p>Drawback: computational cost.</p>
+<p>One can also consider DEMs to model fictitious divided media as in: coarse grain approach domain decomposition approach.
+These methods may also be used for modeling mechanism or robotics DEMs can be mixed with continuous methods to model,
+for example, the transition between a continuous and a divided media: fragmentation of a media, wear, powder compaction to obtain ceramics</p>
+</section>
+<section id="modeling">
+<h2><span class="section-number">2.2. </span>Modeling<a class="headerlink" href="#modeling" title="Permalink to this headline">¶</a></h2>
+<section id="smooth-dynamic">
+<h3><span class="section-number">2.2.1. </span>Smooth Dynamic<a class="headerlink" href="#smooth-dynamic" title="Permalink to this headline">¶</a></h3>
+<section id="equations-of-motion">
+<h4><span class="section-number">2.2.1.1. </span>Equations of motion<a class="headerlink" href="#equations-of-motion" title="Permalink to this headline">¶</a></h4>
+<p>Assuming a smooth evolution of the system allows to describe the motion of each mechanical component by a semi-discretized in space system:</p>
+<div class="math" id="equation-dyna">
+<p><span class="eqno">(1)<a class="headerlink" href="#equation-dyna" title="Permalink to this equation">¶</a></span><img src="_images/math/a19fbb4e53a9f1c3a01a2c6fa2851d94a9729a40.png" alt="\mathbb{M}(\mathbf{q},t) \ddot{\mathbf{q}} = \mathbf{F}(\mathbf{q},\mathbf{\dot{q}},t) + \mathbf{P}(t) + \mathbf{r}"/></p>
+</div><p>where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><img class="math" src="_images/math/15de66298084021895c36828356c222a5f9541bf.png" alt="\mathbf{q}\in\mathbb{R}^n"/>: represents the vector of generalized degrees of freedom,</p></li>
+<li><p><img class="math" src="_images/math/a8184a487ef236d70a7c4c4c3cdd375663e3387f.png" alt="\mathbf{\dot{q}}\in\mathbb{R}^n"/>: the generalized velocities,</p></li>
+<li><p><img class="math" src="_images/math/2a4638a74b2ee1ddf0551fccc8b067da7e400390.png" alt="\mathbf{r}\in\mathbb{R}^n"/>: the contact forces,</p></li>
+<li><p><img class="math" src="_images/math/5f05298a83ad5e9cd41643e694cac837e353e50b.png" alt="\mathbf{P}(t)\in\mathbb{R}^n"/>: the external forces,</p></li>
+<li><p><img class="math" src="_images/math/015c57fa16bb8d4f5f05ff58def9a066d9bc8882.png" alt="\mathbf{F}(\mathbf{q},\mathbf{\dot{q}},t)\in\mathbb{R}^n"/>: the internal force (deformable bodies) and the nonlinear inertia terms (centrifugal and gyroscopic),</p></li>
+<li><p><img class="math" src="_images/math/a5e7e887c50315ed022c3306b3fe81e6a4bdb56f.png" alt="\mathbb{M}(\mathbf{q},t)\in\mathbb{R}^n"/>: the inertia matrix.</p></li>
+</ul>
+</div></blockquote>
+<p>Initial and boundary conditions must be added to fully describe the evolution of the system.</p>
+<p>Considering a rigid component, a more suitable dynamical equation may be used introducing the v and ω, the translation and rotation velocities of the center of mass.</p>
+<p>The Eq. (<a class="reference internal" href="#equation-dyna">(1)</a>) is replaced by the well-known Newton-Euler system of equations:</p>
+<div class="math">
+<p><img src="_images/math/92978846068ff3ee3c0ec4fcc5f85b766a9b5395.png" alt="\mathbb{M} \mathbf{v} = \mathbf{P}(t) + \mathbf{r} \\
+\mathbb{I} \mathbf{\omega} = \omega \wedge \mathbb{I} \mathbf{\omega} + \mathcal{M}_{\mathbf{P}(t)} + \mathcal{M}_{\mathbf{r}}"/></p>
+</div><p>where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><img class="math" src="_images/math/cb25a854347a5539cce4de96b91b3d7effb031bb.png" alt="\mathbf{P}(t)"/> and <img class="math" src="_images/math/4e513cc4e53d5829863cbc5ab91d55896833d1ab.png" alt="\mathbf{r}"/> represent respectively the resultant of external and contact forces,</p></li>
+<li><p><img class="math" src="_images/math/ace3e66ed03db7d298c15ea850192ca22387a2f4.png" alt="\mathcal{M}_{\mathbf{P}(t)}"/> and <img class="math" src="_images/math/ac9e14979a1da73a06b3bb1852a65ca52f1e6c02.png" alt="\mathcal{M}_{\mathbf{r}}"/> represent respectively the momentum due to external and contact forces,</p></li>
+<li><p><img class="math" src="_images/math/1eb9b510356d5ae3f079601dbe988e404e92e1c1.png" alt="\mathbb{M}"/> and <img class="math" src="_images/math/2c68a8495b6a151e1a41355e5796815155244b60.png" alt="\mathbb{I}"/> represents respectively the mass and the inertia matrices.</p></li>
+</ul>
+</div></blockquote>
+<p>Note that for 2D or 3D components with geometric isotropy, the vector <img class="math" src="_images/math/de54b9d1a8d72e3f2c83b1c38bb33ad2eeaec0f1.png" alt="\omega \wedge \mathbb{I} \mathbf{\omega}"/> is equal to zero.</p>
+<p>The choice of angle parameters is very important, especially in 3D (inertia frame mapping, Euler angles, quaternion, etc.)</p>
+</section>
+<section id="interaction-description">
+<h4><span class="section-number">2.2.1.2. </span>Interaction description<a class="headerlink" href="#interaction-description" title="Permalink to this headline">¶</a></h4>
+<p>At any time of the evolution of the system one needs to define the interaction locus and an associated local frame in order to describe the interaction behavior.</p>
+<a class="reference internal image-reference" href="_images/contactdef.jpg"><img alt="_images/contactdef.jpg" class="align-center" src="_images/contactdef.jpg" style="width: 200px;" /></a>
+<p>It is assumed that one is able to define for each point (C) of the candidate boundary its (unique) nearest point (A) on the antagonist boundary.
+It allows to define for each couple of points a local frame <img class="math" src="_images/math/d6f36ada5878e57aa077f213d3cbadbd8c5d5981.png" alt="(\mathbf{s},\mathbf{t},\mathbf{n})"/> with <img class="math" src="_images/math/7e670c22614313ab70269d9379be4b4405c61d3a.png" alt="\mathbf{n}"/> the normal vector
+of the antagonist boundary and <img class="math" src="_images/math/c74b465d31e0d001083a5fbda97055c093209ea3.png" alt="(\mathbf{s},\mathbf{t})"/>: two vectors of its tangential plane.</p>
+<p>Only in simplest cases (rigid body with strictly convex boundary) the interaction locus may be considered as punctual.</p>
+<p>Less trivial in usual cases:</p>
+<a class="reference internal image-reference" href="_images/grains_complexes.jpg"><img alt="_images/grains_complexes.jpg" class="align-center" src="_images/grains_complexes.jpg" style="width: 200px;" /></a>
+<ul class="simple">
+<li><p>Strictly convex, i.e. cubes, bricks, etc.</p></li>
+<li><p>Locally convex, i.e. general polyhedron, triangulated surface</p></li>
+<li><p>Not convex at all but … <em>It may be decomposed in not strictly convex shapes</em>.</p></li>
+</ul>
+<p>In these cases many choices:</p>
+<ul class="simple">
+<li><p>punctual contact with extended law (transmission of torque)</p></li>
+</ul>
+<blockquote>
+<div><p>-&gt; how to define the normal ? The interaction law depends on the objects shape ! etc.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>multi-punctual contacts with classical interaction laws</p></li>
+</ul>
+<blockquote>
+<div><p>-&gt; how many contact points ? normal choice ? It mays introduce local indetermination of contact forces, etc.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>continuous surfaced description as in mortar methods</p></li>
+</ul>
+<blockquote>
+<div><p>-&gt; needs to perform integration on non-conforming triangulation, etc.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>etc.</p></li>
+</ul>
+<p>Implicitly DEMs rely on the following hypotheses :</p>
+<ul class="simple">
+<li><p>the deformation concerns only the contact point neighborhood</p></li>
+</ul>
+<blockquote>
+<div><p>-&gt; components of the system may be considered as rigid;</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>the contact area is small behind the size of the component;</p></li>
+<li><p>locus of interaction may be supposed as punctual;</p></li>
+<li><p>interactions are binary (no effect of connected interaction by particle on their behavior);</p></li>
+</ul>
+<blockquote>
+<div><p>-&gt; interaction law depends only on related component;</p>
+</div></blockquote>
+<p>At least, for every potential contact <cite>alpha</cite>, it will be determined:</p>
+<ul class="simple">
+<li><p>Contact point coordinates;</p></li>
+<li><p>The local frame <img class="math" src="_images/math/0f3e8206c2c27710d15bae2fc2d63559378c4a95.png" alt="(\mathbf{s}_{\alpha},\mathbf{t}_{\alpha},\mathbf{n}_{\alpha})"/>;</p></li>
+<li><p>The gap <img class="math" src="_images/math/28f1504fdedbba8144cada949e2998be905c413c.png" alt="(g_{\alpha})"/>, i.e. the algebraic distance between two bodies;</p></li>
+<li><p>The contact relative velocity between the two bodies <img class="math" src="_images/math/4d7ba728d892e4051c22217d8339f4a27ba568bd.png" alt="(\mathbf{U}_{\alpha})"/>.</p></li>
+</ul>
+<p>Contact description is a key point of DEMs.</p>
+</section>
+<section id="local-global-mapping">
+<h4><span class="section-number">2.2.1.3. </span>Local-Global mapping<a class="headerlink" href="#local-global-mapping" title="Permalink to this headline">¶</a></h4>
+<p>Two sets of unknowns:</p>
+<ul class="simple">
+<li><p><strong>global unknowns</strong> (or kinematic space unknowns) related to the bodies: center of inertia or mesh node displacement and velocity (<img class="math" src="_images/math/5473f669b932088883f2509e27d2a467ed18877b.png" alt="\mathbf{q},\dot{\mathbf{q}}"/>), resulting force and momentum (<img class="math" src="_images/math/4e513cc4e53d5829863cbc5ab91d55896833d1ab.png" alt="\mathbf{r}"/>), etc.</p></li>
+<li><p><strong>local unknowns</strong> (or contact space unknowns) related to interactions: gap (<img class="math" src="_images/math/4ab1a2629bc463560f2645ad75e316cd53d314d6.png" alt="g"/>), relative velocities (<img class="math" src="_images/math/a4b2f8663a560f89091d3b150a0237de23361505.png" alt="\mathbf{U}"/>), forces (<img class="math" src="_images/math/9e6f1f4320106fb44259aff70499cec99c8385cc.png" alt="\mathbf{R}"/>), etc.</p></li>
+</ul>
+<p>Related by kinematic relations:</p>
+<div class="math">
+<p><img src="_images/math/62c9e45961192d07438fd5d75d3bf5e5a6d33f18.png" alt="g = D(\mathbf{q}) \\
+\mathbf{U} = \mathbb{H}^{\star} (\mathbf{q}) \dot{\mathbf{q}} = \nabla_\mathbf{q} D(\mathbf{q}) \dot{\mathbf{q}}"/></p>
+</div><p>Lets consider two rigid bodies.
+The mapping between inertia center and contact point velocities will be write as follow:</p>
+<div class="math">
+<p><img src="_images/math/204a56e776759a3117156b77332cef963664c570.png" alt="\mathbf{v}(M) = \mathbf{v}(G) + \omega \times \mathbf{l}"/></p>
+</div><p>where <img class="math" src="_images/math/51e80aab5b41008dd30516cad306bf55577557c5.png" alt="\mathbf{l}"/> represents the vector between the inertia center <img class="math" src="_images/math/b7e324c21f9c55e70b762cae88a4c988d9a4b557.png" alt="(G)"/> and the contact point <img class="math" src="_images/math/02debfd03434d943de55166641362b15d56ca3ba.png" alt="(M)"/>.</p>
+<p>Then it is possible to write the relative velocity between the two points <img class="math" src="_images/math/aa4003b2a11f87f73abd007eb8ea09f4578c73af.png" alt="(M_i)"/> (i bodies) and <img class="math" src="_images/math/92b81af1d3f7e7f0bef12c42c55027af3a20e456.png" alt="(M_j)"/> (j bodies):</p>
+<div class="math">
+<p><img src="_images/math/3cba79b7bf6507e45b57c59139a80de23b980588.png" alt="\mathbf{U}_{X,Y,Z}= \mathbf{v}(M_i) - \mathbf{v}(M_j) = \mathbf{v}(G_i) - \mathbf{v}(G_j) + \omega_i \times \l_i - \omega_j \times \l_j"/></p>
+</div><p>which can be written in a <em>matricial</em> way:</p>
+<div class="math">
+<p><img src="_images/math/0da6c839cbcfef414f3e0f845e3450405b536571.png" alt="\mathbf{U}_{X,Y,Z}= \left &lt; \begin{array}{cccc} 1 &amp; \l_i &amp; -1 &amp; -\l_j \end{array} \right &gt;
+\left [
+\begin{array}{l} \mathbf{v}(G_i) \\ \omega_i \\ \mathbf{v}(G_j) \\ \omega_j \end{array}
+\right ] = H^{\star}_{i,j}(\mathbf{q}) \dot{\mathbf{q}}"/></p>
+</div><p>And expressed in a local frame as:</p>
+<div class="math">
+<p><img src="_images/math/77a93a79b3c849e559b6790af9cc1dc776b2151a.png" alt="\mathbf{U}_{t,n,s} =  \left &lt; \begin{array}{ccc} \mathbf{U} \cdot \mathbf{t} &amp; \mathbf{U} \cdot \mathbf{n} &amp; \mathbf{U} \cdot \mathbf{s} \end{array} \right &gt; =
+\left [ \begin{array}{l} \mathbf{t}^T \\ \mathbf{n}^T \\ \mathbf{s}^T \end{array} \right ] H^{\star}_{i,j}(\mathbf{q}) \dot{\mathbf{q}} =\mathbb{H}^{\star}_{i,j}(\mathbf{q}) \dot{\mathbf{q}}"/></p>
+</div><p>More generally, using kinematic relations, one can write for  a given contact <img class="math" src="_images/math/0f034f6e445c19b8b3f6aeb003d074200f655016.png" alt="\alpha"/>:</p>
+<div class="math">
+<p><img src="_images/math/2f92dd1040352e766241baeb83f6218269a2ce5c.png" alt="\mathbf{U}_{\alpha} = \mathbb{H}^{\star}_{\alpha}(\mathbf{q}) \dot{\mathbf{q}}"/></p>
+</div><p>Using duality consideration (equality of power expressed in terms of global or local unknowns), the local contact force may be mapped on the global unknowns:</p>
+<div class="math">
+<p><img src="_images/math/fd7124bc7b2df38b113e61bf1563afbb14b5f322.png" alt="\mathbf{r}_{\alpha} = \mathbb{H}_{\alpha}(\mathbf{q}) \mathbf{R}_{\alpha},"/></p>
+</div><p>where <img class="math" src="_images/math/bd9a2f66c6b63a8ed201c6709653bfa4187f0d18.png" alt="\mathbb{H}^{\star}_{\alpha}(\mathbf{q})"/> is the transpose of <img class="math" src="_images/math/bcc2683e03aa7ea0cc87cecd2c7eb19d057f7210.png" alt="\mathbb{H}_{\alpha}(\mathbf{q})"/>.</p>
+<p>In the following, operators mapping all the local and global unknowns are introduced:</p>
+<div class="math">
+<p><img src="_images/math/c6177f2064140401a5f0b933cf9693f88b186009.png" alt="\mathbb{H}(\mathbf{q})  :  \mathbf{R} = \{ \mathbf{R}_{\alpha} \} \rightarrow \mathbf{r}=\sum_{\alpha=1}^{n_c} \mathbb{H}_{\alpha}(\mathbf{q}) \mathbf{R}^{\alpha} \\
+\mathbb{H}^{\star}(\mathbf{q})  :  \dot{\mathbf{q}} \rightarrow \mathbf{U} = \{ \mathbf{U}^{\alpha} \}   =  \{ \mathbb{H}^{\star}_{\alpha}(\mathbf{q}) \dot{\mathbf{q}}  \}"/></p>
+</div><p>Remark: even if <img class="math" src="_images/math/bd9a2f66c6b63a8ed201c6709653bfa4187f0d18.png" alt="\mathbb{H}^{\star}_{\alpha}(\mathbf{q})"/> and <img class="math" src="_images/math/bcc2683e03aa7ea0cc87cecd2c7eb19d057f7210.png" alt="\mathbb{H}_{\alpha}(\mathbf{q})"/> have good theoretical properties (surjectivity and injectivity),
+it is not necessary the case for <img class="math" src="_images/math/cb00e3cd53b0bf949b3d0c59322f1c3c968b7353.png" alt="\mathbb{H}^{\star}"/> and <img class="math" src="_images/math/0742c27ce407512332cf42fe53052893945492df.png" alt="\mathbb{H}"/>. Loose of these properties is due to the introduction of kinematic relation between contacts.</p>
+</section>
+<section id="interaction-law">
+<h4><span class="section-number">2.2.1.4. </span>Interaction law<a class="headerlink" href="#interaction-law" title="Permalink to this headline">¶</a></h4>
+<p>In DEMs, a large part of the physics of the problem is described through interaction laws. Two ways of thinking:</p>
+<ol class="arabic simple">
+<li><p>Interaction behavior is a coarse representation of what happens at the boundary scale: impenetrability, plastic deformation of asperities, capillarity effects, friction, wear, etc.</p></li>
+<li><p>Interaction behavior is a fine representation of what happens both at the bulk and boundary scale: idem as 1 + bulk behavior, etc.</p></li>
+</ol>
+<p>The two ways have different space scales which imply different time scales. When considering rigid bulk behavior, one is able to describe:</p>
+<ol class="arabic simple">
+<li><p>Rigid body motion
+* <em>Large time scale</em>;
+* Recover plastic behavior of the media.</p></li>
+<li><p>Motion due to wave propagation
+* <em>Fine time scale</em>
+* Recover elastic and plastic behavior of the media. No indeterminacy.</p></li>
+</ol>
+<p>From a <em>mathematical</em> point of view:</p>
+<ol class="arabic simple">
+<li><p>Set valued function, defined by an implicit law : <img class="math" src="_images/math/b99d28b233864965d91713b24dcf9921f7827d48.png" alt="h(R,\mathbf{U},g) == true"/></p></li>
+<li><p>Function, defined by an explicit law : <img class="math" src="_images/math/5e791b7ce7e432103f7d4cd4b7b9579923fe5e5d.png" alt="R=f(\mathbf{U},g)"/></p></li>
+</ol>
+<p>Case of <strong>explicit laws</strong>:</p>
+<p>First let’s considered the normal part, denoted <img class="math" src="_images/math/46314c9826dbcbf4e3abcebf668abb3d998c1042.png" alt="\delta = &lt;-g&gt;^+"/>.Several models are available:</p>
+<ul class="simple">
+<li><p>Hertz law: <img class="math" src="_images/math/6edbda26d1bbd827f37f6168e1fdb8aff222dedb.png" alt="R_n = k_n\delta^{\frac{3}{2}} = K_n(\delta)\delta"/></p></li>
+<li><p>Hook law with viscous damping: <img class="math" src="_images/math/84c407b2833c3934830d6c4f0d37666840d6dac5.png" alt="R_n = max(0,K_n\delta +\eta_n \frac{m_{eff}\mathbf{U}_n.\mathbf{d}}{r_{eff} d})"/></p></li>
+<li><p>JKR cohesion law <a class="reference internal" href="#johnson-kendall-ea1971" id="id1"><span>[Johnson.Kendall.ea1971]</span></a>: <img class="math" src="_images/math/af9550e2c9476b40b0adb8e7dd9235bdec16c0fa.png" alt="R_n = k_n\delta^{\frac{3}{2}}+\eta_n \sqrt{m_{eff}U_n} - \gamma_n\sqrt{\delta r_{eff}}"/>.</p></li>
+</ul>
+<p>where <img class="math" src="_images/math/469bbbaf56ff7192129e4fd0519669d508c39670.png" alt="K_n"/> is the contact stiffness, <img class="math" src="_images/math/339a7c0fb8780f7d4205be354a1eac31f3060228.png" alt="\eta_n"/> viscosity coefficient and <img class="math" src="_images/math/09e4a2fefbaaa60c95eed3779bc0eca36756c9c4.png" alt="\gamma_n"/> contact cohesion.
+<img class="math" src="_images/math/a4b2f8663a560f89091d3b150a0237de23361505.png" alt="\mathbf{U}"/> represents the relative velocity between particles and <img class="math" src="_images/math/4ac93990688cd2176dc3a53f37ddbae0f14692ce.png" alt="\mathbf{d} (=d\mathbf{n})"/> is defined as
+a center-center vector, <img class="math" src="_images/math/7a8ac288a79754c73a05becff57ea313fa6b88b1.png" alt="m_{eff}"/> and <img class="math" src="_images/math/cd75f3b5abeb6689f57ccca4b6708ff210ea90f2.png" alt="r_{eff}"/> represent respectively the effective mass and radius associated
+to the contact.</p>
+<p>For Hertz law <img class="math" src="_images/math/5f422a7de3d6e570bde49c44a7481d85ec63cb2d.png" alt="K_n = \frac{E \sqrt{2 r_{eff} \delta}}{3(1-\nu^2)}"/>. Behavior parameter are “structure” dependant (i.e. geometry).
+For a given pressure <img class="math" src="_images/math/1eab806f8d91e2ca9602f66259b2b8848893bf6e.png" alt="P"/>, the stiffness level may be characterized by:</p>
+<ul class="simple">
+<li><p><img class="math" src="_images/math/62d8c6382c65823bc923aeb17d4f43c8aecc3d67.png" alt="\kappa = (\frac{E}{P})^{2/3}"/> (Hertz)</p></li>
+<li><p><img class="math" src="_images/math/5044d1126cbe7727ea1655baa40846aa1c042ae3.png" alt="\kappa = \frac{K_n}{P r_{eff}^{d-2}}"/> (Hook)</p></li>
+</ul>
+<p>So the elastic deflection <img class="math" src="_images/math/ad6d47f3c5625ed58685fcd74a1b154cd9908fc5.png" alt="\delta \propto \frac{r_{eff}}{\kappa}"/></p>
+<p>Remarks:</p>
+<ul class="simple">
+<li><p>Rigid grains if <img class="math" src="_images/math/0cb2a74f4807464a91e5ea5faddb3f9f773abd12.png" alt="\kappa \rightarrow \infty"/>, a “Good” value are 10000;</p></li>
+<li><p>Quasi-static problem: <img class="math" src="_images/math/a404aba5724837aaf81f54aeb87d53606ff6fa89.png" alt="\delta \ll &lt;g&gt;^+"/> ( <img class="math" src="_images/math/3b769961e70f3fe58343b132843791ec6ad31201.png" alt="&lt;g&gt;^+"/> interstice between grains);</p></li>
+<li><p>Flow problem: <img class="math" src="_images/math/6f767e17e336f481f7cc8efb200b8bf5ac4bb83d.png" alt="\tau \ll \frac{&lt;g&gt;^+}{r_{eff} \dot{\gamma}}"/> (<img class="math" src="_images/math/8ddc3e84796583f6775606ff69a5691513e7f02a.png" alt="\tau"/> duration of contact).</p></li>
+</ul>
+<p>Considering the oscillator made by two particles in contact (Hook law):</p>
+<p><img class="math" src="_images/math/3790d5d88019652ecdc12e4fe5795e467263cb15.png" alt="m_{eff} \frac{d^2 \delta}{d t^2} + \eta_n \frac{d \delta}{d t} + K_n \delta =0"/></p>
+<ul class="simple">
+<li><p>Critical damping <img class="math" src="_images/math/1026fa143697caef75eab267105432be20238203.png" alt="\eta_n^c = 2 \sqrt{m_{eff} K_n}"/> and <img class="math" src="_images/math/e02f6c4a2a0b9af076e6c498c12c229bf00f1683.png" alt="\alpha_n =\frac{\eta_n}{\eta_n^c}"/></p></li>
+<li><p>Pulsation <img class="math" src="_images/math/0f804685c9911888adddd4e7720162ae9d41559f.png" alt="\omega = \sqrt{\frac{K_n}{m_{eff}} (1-\alpha_n^2)}"/> and contact duration <img class="math" src="_images/math/228c47de948334a1832a351045be937577517c9c.png" alt="\tau = \pi/\omega"/></p></li>
+<li><p>Restitution coefficient <img class="math" src="_images/math/b7c2365eabd44d1ec232abcb2358dc8b38bacf35.png" alt="e_n = exp[ -\frac{\pi \alpha_n}{\sqrt{1-\alpha_n^2}}]"/></p></li>
+</ul>
+<p>Remarks:</p>
+<ul class="simple">
+<li><p><img class="math" src="_images/math/8894dba90fc5a8d3c875d99cf03a30be27c1f06e.png" alt="\eta_n \leq \eta_n^c"/></p></li>
+<li><p>For Hertz law, same results with a varying <img class="math" src="_images/math/469bbbaf56ff7192129e4fd0519669d508c39670.png" alt="K_n"/></p></li>
+</ul>
+<p>Secondly let’s considered the tangential part of the interaction law:</p>
+<ul class="simple">
+<li><p>Viscous law with Coulomb threshold: <img class="math" src="_images/math/d86b001ca7f54eb9ca84fc2945a4c054a897203c.png" alt="\mathbf{R}_t^{Tr}= -\eta_t m_{eff} \mathbf{U}_t"/>
+if <img class="math" src="_images/math/b2f0003fec6c0f7430896779cc693b409f4fc826.png" alt="|| \mathbf{R}_t^{Tr}|| \geq  \mu|r_n|"/> then <img class="math" src="_images/math/7b9f6e89d448ddc90544974f151a88264e5aea09.png" alt="\mathbf{R}_t = \mu|r_n| \frac{\mathbf{R}_t^{Tr}}{|| \mathbf{R}_t^{Tr}||}"/>
+else <img class="math" src="_images/math/2eec375e7a690a05b97ddeb0a28848f2cf209ff1.png" alt="\mathbf{R}_t =  \mathbf{R}_t^{Tr}"/></p></li>
+<li><p>Incremental elastic law with Coulomb threshold:</p>
+<ul>
+<li><p>a previous <img class="math" src="_images/math/c61cc60a50a84882adcc265e8c6126782675ad1a.png" alt="\mathbf{R}_t"/> is known, <img class="math" src="_images/math/558ae37113c644bd08442f3576494a2be115b9af.png" alt="\Delta \mathbf{R}_t = K_t h \mathbf{U}_t"/> and <img class="math" src="_images/math/06292db1744b4e0737b91744eebd3fe2822e6f9a.png" alt="\mathbf{R}_t^{Tr}= \mathbf{R}_t + \Delta \mathbf{R}_t"/></p></li>
+<li><p>if <img class="math" src="_images/math/b2f0003fec6c0f7430896779cc693b409f4fc826.png" alt="|| \mathbf{R}_t^{Tr}|| \geq  \mu|r_n|"/> then <img class="math" src="_images/math/7b9f6e89d448ddc90544974f151a88264e5aea09.png" alt="\mathbf{R}_t = \mu|r_n| \frac{\mathbf{R}_t^{Tr}}{|| \mathbf{R}_t^{Tr}||}"/> else  <img class="math" src="_images/math/2eec375e7a690a05b97ddeb0a28848f2cf209ff1.png" alt="\mathbf{R}_t =  \mathbf{R}_t^{Tr}"/>
+with <img class="math" src="_images/math/ffccc3680fc2c4c1f512d58a92986edc7281ad5e.png" alt="K_t = \frac{2(1- \nu)}{2-\nu} K_n"/>.</p></li>
+</ul>
+</li>
+</ul>
+<p>Remarks:</p>
+<ul class="simple">
+<li><p>Compute <img class="math" src="_images/math/aa1a977c018145c9d146e62aa45cfa4b4d7ae351.png" alt="\eta_t^c"/> as before by taking <img class="math" src="_images/math/aee41a39081be9fdf0866ad7e9411ad5e0fa2286.png" alt="m_{eff}=\frac{m_1m_2}{m_1+m_2}+m_1m_2(\frac{R_1^2}{I_1} + \frac{R_2^2}{I_2})"/> and replacing <img class="math" src="_images/math/469bbbaf56ff7192129e4fd0519669d508c39670.png" alt="K_n"/> by <img class="math" src="_images/math/7c70ece7fa24f3d887ba5a03887319658b0901ee.png" alt="K_t"/></p></li>
+<li><p><img class="math" src="_images/math/82a59f9deb4cf02d9953113c207a829128228472.png" alt="\eta_t \leq \eta_t^c"/></p></li>
+<li><p>Difficult to give a physical meaning to <img class="math" src="_images/math/339a7c0fb8780f7d4205be354a1eac31f3060228.png" alt="\eta_n"/> and <img class="math" src="_images/math/4f20392f6af0dc188d2175d6e6d1deefd8a8ca48.png" alt="\eta_t"/></p></li>
+</ul>
+<p>Explicit laws allow to substitute the displacement (or the velocity) to the force in the dynamical equation.
+If considering a simplified problem described by the Newton equation:</p>
+<div class="math">
+<p><img src="_images/math/2bcf25c8f98dcd248a18835ab4bd44d5f04cb467.png" alt="\mathbb{M} \dot{\mathbf{v}} = \mathbf{F}(\mathbf{q},\dot{\mathbf{q}},t) + \mathbf{P}(t) + \mathbf{r}"/></p>
+</div><p>using <img class="math" src="_images/math/c3ce104980b4f1f9785f4d47932f8b618acd9e14.png" alt="\mathbf{U} = \mathbb{H}^{\star} (\mathbf{q}) \mathbf{v}"/>, <img class="math" src="_images/math/62914c6ed144084cc71ed4ed8536b29de0e70aae.png" alt="g = D(\mathbf{q})"/>, <img class="math" src="_images/math/ca5a6ad0645ffeb8459553c3dc526d4ae3957c8a.png" alt="\mathbf{r} = \mathbb{H}(\mathbf{q}) \mathbf{R}"/>
+and <img class="math" src="_images/math/78d6b8ee97714db53feffe92cd4c42ff38b439d1.png" alt="\mathbf{R}=f(\mathbf{U},g)"/> one can write:</p>
+<div class="math">
+<p><img src="_images/math/ec39b24ffeebc3b0cc57f2989d36867b9ee277fe.png" alt="\mathbb{M}\dot{\mathbf{v}} = \mathbf{P}(t)+ \mathbb{H}(\mathbf{q}) f(\mathbb{H}^{\star} (\mathbf{q}) \mathbf{v}, D(\mathbf{q}))"/></p>
+</div><p>which is a “classical” non linear problem only written in term of kinematic unknowns. The kinematic unknowns of each component are dependent due to the interactions.</p>
+<p>Case of <strong>implicit laws</strong></p>
+<p>Frictional contact: Signorini-Coulomb</p>
+<div class="math">
+<p><img src="_images/math/375de91cd87b47dd6cbbbdfcad39f30d6a553520.png" alt="\begin{array}{l}
+R_N \geqslant 0 ~ g \geqslant 0 ~ R_N \cdot g = 0  \\
+\parallel R_T \parallel \leqslant \mu R_N,
+\left \lbrace \begin{array}{l} \parallel R_T \parallel &lt;  \mu R_N \Rightarrow U_T = 0 \\
+\parallel R_T \parallel = \mu R_N \Rightarrow \exists \alpha \geqslant 0, U_T = -\alpha R_T
+\end{array} \right .
+\end{array}"/></p>
+</div><a class="reference internal image-reference" href="_images/Signorini.jpg"><img alt="_images/Signorini.jpg" class="align-center" src="_images/Signorini.jpg" style="width: 200px;" /></a>
+<a class="reference internal image-reference" href="_images/Coulomb.jpg"><img alt="_images/Coulomb.jpg" class="align-center" src="_images/Coulomb.jpg" style="width: 200px;" /></a>
+<p>Remark:</p>
+<p>For dynamical problems, it is more natural to formulate the unilateral contact in term of velocities</p>
+<div class="math">
+<p><img src="_images/math/bdc6a5fef5b9f93191f9f43f6c30c34d244afaf4.png" alt="\begin{array}{l}
+\text{Assuming} ~ g(t_0) \geq 0 ~ \text{then} ~ \forall t &gt; t_0 \\
+\text{if} ~ g(t) \leq 0  ~ \text{then} ~ U_N \geq 0, ~ R_N \geq 0, ~ U_N R_N = 0  \\
+\text{else} ~ R_N = 0
+\end{array}"/></p>
+</div><p>It’s not possible to substitute reaction by kinematic unknowns, the problem remains implicit.
+One can consider explicit law (smooth) as a regularization of implicit law (non smooth).
+In this case the parameters are not due to physical considerations but numerical ones.</p>
+<p>An explicit law may be written as an implicit law.</p>
+<p>Example:</p>
+<p>Lets consider the basic example of a single ball bouncing on a plan:</p>
+<a class="reference internal image-reference" href="figures/ball.jpg"><img alt="figures/ball.jpg" class="align-center" src="figures/ball.jpg" style="width: 200px;" /></a>
+<a class="reference internal image-reference" href="_images/impact.jpg"><img alt="_images/impact.jpg" class="align-center" src="_images/impact.jpg" style="width: 200px;" /></a>
+<p><strong>Question:</strong> Is the usual formalism adapted to describe a dynamical system with unilateral contact?</p>
+<p>So let try to solve the (simplified) problem:</p>
+<div class="math">
+<p><img src="_images/math/31e59b086da40150b3a4af8639882f7463cb6023.png" alt="\left \{
+\begin{array}{l}
+M \ddot{q} = R \\
+0 \leq q  \; \; \bot \; \; R \geq 0 \\
+\mbox{initial conditions: } q(0)=0, \dot{q}(0)=-1
+\end{array}
+\right."/></p>
+</div><p>Using an implicit Euler scheme, one obtains the following system:</p>
+<div class="math">
+<p><img src="_images/math/843708ccdbcf44456c6d8777bef9c13d06b6812c.png" alt="\left \{
+\begin{array}{l}
+\ddot{q}_{i+1} =( \dot{q}_{i+1} - \dot{q}_i )/h \\
+q_{i+1} = q_i + h \dot{q}_{i+1}
+\end{array}
+\right."/></p>
+</div><p>Thus the solution is:</p>
+<div class="math">
+<p><img src="_images/math/23a2a3c2602ddfddc821f002ae0e3bd60bd19256.png" alt="\left \{
+\begin{array}{l}
+q^1 = 0, \dot{q}^1 = 0, R^1 = M\dot{q}^0/h \\
+q^k = 0, \dot{q}^k = 0, R^k = 0
+\end{array}
+\right."/></p>
+</div><p>So if <img class="math" src="_images/math/85b2eb1b54bb59d9a4575314de7717bebf397a4c.png" alt="h \rightarrow 0"/> then <img class="math" src="_images/math/491c50ccbff79ee4fee86c26a64d5c4310771ee6.png" alt="R^1 = \infty"/></p>
+<p>Two solutions are possible:</p>
+<ul class="simple">
+<li><p>Using smooth interaction law as before but needs <em>reasonably small</em> time steps</p></li>
+<li><p>Adapting the formalism to face the problem</p></li>
+</ul>
+<p>Introducing a deformable body will not solve the problem.</p>
+</section>
+</section>
+<section id="non-smooth-dynamic">
+<h3><span class="section-number">2.2.2. </span>Non Smooth Dynamic<a class="headerlink" href="#non-smooth-dynamic" title="Permalink to this headline">¶</a></h3>
+<section id="id2">
+<h4><span class="section-number">2.2.2.1. </span>Equations of motion<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<p>The differential system must be modified to describe collisions and other non smooth phenomena.</p>
+<p>The “spirit” of the approach is to consider a weaken form of the dynamical system, e.g. balance of momentum:</p>
+<div class="math">
+<p><img src="_images/math/e389bfa7d08cb9ab18dea7438368401955ef3c85.png" alt="\mathbb{M} (\dot{\mathbf{q}}^{+} - \dot{\mathbf{q}}^{-})   =  \int_{t^-}^{t^+} (\mathbf{F}(\mathbf{q},\dot{\mathbf{q}},s)+ \mathbf{P}(s)) ds + \mathbf{p}"/></p>
+</div><p>where the impulse <img class="math" src="_images/math/74ee5500ad76346d263bc6f64b2790f332924496.png" alt="\mathbf{p}"/> will contain both the sum of:</p>
+<ul class="simple">
+<li><p>the contribution of smooth load over the time interval (<img class="math" src="_images/math/5cd201deecbd58225668862a0a8eead369be0b04.png" alt="\int_{t^-}^{t^+}R dt"/>),</p></li>
+<li><p>the percussion, denoted  <img class="math" src="_images/math/0915e5481a74d1ede6462fe7c3f3f474f246d198.png" alt="\mathbf{P}"/>, at shock time (supposed instantaneous).</p></li>
+</ul>
+<p>To describe <img class="math" src="_images/math/b56255bf8292722d15b06656f9be58ed7f3bc32d.png" alt="\dot{\mathbf{q}}"/> one uses the local bounded variation framework over all sub-intervals of <img class="math" src="_images/math/a04476c7b4c33961c0273c683f0a5061d6ea275c.png" alt="I_{Tps}=[0,T]"/>,
+i.e. <img class="math" src="_images/math/e2c7efcc63d40f04a6450df3d0fd3e055c4af1ec.png" alt="lbv(I_{Tps},R_n))"/> and one introduces differential measures allowing the generalization of the equation of motion
+to non smooth phenomena (<a class="reference internal" href="#moreau1988" id="id3"><span>[Moreau1988]</span></a>).</p>
+<p>Remark:
+Event driven approaches will consider smooth motion, but will re-initialize velocity (acceleration, etc.) at each non smooth event using shock law.
+Only reasonable to compute a granular gas or a loose flow of granular material.</p>
+<p>More precisely the classical equation of motion is reformulated in terms of a differential measure equation:</p>
+<div class="math">
+<p><img src="_images/math/fce343b8a39eff6110a19878cb07d14043e71b0f.png" alt="\mathbb{M} \dot{\mathbf{q}} = \mathbf{F}(t,\mathbf{q},\dot{\mathbf{q}}^+)dt + \mathbf{P}(t,\mathbf{q},\dot{\mathbf{q}}^+)dt + \mathbf{dp}"/></p>
+</div><div class="math">
+<p><img src="_images/math/1fd89daee12a38f8e5e01eb03418118b4e8849f4.png" alt="\mathbf{q}(t) = \mathbf{q}(t_0) + \int_{t_0}^{t}\dot{\mathbf{q}}^+ dt"/></p>
+</div><p>In the previous equation, <img class="math" src="_images/math/b56255bf8292722d15b06656f9be58ed7f3bc32d.png" alt="\dot{\mathbf{q}}"/> is the differential measure of <img class="math" src="_images/math/b56255bf8292722d15b06656f9be58ed7f3bc32d.png" alt="\dot{\mathbf{q}}"/>
+(atomistic at the discontinuity and <img class="math" src="_images/math/91b2adc5ca31170ff550c504c2e976db6daaaee6.png" alt="\ddot{\mathbf{q}}dt"/> on the continuous part), <img class="math" src="_images/math/ab6264769246f95ee609806fb622fd3ab5034f09.png" alt="dt"/> is the
+Lebesgue measure on <img class="math" src="_images/math/38a2b4b34fef5d63a6369fc9558f2731e71a98b2.png" alt="\mathbb{R}"/> while <img class="math" src="_images/math/d3337b9d63867e179b83f63858b2b3b6553a9f6d.png" alt="\mathbf{dp}"/> is the differential measure of contact forces.</p>
+<p>The measure <img class="math" src="_images/math/d3337b9d63867e179b83f63858b2b3b6553a9f6d.png" alt="\mathbf{dp}"/> contains:</p>
+<ul class="simple">
+<li><p>The contribution of smooth contact (diffuse contribution <img class="math" src="_images/math/23f79893c27c0bce7e306487b3b03b0900d636b4.png" alt="\mathbf{R}dt"/>):</p></li>
+<li><p>The contribution of local impulsion densities exerted by shocks <img class="math" src="_images/math/200666335d5e4fad40d4a63d943aac7f8e732fe6.png" alt="\mathbf{P} \delta"/> (atomic contributions),</p></li>
+</ul>
+</section>
+<section id="id4">
+<h4><span class="section-number">2.2.2.2. </span>Interaction law<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<p>Local - global mapping:</p>
+<div class="math">
+<p><img src="_images/math/2c66b83e29dfde55932d33b8d5aeff95264124fd.png" alt="\begin{array}{l}
+\mathbf{U}^+ = \mathbb{H}^{\star}(\mathbf{q}) \dot{\mathbf{q}}^+ \\
+d\mathbf{p}=\mathbb{H}(\mathbf{q}) d\mathbf{P}
+\end{array}"/></p>
+</div><p>Frictional contact:</p>
+<div class="math">
+<p><img src="_images/math/8890d5ac5968c3d2cf24873b1b35c525de4cb8dc.png" alt="\begin{array}{l}
+\text{Assuming} ~ g(t_0) \geq 0 ~ \text{then} ~ \forall t &gt; t_0 \\
+\text{if} ~ g(t) \leq 0  ~ \text{then} ~ U^+_N \geq 0, ~ dP_N \geq 0, ~ U^+_N dP_N = 0  \\
+\text{else} ~ dP_N = 0
+\end{array}"/></p>
+</div><p>Coulomb friction (threshold law):</p>
+<div class="math">
+<p><img src="_images/math/28a2fd05193c77094e49a3106331756ba94c88c6.png" alt="\begin{array}{l}
+\parallel d\mathbf{P}_T \parallel \leqslant \mu dP_N,
+\left \lbrace \begin{array}{l} \parallel d\mathbf{P}_T \parallel &lt;  \mu dP_N \Rightarrow \mathbf{U}^+_T = 0 \\
+\parallel d\mathbf{P}_T \parallel = \mu dP_N \Rightarrow \exists \alpha \geqslant 0, \mathbf{U}^+_T = -\alpha d\mathbf{P}_T
+\end{array} \right .
+\end{array}"/></p>
+</div><p>Shock law:</p>
+<p>When shocks occur in a rigid body collection, the equation of motion and the interaction law are not sufficient to describe properly all the physics of the problem.</p>
+<p>It must take into account:</p>
+<ul class="simple">
+<li><p>Local phenomena as inelastic behavior of materials at the interface depending on both the contact geometry and the material behavior.</p></li>
+<li><p>Global phenomena as the wave propagation in the body bulk, body geometry dependency and boundary conditions.</p></li>
+<li><p>More complex effects: long distance effects due to simultaneous impact</p></li>
+</ul>
+<p>In the case of binary shocks, three kind of restitution can be used:</p>
+<ul class="simple">
+<li><p>Newton restitution, which relates the velocity after (<img class="math" src="_images/math/3667e9f289c5f5dff15a1826a2294a078f7bcc74.png" alt="U^+"/>) to the velocity before (<img class="math" src="_images/math/ed6b8bae899ae969d591ba95136543c392641554.png" alt="U^-"/>) impact  <img class="math" src="_images/math/b996eb9e453e78a606ceff34b7d75a828f08f3a3.png" alt="U^+ = -e_n U^-"/></p></li>
+<li><p>Poisson restitution, which relates restitution impulsion (<img class="math" src="_images/math/76e91c007a115e2eb02c60986d4df5b15ef742f5.png" alt="R_r"/>) to the compression impulsion (<img class="math" src="_images/math/e4e592c49d9e656a24986bb456b6d81f392e0b0c.png" alt="R_c"/>) according to the decomposition of the shocks in a compression and restitution phase: <img class="math" src="_images/math/aed9a35afcfeb32fd6a8218bcc22b475b15098e1.png" alt="R^r = e_p R^c"/></p></li>
+<li><p>Energy or Stronge restitution, which relates restitution energy to compression energy: <img class="math" src="_images/math/52348a0d15f097ce24a16f7933e08bc57cb45518.png" alt="e_s = \frac{\int_{t_c}^{t_r} R U dt }{\int_{t^{\star}}^{t_c} R U dt}"/></p></li>
+</ul>
+<p>Several remarks could be done:</p>
+<ul class="simple">
+<li><p>Impact law for the normal component is well understood, it is not the case of the tangential component.</p></li>
+<li><p>The choice of the restitution coefficient is a difficult task for complex structures <a class="reference internal" href="#stoianovici-hurmuzlu1996" id="id5"><span>[Stoianovici.Hurmuzlu1996]</span></a>.</p></li>
+<li><p>In the case of dense granular material, the effect of impacts may be neglected and previous laws can be used.</p></li>
+<li><p>Binary impact law are not sufficient to model phenomena such as Newton cradle (multiple impacts). One can refer to <a class="reference internal" href="#acary-brogliato2003" id="id6"><span>[Acary.Brogliato2003]</span></a> for more details about the construction of a restitution law.</p></li>
+</ul>
+</section>
+</section>
+<section id="conclusion">
+<h3><span class="section-number">2.2.3. </span>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h3>
+<p>Various modeling choices are possible for DEM depending on:</p>
+<ul class="simple">
+<li><p>space scale: interaction -&gt; smooth, component -&gt; non-smooth</p></li>
+<li><p>time scale: waves -&gt; smooth, rigid body motion with impact -&gt; non-smooth</p></li>
+<li><p>the shape of the components -&gt; non-smooth easier but introduce indetermination.</p></li>
+<li><p>etc.</p></li>
+</ul>
+</section>
+</section>
+<section id="numerical-strategies">
+<h2><span class="section-number">2.3. </span>Numerical Strategies<a class="headerlink" href="#numerical-strategies" title="Permalink to this headline">¶</a></h2>
+<section id="introduction">
+<h3><span class="section-number">2.3.1. </span>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h3>
+<p>Depending on modeling choices numerical strategies are build to solve the evolution problem. They depend on:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>time evolution strategy: alert{time stepping} or event driven</p></li>
+<li><p>time integrator over a time step: explicit or implicit</p></li>
+<li><p>implicit contact solver if necessary (Lemke, Gauss-Seidel, bi-potential, etc.)</p></li>
+<li><p>technical aspects: contact detection, rotation integration, etc.</p></li>
+<li><p>etc.</p></li>
+</ul>
+</div></blockquote>
+<p>Over a time step [t,t+h[, three important tasks can be underlined:</p>
+<a class="reference internal image-reference" href="_images/demscheme.jpg"><img alt="_images/demscheme.jpg" class="align-center" src="_images/demscheme.jpg" style="width: 400px;" /></a>
+<ul class="simple">
+<li><p>The contact detection</p></li>
+<li><p>The computation of contact forces, called contact problem</p></li>
+<li><p>The motion of the different element of the media.</p></li>
+</ul>
+<p>Pioneer DEMs such as Cundall et al. <span id="id7">[Cundall.Strack1979]</span> or Allen et al. <span id="id8">[Allen.Tildesley1987]</span> consider explicit interaction model (smooth)
+and use explicit time integration scheme. This kind of methods refer to smooth-DEM.</p>
+<p>The so-called <em>Granular Element Method</em>, proposed by Kishino <span id="id9">[Kishino1988]</span> consider also an explicit model for contact but is based on
+an implicit time integrator. The solving method is similar to the penalization techniques used in Finite Element Method.</p>
+<p>In a different way, Moreau developed the <em>Contact Dynamics</em> method <a class="reference internal" href="#moreau1988" id="id10"><span>[Moreau1988]</span></a> for implicit non smooth interaction model.
+It uses an implicit time integrator. It needs a dedicated contact solver. Further works lead to the extension of the method
+to multi-contact simulations of collections of deformable bodies <a class="reference internal" href="dev_presentation.html#jean1999" id="id11"><span>[Jean1999]</span></a> and the method becomes the so-called
+<em>Non Smooth Contact Dynamics</em> method (NSCD). This kind of methods refer to NSCD.</p>
+<p>Carpenter et al. <a class="reference internal" href="#carpenter-taylor-ea1991" id="id12"><span>[Carpenter.Taylor.ea1991]</span></a> proposed a method to solve implicit interaction model using explicit time integrator.</p>
+<p>Thus the <em>end-user</em> has various possibilities to perform numerical modeling.</p>
+</section>
+<section id="smooth-dem">
+<h3><span class="section-number">2.3.2. </span>Smooth-DEM<a class="headerlink" href="#smooth-dem" title="Permalink to this headline">¶</a></h3>
+<section id="generality">
+<h4><span class="section-number">2.3.2.1. </span>Generality<a class="headerlink" href="#generality" title="Permalink to this headline">¶</a></h4>
+<p>Using explicit interaction law leads to solve:</p>
+<div class="math">
+<p><img src="_images/math/77a0edbe3212622638dc404f5739e3e87c458ef6.png" alt="\mathbb{M} \cdot \mathbf{v} = \mathbb{F}(\mathbf{q},\dot{\mathbf{q}},t) + \mathbb{P}(t) + \mathbf{r}"/></p>
+</div><p>with <img class="math" src="_images/math/ca5a6ad0645ffeb8459553c3dc526d4ae3957c8a.png" alt="\mathbf{r} = \mathbb{H}(\mathbf{q}) \mathbf{R}"/>, <img class="math" src="_images/math/b5f8062d95b033924eda32626398cf7af3404919.png" alt="R=f(U,g)"/> and <img class="math" src="_images/math/0a6bfa79168aa041c910bd599a06f1f69cdd343d.png" alt="U = \mathbb{H}^{\star} (\mathbf{q}) v"/>, <img class="math" src="_images/math/62914c6ed144084cc71ed4ed8536b29de0e70aae.png" alt="g = D(\mathbf{q})"/>.</p>
+<p>Using an implicit time integrator, a non-linear solver (Newton-Raphson) will be necessary.
+Assuming linear contact laws and fixed contact network it may be solved directly (see GEM of Kishino).</p>
+<p>Using an explicit time integrator leads to an uncoupled set of equations:</p>
+<div class="math">
+<p><img src="_images/math/61f578b5c42dd1a685090a72fdf4eecfa7a14e56.png" alt="\mathbb{M} ( \mathbf{v}_{n+1} - \mathbf{v}_{n} ) = h\mathbb{F}(\mathbf{q}_n,\dot{\mathbf{q}}_n,t_n) + h\mathbb{P}(t_n) + h\mathbf{r}_n"/></p>
+</div><p>Different explicit time integrator can be used to integrate the motion of particle:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Gear integrator for Molecular Dynamics <span id="id13">[Allen.Tildesley1987]</span></p></li>
+<li><p>Velocity verlet</p></li>
+<li><p>Time-centered scheme for the Distinct Element Method (Cundall) <span id="id14">[Cundall1971]</span></p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="time-integrator">
+<h4><span class="section-number">2.3.2.2. </span>Time integrator<a class="headerlink" href="#time-integrator" title="Permalink to this headline">¶</a></h4>
+<p><strong>Predictor-corrector Gear integrator</strong></p>
+<p><em>Prediction:</em> Using classical Taylor expansion (<img class="math" src="_images/math/93e71f139a46513f6511bc989f7cc032d76f14ff.png" alt="\mathbf{b}"/> and <img class="math" src="_images/math/8435674e5b7d5849f7aa96e450698e0b7f36dd83.png" alt="\mathbf{c}"/> are first and second time derivative of acceleration):</p>
+<div class="math">
+<p><img src="_images/math/9445b74c9c92db3e9c1a1bec6be4321e460c47a9.png" alt="\left\{
+\begin{array}{ll}
+\mathbf{q}^p(t+h)        &amp; = \mathbf{q}(t) + h\dot{\mathbf{q}(t)} + \frac{h^2}{2!} \ddot{\mathbf{q}}(t) + \frac{h^3}{3!} \mathbf{b}(t) + \frac{h^4}{4!} \mathbf{c}(t) + \ldots \\
+\dot{\mathbf{q}}^p(t+h)  &amp; = \dot{\mathbf{q}}(t) + h \ddot{\mathbf{q}}(t) + \frac{h^2}{2!} \mathbf{b}(t) + \frac{h^3}{3!} \mathbf{c}(t) + \ldots \\
+\ddot{\mathbf{q}}^p(t+h) &amp; = \ddot{\mathbf{q}}(t) + h \mathbf{b}(t) + \frac{h^2}{2!} \mathbf{c}(t) \ldots \\
+\mathbf{b}^p(t+h)        &amp; = \mathbf{b}(t) + h \mathbf{c}(t) + \ldots \\
+\mathbf{c}^p(t+h)        &amp; = \mathbf{c}(t) + \ldots
+\end{array}
+\right."/></p>
+</div><p>Perform detection in the predicted configuration, compute contact forces, compute the acceleration</p>
+<div class="math">
+<p><img src="_images/math/1ef565b74a352a1c918db6ba57bdc66419204e42.png" alt="\ddot{\mathbf{q}}^c(t+h) = \mathbb{M}^{-1}\mathbf{\mathbb{F} + \mathbb{P} + \mathbf{r}}(t+h)"/></p>
+</div><p><em>Correction:</em> considering <img class="math" src="_images/math/ad0407d1502fffa1d9ae2c6448e4b7b20f8ca385.png" alt="\Delta \ddot{\mathbf{q}} = \ddot{\mathbf{q}}^c(t+h) -\ddot{\mathbf{q}}^p(t+h)"/> perform the correction</p>
+<div class="math">
+<p><img src="_images/math/059a290d08a874b8913b3f3896dba3be78e73d89.png" alt="\left\{
+\begin{array}{lll}
+\mathbf{q}^c(t+h)        &amp; = \mathbf{q}^p(t+h)  &amp; + c_0\Delta \ddot{\mathbf{q}}\\
+\dot{\mathbf{q}}^c(t+h)  &amp; = \dot{\mathbf{q}}^p(t+h) &amp; + c_1\Delta \ddot{\mathbf{q}}\\
+\ddot{\mathbf{q}}^c(t+h) &amp; = \ddot{\mathbf{q}}^p(t+h) &amp; + c_2\Delta \ddot{\mathbf{q}}\\
+\mathbf{b}^c(t+h)        &amp; = \mathbf{b}^p(t+h) &amp; + c_3 \Delta \ddot{\mathbf{q}}\\
+\mathbf{c}^c(t+h)        &amp; = \mathbf{c}^p(t+h) &amp; + c_4 \Delta \ddot{\mathbf{q}}
+\end{array}
+\right. ."/></p>
+</div><p>The correction step may be repeated.</p>
+<p><strong>Velocity Verlet scheme</strong></p>
+<p>Its also predictor-corrector approach.</p>
+<p><em>Prediction:</em></p>
+<div class="math">
+<p><img src="_images/math/e686a1ca26cb25c72302f3db5d435db2d5bd01f8.png" alt="\left\{
+\begin{array}{ll}
+\mathbf{q}(t+h)  &amp; = \mathbf{q}(t)  + h \dot{\mathbf{q}}(t)+\frac{1}{2}h^2\ddot{\mathbf{q}}(t)\\
+\dot{\mathbf{q}}(t+h/2)    &amp; = \dot{\mathbf{q}}(t) + \frac{1}{2}h\ddot{\mathbf{q}}(t)
+\end{array}
+\right. ."/></p>
+</div><p>Perform detection in the predicted configuration, compute contact forces, compute the acceleration knowing:
+<img class="math" src="_images/math/7b6577ae7c5b4f9ed21683e54c9af5d936868902.png" alt="\mathbf{q}(t+h)"/> and <img class="math" src="_images/math/56987d2123995e1fdbb0a393e62f0d1420ee91ab.png" alt="\dot{\mathbf{q}}(t+h/2)"/> (<img class="math" src="_images/math/1fb07b7a0769c614d01ceb3ff305339c6875db60.png" alt="\ddot{\mathbf{q}}(t+h) = \mathbb{M}^{-1}\mathbf{\mathbb{F} + \mathbb{P} + \mathbf{r}}(t+h)"/>).</p>
+<p><em>Correction:</em></p>
+<div class="math">
+<p><img src="_images/math/8f470d88db16b52b850d53719e447954a37eb282.png" alt="\dot{\mathbf{q}}(t+h) = \dot{\mathbf{q}}(t+h/2) + \frac{1}{2}h\ddot{\mathbf{q}}(t+h)"/></p>
+</div><p>Note that the classical Verlet scheme (<em>leap-frog</em>) is not usable for DEM.</p>
+<p><em>Time-centered scheme</em></p>
+<p>Knowing <img class="math" src="_images/math/bfcb97897473f146848b5496ef12ad49ecf5ff9b.png" alt="\mathbf{q}(t)"/> and <img class="math" src="_images/math/552d600563252dae338d04156c53cd5e57b84589.png" alt="\dot{\mathbf{q}}(t-h/2)"/> one perform contact detection, computes contact forces and update acceleration
+<img class="math" src="_images/math/33d3d9eaf0854b173019e609155f824e4b93f582.png" alt="\ddot{\mathbf{q}}(t)"/>.</p>
+<p>Then one updates:</p>
+<div class="math">
+<p><img src="_images/math/5525788317850a312e04330c137b4ce58dba36c1.png" alt="\left \{
+\begin{array}{ll}
+\dot{\mathbf{q}}(t+h/2) &amp; = \dot{\mathbf{q}}(t-h/2) + h\ddot{\mathbf{q}}(t) \\
+\mathbf{q}(t+h)    &amp; = \mathbf{q}(t)  + h \dot{\mathbf{q}}(t+h/2)
+\end{array}
+\right. ."/></p>
+</div><p>It is not written as a predictor-corrector scheme.
+But it’s the same as velocity verlet.</p>
+</section>
+<section id="contact-laws">
+<h4><span class="section-number">2.3.2.3. </span>Contact laws<a class="headerlink" href="#contact-laws" title="Permalink to this headline">¶</a></h4>
+<p>They are computed in the predicted configuration.</p>
+</section>
+<section id="practical-aspects">
+<h4><span class="section-number">2.3.2.4. </span>Practical aspects<a class="headerlink" href="#practical-aspects" title="Permalink to this headline">¶</a></h4>
+<p>Some cares must be taken to obtain numerical results that keep a mechanical sense:</p>
+<ul class="simple">
+<li><p>The time step $h$ depends explicitly on the mechanical parameters of the system (<img class="math" src="_images/math/d139e5be8ab8fa1a25e4928fd95438e4ff1db3ba.png" alt="h=\frac{1}{N}\sqrt{\frac{m_{eff}}{K_n}}"/>)
+and must be small enough to ensure numerical stability and describe with accuracy the contact.</p></li>
+<li><p>Dissipation must be added to stabilize the problem (i.e. over-shoots).</p></li>
+</ul>
+<p>For example non viscous dissipation can be added to study granular flow:</p>
+<div class="math">
+<p><img src="_images/math/86c253432e26d19aaf655519d18136ee46b80a71.png" alt="F_d = - \alpha ~ r ~ sign(\dot{\mathbf{q}})"/></p>
+</div><p><img class="math" src="_images/math/0f034f6e445c19b8b3f6aeb003d074200f655016.png" alt="\alpha"/> is chosen depending on the studied problem:</p>
+<ul class="simple">
+<li><p>0.7 for quasi-static problem</p></li>
+<li><p>less for dynamic problem</p></li>
+<li><p>and 0.1 for wave propagation</p></li>
+</ul>
+<p>Thus control parameter of the simulation are:</p>
+<ul class="simple">
+<li><p>the time step discretization (<img class="math" src="_images/math/d349ab8c761fc98a3546d92e39f65da6ad9579ef.png" alt="N"/>),</p></li>
+<li><p>the local stiffness (normal <img class="math" src="_images/math/469bbbaf56ff7192129e4fd0519669d508c39670.png" alt="K_n"/> and tangential <img class="math" src="_images/math/7c70ece7fa24f3d887ba5a03887319658b0901ee.png" alt="K_t"/>),</p></li>
+<li><p>the viscous (<img class="math" src="_images/math/8177276eb5164a8cec7a2398348215aedb38aa88.png" alt="\eta"/>) or non viscous (<img class="math" src="_images/math/0f034f6e445c19b8b3f6aeb003d074200f655016.png" alt="\alpha"/>) dissipation.</p></li>
+</ul>
+<p>Evaluation criteria related to the computation quality:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Respect of interaction law,</p></li>
+<li><p>Control of numerical damping.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="non-smooth-contact-dynamics">
+<h3><span class="section-number">2.3.3. </span>Non Smooth Contact Dynamics<a class="headerlink" href="#non-smooth-contact-dynamics" title="Permalink to this headline">¶</a></h3>
+<section id="time-stepping">
+<h4><span class="section-number">2.3.3.1. </span>Time stepping<a class="headerlink" href="#time-stepping" title="Permalink to this headline">¶</a></h4>
+<p>Time integration of the equation of motion leads to:</p>
+<div class="math">
+<p><img src="_images/math/451915d740184c5d3e14cb614017a31565bd5c1a.png" alt="\begin{array}{lcl}
+\mathbb{M} (\dot{\mathbf{q}}_{i+1} - \dot{\mathbf{q}}_i)  &amp; = &amp; \int_{t_i}^{t_{i+1}} (\mathbb{F}(\mathbf{q},\dot{\mathbf{q}},s)+ \mathbb{P}(s)) ds + p_{i+1} \\
+                &amp; = &amp; p_{free} + p_{i+1}\\
+\mathbf{q}_{i+1} &amp; = &amp; \mathbf{q}_i + \int_{t_i}^{t_{i+1}} \dot{\mathbf{q}} ds
+\end{array}"/></p>
+</div><p>where:</p>
+<ul class="simple">
+<li><p><img class="math" src="_images/math/0aa246471b84cab5eb92d96185d2987240904593.png" alt="p_{i+1} = \int_{t_i}^{t_{i+1}} dp"/> represents the value of the total impulsion over the time step alert{the unknown in the following}</p></li>
+<li><p><img class="math" src="_images/math/5b0380329aee541cf4d8da1f62f84fe9fa5c0f1c.png" alt="p_{free}"/> the integral of applied forces over the time step;</p></li>
+</ul>
+<p>A <img class="math" src="_images/math/77b0529b6bf4f688a345761ce2609284327cd66e.png" alt="\theta"/>-method (Crank-Nicholson) is used to evaluate <img class="math" src="_images/math/54cb57070e3adcbcd53b0d3dfdc5129e75c3dc9e.png" alt="\int_{t_i}^{t_{i+1}} (\mathbb{F}(\mathbf{q},\dot{\mathbf{q}},s)+ \mathbb{P}(s)) ds"/>
+and <img class="math" src="_images/math/84b1977f5309b46a550a752f166910ce3001e745.png" alt="\int_{t_i}^{t_{i+1}} \dot{\mathbf{q}} ds"/> :</p>
+<div class="math">
+<p><img src="_images/math/dfc721df812fa3c9d2e48d15f4d011366fa79b60.png" alt="\begin{array}{lcl}
+ p_{free} &amp; = &amp; h (1 -\theta) (\mathbb{F}(\mathbf{q}_i,\dot{\mathbf{q}}_i,t_i)+ \mathbb{P}(t_i)) + \\
+            &amp;   &amp; h \theta (\mathbb{F}(\mathbf{q}_{i+1},\dot{\mathbf{q}}_{i+1},t_{i+1})+ \mathbb{P}(t_{i+1}))\\
+ \mathbf{q}_{i+1} &amp; = &amp; \mathbf{q}_i + h ((1-\theta) \dot{\mathbf{q}}_i + \theta \dot{\mathbf{q}}_{i+1}) = \mathbf{q}_m + h \theta \dot{\mathbf{q}}_{i+1}
+\end{array}"/></p>
+</div><p>with <img class="math" src="_images/math/d8f48f621767d74a2d8517f7df8e09d34ff57bca.png" alt="\mathbf{q}_m = \mathbf{q}_i + h (1 - \theta) \dot{\mathbf{q}}_i"/>.</p>
+<ul class="simple">
+<li><p>If <img class="math" src="_images/math/ffde92745167ea9c266295db7defdbea77160816.png" alt="\theta \in [0.5,1]"/> the scheme is implicit and stable unconditionally.</p></li>
+<li><p>If <img class="math" src="_images/math/e65e1fb6bf1b33b22ad52d559799bb90f0f7114c.png" alt="\theta=0.5"/> the scheme is conservative for smooth evolution problem,</p></li>
+<li><p>If <img class="math" src="_images/math/bde6b00182f5d11554a2230fc9ab4eaa0685b61b.png" alt="\theta =0"/> the scheme is explicit <a class="reference internal" href="#carpenter-taylor-ea1991" id="id15"><span>[Carpenter.Taylor.ea1991]</span></a></p></li>
+</ul>
+<p>The order of the time integrator is weak (1 or 2).
+The time discretization is imposed arbitrarily. Its mainly driven by the precision of the contact treatment.
+If discontinuities occur they are treated simultaneously. No limitation on the number of interactions but the time order is lost.</p>
+<p>If now we use this formulation for the previous elementary contact problem, one obtains:</p>
+<div class="math">
+<p><img src="_images/math/242cba3700544fd2614639835f4fed8e2a041f87.png" alt="\begin{array}{l}
+M (\dot{q}_{i+1} - \dot{q}_i) = p \\
+\mbox{ If } q_i \leq 0,  0 \leq \dot{q}_{i+1} \; \;  \bot \; \;  hR \geq 0 \\
+\mbox{ Initial conditions : } q(0)=0, \dot{q}(0)=-1
+\end{array}"/></p>
+</div><p>The implicit euler scheme gives:</p>
+<div class="math">
+<p><img src="_images/math/92a177399e3378b9f20d6feb16c9120c2185a261.png" alt="\left \{
+ \begin{array}{l}
+   q^1 = 0, \dot{q}^1 = 0, p^1 = M\dot{q}^0 \\
+   q^k = 0, \dot{q}^k = 0, p^k = 0
+ \end{array}
+\right."/></p>
+</div><p>The obtained solution is independent of the time step.</p>
+<p>If <img class="math" src="_images/math/e7df46a5cbdc36466c3fe56121829c735aa2f3c1.png" alt="q(0)=\epsilon"/> then <img class="math" src="_images/math/5b994d80cc3d4062486db64b5cf0fc7b9f939a38.png" alt="\dot{q}^1 = 0"/> and <img class="math" src="_images/math/aa9db3e656d34e14f7d76fb0d0010fe8f3ce4005.png" alt="p^1 = M\dot{q}^0"/> and <img class="math" src="_images/math/1e5d3fc5f05f9523377a9433b5eb2e4c5933d09d.png" alt="q^k=\epsilon"/>.</p>
+<p>The error made on the gap decreases with the size of the time step.</p>
+</section>
+<section id="managing-interactions">
+<h4><span class="section-number">2.3.3.2. </span>Managing interactions<a class="headerlink" href="#managing-interactions" title="Permalink to this headline">¶</a></h4>
+<p>The two mappings <img class="math" src="_images/math/cb00e3cd53b0bf949b3d0c59322f1c3c968b7353.png" alt="\mathbb{H}^{\star}"/> and <img class="math" src="_images/math/0742c27ce407512332cf42fe53052893945492df.png" alt="\mathbb{H}"/> depend on the solution.
+They may be evaluated in a ‘mean’ configuration: <img class="math" src="_images/math/e91df019a863ba1651e7c5b6220a77ac0ec793df.png" alt="\tilde{q}_{k+1} = q_{k+1} + h(\gamma_1 \dot{\mathbf{q}}_{k} + \gamma_2 \dot{\mathbf{q}}_{k+1})"/></p>
+<p>If the time step is small enough (small sliding motions, etc) and the curvature of component shapes is small,
+the mapping <img class="math" src="_images/math/cb00e3cd53b0bf949b3d0c59322f1c3c968b7353.png" alt="\mathbb{H}^{\star}"/> and <img class="math" src="_images/math/0742c27ce407512332cf42fe53052893945492df.png" alt="\mathbb{H}"/> can be considered as constant on a whole time interval.</p>
+<p><strong>Remarks:</strong></p>
+<ul class="simple">
+<li><p>Usually the contact problem is solved in a pseudo-explicit configuration: <img class="math" src="_images/math/76b5845a72997e600aabc517b4954a0964e27d48.png" alt="\mathbf{q}_m= \mathbf{q}_i +  h(1-\theta) \dot{\mathbf{q}}_i"/>.</p></li>
+<li><p>The pseudo configuration of the next time step will be determined by the final velocity
+<img class="math" src="_images/math/b2857a61a138a8d68308bc72511079129b4395e2.png" alt="\dot{\mathbf{q}}_{i+1}"/>: <img class="math" src="_images/math/9fa708f4fe0cc80cda5d91b2bf5fba1bb4419219.png" alt="\mathbf{q}_{m+1} = q_{m} + h \dot{\mathbf{q}}_{i+1}"/>. This is a <em>Leap-Frog</em> technique.</p></li>
+</ul>
+</section>
+<section id="contact-problem-formulation">
+<h4><span class="section-number">2.3.3.3. </span>Contact problem formulation<a class="headerlink" href="#contact-problem-formulation" title="Permalink to this headline">¶</a></h4>
+<p>The problem to solve is written in terms of:</p>
+<ul class="simple">
+<li><p>discretized equations of motion for each body expressed with global unknowns :
+<img class="math" src="_images/math/b222a31dc8b6439099492820b6fa1e56357350c2.png" alt="\dot{\mathbf{q}}_{i+1} = \dot{\mathbf{q}}_{free} + \mathbb{M}^{-1} p_{i+1}"/></p></li>
+<li><p>interaction laws expressed with local unknowns (contact <img class="math" src="_images/math/0f034f6e445c19b8b3f6aeb003d074200f655016.png" alt="\alpha"/>):
+<img class="math" src="_images/math/9c52b5a64260deebeec62688e123f83b9ad78e13.png" alt="Contact(g^{\alpha}, U_n^{\alpha}, P_n^{\alpha}) = TRUE \quad Friction(\mathbf{U}_t^{\alpha},\mathbb{P}_t^{\alpha}) = TRUE"/></p></li>
+<li><p>mappings (<img class="math" src="_images/math/0742c27ce407512332cf42fe53052893945492df.png" alt="\mathbb{H}"/> and <img class="math" src="_images/math/cb00e3cd53b0bf949b3d0c59322f1c3c968b7353.png" alt="\mathbb{H}^{\star}"/>) to pass from local to global unknowns</p></li>
+</ul>
+<div class="math">
+<p><img src="_images/math/3a529ace95bebf70670e04a6fd6091d4cd3310a6.png" alt="\begin{array} {ccc}
+   \mathbf{q},\dot{\mathbf{q}}    &amp; \gets \textrm{ Equations of motion } \to &amp; p   \\
+                                  &amp;                                          &amp;      \\
+   \mathbb{H}^{\star} \downarrow  &amp;                                          &amp; \uparrow \mathbb{H} \\
+                                  &amp;                                          &amp; \\
+                       \mathbf{U} &amp; \gets \textrm{   Interaction laws  } \to &amp; \mathbb{P}
+\end{array}"/></p>
+</div><p>Using basic algebraic transformations the equations of motion may be expressed in terms of local unknowns</p>
+<div class="math">
+<p><img src="_images/math/f7378c821b011f0ee61812200bb8592c7355c3c2.png" alt="\mathbf{U} = \mathbf{U}_{free} + \mathbb{W} ~ \mathbb{P}"/></p>
+</div><p>where <img class="math" src="_images/math/560d24111c03cc27822a7c2b6949217630b35753.png" alt="\mathbb{W} = \mathbb{H}^{\star} \mathbb{M}^{-1} \mathbb{H}"/> and
+<img class="math" src="_images/math/f2902b75d87adaeec528effe7a04ed8c013d373c.png" alt="\mathbf{U}_{free} = \mathbb{H}^{\star}(\dot{\mathbf{q}}_{i} + \mathbb{M}^{-1} p_{free})= \mathbb{H}^{\star} \dot{q}_{free}"/>.</p>
+<p>Iteration matrix computation (<img class="math" src="_images/math/1eb9b510356d5ae3f079601dbe988e404e92e1c1.png" alt="\mathbb{M}"/>)</p>
+<p>Time loop:</p>
+<div class="math">
+<p><img src="_images/math/8ce3d2e27b09000f9ae09da620449a0eb0616b85.png" alt="\left[
+\begin{array}{l}
+\mbox{ Free velocity computation} (\dot{\mathbf{q}}_{free}) \\
+\mbox{Temporary configuration computation} (\mathbf{q}_m) \\
+\mbox{Contact detection} \\
+\mbox{{\bf Contact problem resolution}}\\
+\mbox{Velocity correction} (\dot{\mathbf{q}}_{i+1} = \dot{\mathbf{q}}_{free} + \mathbb{M}^{-1} p_{i+1})  \\
+\mbox{Update of the kinematics and the configuration} \\
+\end{array}
+\right ."/></p>
+</div><p>Halt criteria</p>
+</section>
+<section id="contact-solvers">
+<h4><span class="section-number">2.3.3.4. </span>Contact Solvers<a class="headerlink" href="#contact-solvers" title="Permalink to this headline">¶</a></h4>
+<p>The classical NSCD approach rely on a Non Linear Gauss Seidel (NLGS) algorithm.
+Considering one by one the contacts (<cite>alpha</cite>) of the local systems to solve:</p>
+<div class="math">
+<p><img src="_images/math/7e3832a35c80448593e2a4e34d45723ad01b5419.png" alt="\begin{array}{lll}
+&amp; &amp; \mathbf{U}_{\alpha} = \mathbf{U}_{\alpha,free} + \mathbb{W}_{\alpha \alpha} \mathbb{P}_{\alpha} + \sum_{\beta \neq \alpha} \mathbb{W}_{\alpha \beta} \mathbb{P}_{\beta} \\
+&amp; &amp; Law(g_{\alpha},\mathbf{U}_{\alpha,n}\mathbf{U}_{\alpha,t},P_{\alpha,n},P_{\alpha,t}) =  TRUE
+\end{array}"/></p>
+</div><p>Freezing the contributions of other contact <img class="math" src="_images/math/c9c2bcc3c7a59628ce927b1c9bf582660831b693.png" alt="(\beta \neq \alpha)"/> to:</p>
+<ul class="simple">
+<li><p>updated values of <img class="math" src="_images/math/988fa34d0d7e74234813db2d6574f0838c7dd95d.png" alt="\mathbb{P}"/> if <img class="math" src="_images/math/ee890a3b2f9a0e24a775bfe95d5c8947292057ce.png" alt="\beta &lt; \alpha"/></p></li>
+<li><p>old values of <img class="math" src="_images/math/988fa34d0d7e74234813db2d6574f0838c7dd95d.png" alt="\mathbb{P}"/> if <img class="math" src="_images/math/e2415d9215a6334122733a8b7e8766d58fbdf1b5.png" alt="\beta &gt; \alpha"/>.</p></li>
+</ul>
+<p>We solve the <cite>alpha</cite> local problem of 2 unknowns with 2 equations and we repeat the process until convergence</p>
+<p>Local solvers:</p>
+<ul class="simple">
+<li><p>2D :</p>
+<ul>
+<li><p>explicit uncoupled resolution if <img class="math" src="_images/math/9e3939dfb5d9a1482156bb973107c50120c340b2.png" alt="\mathbb{W}^{\alpha \alpha}"/> is diagonal</p></li>
+<li><p>coupled <img class="math" src="_images/math/1722a8591970582ff5e7c30e82669324a45ce36e.png" alt="(n,t)"/> graph intersection (<img class="math" src="_images/math/3d68dda516c1ae0f3025bbb89d3bf471bc2d7334.png" alt="b=\mathbf{U}_{\alpha,free} + \sum_{\beta \neq \alpha} \mathbb{W}_{\alpha \beta} \mathbb{P}_{\beta}"/> )</p></li>
+</ul>
+</li>
+</ul>
+<div class="math">
+<p><img src="_images/math/788653740247df7a0f215d9685bdb980da7c8e19.png" alt="\begin{array}{lcl}
+If \ b_N \geq 0 &amp; then &amp; \mathbb{P} = 0 \\
+              &amp;      &amp;  status: no \ contact \\
+Else          &amp;      &amp;       \\
+\mbox{\hspace{2ex}} compute &amp; \epsilon=-1,1 &amp; Dft_{\epsilon}=W_{TN}+\epsilon \mu W_{TT} \\
+                     &amp;               &amp; Dfn_{\epsilon}=W_{NN}+\epsilon \mu W_{NT} \\
+\mbox{\hspace{2ex}} If \epsilon(Dft_{\epsilon}b_N - Dfn_{\epsilon}b_T) \geq 0 &amp; then &amp; P_n = -b_N/Dfn_{\epsilon}, P_t=\epsilon \mu P_N \\
+  &amp; &amp; status: sliding (\epsilon) \\
+\mbox{\hspace{2ex}} Else &amp; &amp; \mathbb{P} = \mathbb{W}^{-1}b \\
+   &amp; &amp; status: sticking \\
+\end{array}"/></p>
+</div><ul class="simple">
+<li><p>pseudo-potential approach (bi-potential)</p></li>
+<li><p>LCP solver</p></li>
+<li><p>etc.</p></li>
+</ul>
+<ul class="simple">
+<li><p>3D:</p>
+<ul>
+<li><p>explicit resolution if <img class="math" src="_images/math/9e3939dfb5d9a1482156bb973107c50120c340b2.png" alt="\mathbb{W}^{\alpha \alpha}"/> is diagonal (3D)</p></li>
+<li><p>Generalized Newton algorithm (3D)</p></li>
+<li><p>pseudo-potential approach (2D)</p></li>
+<li><p>LCP solver</p></li>
+<li><p>etc</p></li>
+</ul>
+</li>
+</ul>
+<p>Various implementation of NLGS are possible:</p>
+<p>Store Delassus Loop strategy (SDL):</p>
+<ol class="arabic simple" start="0">
+<li><p>Evaluating all the matrices <img class="math" src="_images/math/6464eb682fdda7712aa0071d62eda72ab86c75a5.png" alt="W_{\alpha \beta}"/></p></li>
+</ol>
+<div class="math">
+<p><img src="_images/math/05ca8c44b2111529294bc03c44d68b9fafbcc4dd.png" alt="\left[
+\begin{array}{l}
+k=k+1 \mbox{ (NLGS iteration)}\\
+\left[
+\begin{array}{l}
+\alpha = \alpha+1 \mbox{ (Contact index)}\\
+\mbox{(a) Evaluating the right-hand side} \\
+\mbox{\hspace{3ex}}\mathbf{U}_{\alpha,loc} = \mathbf{U}_{\alpha,free} + \sum_{\beta &lt; \alpha} \mathbb{W}_{\alpha \beta} \mathbb{P}^{k+1}_{\beta}
+  + \sum_{\beta &gt; \alpha} \mathbb{W}_{\alpha \beta} \mathbb{P}^{k}_{\beta}  \\
+\mbox{(b) Solving the local problem}  \\
+\end{array}
+\right .  \\
+\mbox{Convergence test for } k=0 \ldots k_{max}\\
+\end{array}
+\right ."/></p>
+</div><p>Rigid: efficient in 2D not in 3D</p>
+<p>Deformable: efficient in 2D</p>
+<p>Exchange Local Global Strategy (ELG):</p>
+<ol class="arabic simple" start="0">
+<li><p>Evaluating the <img class="math" src="_images/math/60456ca7b85a1b82db48c843b55cb4c919719057.png" alt="W_{\alpha \alpha}"/> matrix</p></li>
+</ol>
+<div class="math">
+<p><img src="_images/math/b431a7b4e569e887baab0faf787641805900f0f4.png" alt="\left[
+\begin{array}{l}
+k=k+1 \mbox{ (NLGS iteration)}\\
+\left[
+\begin{array}{l}
+\alpha = \alpha+1 \mbox{ (Contact index)}\\
+\mbox{(i) Identifying the contact bodies} (\alpha = jl) \\
+\mbox{\hspace{3ex}Computing an auxiliary value} \\
+\mbox{\hspace{3ex}}\mathbf{U}_{\alpha,aux} = \mathbb{H}^{\star}_{\alpha} (\mathbb{M}_j^{-1} r^k_{j} - \mathbb{M}_l^{-1} r^k_{l})  \\
+\mbox{(a) Evaluating the right-hand side} \\
+\mbox{\hspace{3ex}}\mathbf{U}_{\alpha,loc} = \mathbf{U}_{\alpha,free} + \mathbf{U}_{\alpha,aux} - \mathbb{W}_{\alpha \alpha} \mathbb{P}^{k}_{\alpha}  \\
+\mbox{(b) Solving the local problem}  \\
+\mbox{(i) Updating the resultant on bodies} (\alpha = jl) \\
+\mbox{\hspace{3ex}}
+\left[ \begin{array}{c} r_j \\ r_l \end{array} \right]^{k+1} =
+\left[ \begin{array}{c} r_j \\ r_l \end{array} \right]^{k} +
+\mathbb{H}_{\alpha} ( \mathbb{P}^{k+1}_{\alpha} - \mathbb{P}^{k}_{\alpha}) \\
+\end{array}
+\right .  \\
+\mbox{Convergence test for } k=0 \ldots k_{max}\\
+\end{array}
+\right ."/></p>
+</div><p>A parallel treatment of the NLGS is possible</p>
+<p>Store Delassus Loop strategy (SDL):</p>
+<ol class="arabic simple" start="0">
+<li><p>Evaluating all the matrices <img class="math" src="_images/math/6464eb682fdda7712aa0071d62eda72ab86c75a5.png" alt="W_{\alpha \beta}"/></p></li>
+</ol>
+<div class="math">
+<p><img src="_images/math/7bc26eb6bddb6c359d3f3281a585a43e50b02bd0.png" alt="\left[
+\begin{array}{l}
+k=k+1 \mbox{ (NLGS iteration)}\\
+\mbox{\bf{!\$OMP PARALLEL PRIVATE (...) SHARED (...) ...}} \\
+\mbox{\bf{!\$OMP DO ...}} \\
+\left[
+\begin{array}{l}
+\alpha = \alpha+1 \mbox{ (Contact index)}\\
+\mbox{(a) Evaluating the right-hand side} \\
+\mbox{\hspace{3ex}}\mathbf{U}_{\alpha,loc} = \mathbf{U}_{\alpha,free} + \sum_{\beta &lt; \alpha} \mathbb{W}_{\alpha \beta} \mathbb{P}^{k+1}_{\beta}  + \sum_{\beta &gt; \alpha} \mathbb{W}_{\alpha \beta} \mathbb{P}^{k}_{\beta}  \\
+\mbox{(b) Solving the local problem}  \\
+\end{array}
+\right .  \\
+\mbox{\bf{!\$OMP ENDDO}} \\
+\mbox{\bf{!\$OMP END PARALLEL}} \\
+\mbox{Convergence test for } k=0 \ldots k_{max}\\
+\end{array}
+\right ."/></p>
+</div><p>Needs equivalent parallel treatment of other CPU consuming parts of the code.</p>
+<p><em>Quasi NLGS</em> may be derived, rewriting the system:</p>
+<div class="math">
+<p><img src="_images/math/47835af662cec343ec18d7bd7c69de5298e07b9b.png" alt="\begin{array}{lll}
+&amp; &amp; \mathbf{U}_{\alpha} = \mathbf{U}_{\alpha,free} + \mathbb{W}_{\alpha \alpha} (\mathbb{P}_{\alpha} - \mathbb{P}_{\alpha,esti})\\
+              + \sum_{\beta} \mathbb{W}_{\alpha \beta} \mathbb{P}_{\beta}\\
+                &amp; &amp; Law(g_{\alpha},\mathbf{U}_{\alpha,t},P_{\alpha,n},P_{\alpha,t}) =  TRUE
+\end{array}"/></p>
+</div><p>where <img class="math" src="_images/math/0ff48df2658a55a64a80ed73dc88b3ea854f262f.png" alt="P_{\alpha,esti}"/> is the impulsion computed at the previous Gauss-Seidel iteration.</p>
+<p>Noting that when the algorithm goes close to the solution, <img class="math" src="_images/math/b197f169f6552e2b2790fe83295d5cd4d0a9500f.png" alt="P_{\alpha} - P_{\alpha,esti} \rightarrow 0"/> one may derive a
+<em>quasi NLGS</em> replacing the original <img class="math" src="_images/math/9ae4433cd5e660dc65f0efa0803a626ef7d14bff.png" alt="\mathbb{W}_{\alpha \alpha}"/> by an arbitrary one.</p>
+<p>Various alternatives are possible for the contact solver:</p>
+<ul class="simple">
+<li><p>Conjugate Projected Gradient Algorithm <a class="reference internal" href="#renouf-alart2004" id="id16"><span>[Renouf.Alart2004]</span></a></p></li>
+<li><p>Lemke (for small collection of rigid bodies)</p></li>
+<li><p>Other possibilities, see Siconos NSSPack</p></li>
+</ul>
+</section>
+<section id="id17">
+<h4><span class="section-number">2.3.3.5. </span>Practical aspects<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
+<p>Numerical model parameters are:</p>
+<ul class="simple">
+<li><p>The <img class="math" src="_images/math/fc81ee04fb0ebab60c206da953ee766a29d985ad.png" alt="theta"/> value</p></li>
+<li><p>The time step</p></li>
+<li><p>The convergence norm of the Gauss-Seidel algorithm</p></li>
+<li><p>The direction of reading the contact set</p></li>
+</ul>
+<p>Quality of the computation lays on:</p>
+<ul class="simple">
+<li><p>The respect of interaction laws</p></li>
+<li><p>The number of iteration performed</p></li>
+<li><p>The free evolution of bodies</p></li>
+</ul>
+<p class="rubric">Bibliography</p>
+<dl class="citation">
+<dt class="label" id="acary-brogliato2003"><span class="brackets"><a class="fn-backref" href="#id6">Acary.Brogliato2003</a></span></dt>
+<dd></dd>
+<dt class="label" id="carpenter-taylor-ea1991"><span class="brackets">Carpenter.Taylor.ea1991</span><span class="fn-backref">(<a href="#id12">1</a>,<a href="#id15">2</a>)</span></dt>
+<dd></dd>
+<dt class="label" id="johnson-kendall-ea1971"><span class="brackets"><a class="fn-backref" href="#id1">Johnson.Kendall.ea1971</a></span></dt>
+<dd></dd>
+<dt class="label" id="moreau1988"><span class="brackets">Moreau1988</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id10">2</a>)</span></dt>
+<dd></dd>
+<dt class="label" id="renouf-alart2004"><span class="brackets"><a class="fn-backref" href="#id16">Renouf.Alart2004</a></span></dt>
+<dd></dd>
+<dt class="label" id="stoianovici-hurmuzlu1996"><span class="brackets"><a class="fn-backref" href="#id5">Stoianovici.Hurmuzlu1996</a></span></dt>
+<dd></dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2. Some theory around DEM (Discrete Element Methods)</a><ul>
+<li><a class="reference internal" href="#preamble">2.1. Preamble</a></li>
+<li><a class="reference internal" href="#modeling">2.2. Modeling</a><ul>
+<li><a class="reference internal" href="#smooth-dynamic">2.2.1. Smooth Dynamic</a><ul>
+<li><a class="reference internal" href="#equations-of-motion">2.2.1.1. Equations of motion</a></li>
+<li><a class="reference internal" href="#interaction-description">2.2.1.2. Interaction description</a></li>
+<li><a class="reference internal" href="#local-global-mapping">2.2.1.3. Local-Global mapping</a></li>
+<li><a class="reference internal" href="#interaction-law">2.2.1.4. Interaction law</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#non-smooth-dynamic">2.2.2. Non Smooth Dynamic</a><ul>
+<li><a class="reference internal" href="#id2">2.2.2.1. Equations of motion</a></li>
+<li><a class="reference internal" href="#id4">2.2.2.2. Interaction law</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#conclusion">2.2.3. Conclusion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#numerical-strategies">2.3. Numerical Strategies</a><ul>
+<li><a class="reference internal" href="#introduction">2.3.1. Introduction</a></li>
+<li><a class="reference internal" href="#smooth-dem">2.3.2. Smooth-DEM</a><ul>
+<li><a class="reference internal" href="#generality">2.3.2.1. Generality</a></li>
+<li><a class="reference internal" href="#time-integrator">2.3.2.2. Time integrator</a></li>
+<li><a class="reference internal" href="#contact-laws">2.3.2.3. Contact laws</a></li>
+<li><a class="reference internal" href="#practical-aspects">2.3.2.4. Practical aspects</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#non-smooth-contact-dynamics">2.3.3. Non Smooth Contact Dynamics</a><ul>
+<li><a class="reference internal" href="#time-stepping">2.3.3.1. Time stepping</a></li>
+<li><a class="reference internal" href="#managing-interactions">2.3.3.2. Managing interactions</a></li>
+<li><a class="reference internal" href="#contact-problem-formulation">2.3.3.3. Contact problem formulation</a></li>
+<li><a class="reference internal" href="#contact-solvers">2.3.3.4. Contact Solvers</a></li>
+<li><a class="reference internal" href="#id17">2.3.3.5. Practical aspects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dev_presentation.html"
+                        title="previous chapter"><span class="section-number">1. </span>Structure of LMGC90</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dev_development.html"
+                        title="next chapter"><span class="section-number">3. </span>Programming rules</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dev_theory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_development.html" title="3. Programming rules"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dev_presentation.html" title="1. Structure of LMGC90"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" >Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">2. </span>Some theory around DEM (Discrete Element Methods)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

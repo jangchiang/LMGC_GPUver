@@ -1,0 +1,412 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.chipy.computation &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.chipy.computation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.chipy.computation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">lmgc90</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">macro</span>
+
+<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../../../chipy_macro.html#pylmgc90.chipy.computation.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">mhyp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">h5_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deformable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logmes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a (linear) LMGC90 simulation with some default parameters.</span>
+
+<span class="sd">    :param dim: (integer) dimension of the simulation (2 or 3)</span>
+<span class="sd">    :param dt: (real) time step of the simulation</span>
+<span class="sd">    :param theta: (real) value of the theta integrator ( value in [0.,1.])</span>
+<span class="sd">    :param mhyp: (integer) modeling hypothesis use for deformable bodies:</span>
+<span class="sd">                 * 0 = 3D (default value)</span>
+<span class="sd">                 * 1 = plain strain</span>
+<span class="sd">                 * 2 = plain stress</span>
+<span class="sd">                 * 3 = axi-symmetry</span>
+<span class="sd">    :param h5_file: (string optional) HDF5 file in which to save the computation.</span>
+<span class="sd">                    If not set, only text files in the OUTBOX directory will be available.</span>
+<span class="sd">    :param deformable: (boolean) with deformable bodies (default to false)</span>
+<span class="sd">    :param logmes: (boolean optional) set to True to activate LMGC90 log messaging.</span>
+<span class="sd">    :param restart: (one or two integers) restart parameters to put in ReadIni and OpenDisplayFiles</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_setStopMode</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">checkDirectories</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">logmes</span><span class="p">:</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_DisableLogMes</span><span class="p">()</span>
+
+    <span class="c1"># Set space dimension</span>
+    <span class="n">mhyp</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">dim</span><span class="o">==</span><span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">deformable</span> <span class="k">else</span> <span class="n">mhyp</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">SetDimension</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span><span class="n">mhyp</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;INIT TIME STEPPING&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">TimeEvolution_SetTimeStep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">Integrator_InitTheta</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;READ DATBOX&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ReadDatbox</span><span class="p">(</span><span class="n">deformable</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">restart</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">r_disp</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restart</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
+        <span class="n">r_file</span> <span class="o">=</span> <span class="n">restart</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">r_disp</span> <span class="o">=</span> <span class="n">restart</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">r_file</span> <span class="o">=</span> <span class="n">restart</span>
+        <span class="n">r_disp</span> <span class="o">=</span> <span class="n">restart</span><span class="o">+</span><span class="mi">1</span>
+      <span class="n">macro</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="n">r_file</span><span class="p">,</span> <span class="n">h5_file</span><span class="o">=</span><span class="n">h5_file</span><span class="p">)</span>
+
+    <span class="c1"># open display &amp; postpro</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;DISPLAY &amp; WRITE&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">OpenDisplayFiles</span><span class="p">(</span><span class="n">r_disp</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">OpenPostproFiles</span><span class="p">()</span>
+    
+    <span class="c1"># if HDF5 is available</span>
+    <span class="k">if</span> <span class="n">h5_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">InitHDF5</span><span class="p">(</span><span class="n">h5_file</span><span class="p">)</span>
+
+    <span class="c1"># since constant compute elementary mass once</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE MASS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeMass</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">deformable</span> <span class="p">:</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE STIFFNESS&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">ComputeBulk</span><span class="p">()</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;ASSEMB KT&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">AssembleMechanicalLHS</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="initialize_non_linear"><a class="viewcode-back" href="../../../chipy_macro.html#pylmgc90.chipy.computation.initialize_non_linear">[docs]</a><span class="k">def</span> <span class="nf">initialize_non_linear</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">mhyp</span><span class="p">,</span> <span class="n">t_final</span><span class="p">,</span> <span class="n">dt_min</span><span class="p">,</span> <span class="n">dt_max</span><span class="p">,</span>
+                          <span class="n">NR_max_iter</span><span class="p">,</span> <span class="n">NR_adapt</span><span class="p">,</span> <span class="n">h5_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logmes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize an LMGC90 simulation involving non linear deformable bodies</span>
+
+<span class="sd">    :param dim: (integer) dimension of the simulation (2 or 3)</span>
+<span class="sd">    :param dt: (real) time step of the simulation</span>
+<span class="sd">    :param theta: (real) value of the theta integrator ( value in [0.,1.])</span>
+<span class="sd">    :param mhyp: (integer) modeling hypothesis use for deformable bodies:</span>
+<span class="sd">                 * 0 = 3D</span>
+<span class="sd">                 * 1 = plain strain</span>
+<span class="sd">                 * 2 = plain stress</span>
+<span class="sd">                 * 3 = axi-symmetry</span>
+<span class="sd">    :param t_final: (real) desired final time of the simulation</span>
+<span class="sd">    :param dt_min: (real) mininum time step allowed in the adaptative process</span>
+<span class="sd">    :param dt_max: (real) maxinum time step allowed in the adaptative process</span>
+<span class="sd">    :param NR_max_iter: (integer) maxinum number of iteration allowed in the Newton-Raphson loop</span>
+<span class="sd">    :param NR_adapt: (integer) number of consecutive iterations with same status allowing to decide</span>
+<span class="sd">                     if the time step should increase of decreased.</span>
+<span class="sd">    :param h5_file: (optional) HDF5 file in which to save the computation.</span>
+<span class="sd">                    If not set, only text files in the OUTBOX directory will be available.</span>
+<span class="sd">    :param logmes: (optional) set to True to activate LMGC90 log messaging.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">checkDirectories</span><span class="p">()</span>
+    
+    <span class="c1"># Newton loop parameters:</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_SetFinalTime</span><span class="p">(</span><span class="n">t_final</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_SetMinTimeStep</span><span class="p">(</span><span class="n">dt_min</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_SetMaxTimeStep</span><span class="p">(</span><span class="n">dt_max</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_SetMaxIter</span><span class="p">(</span><span class="n">NR_max_iter</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_SetIncPatience</span><span class="p">(</span><span class="n">NR_adapt</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">logmes</span><span class="p">:</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_DisableLogMes</span><span class="p">()</span>
+    
+    <span class="c1"># Set space dimension</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">SetDimension</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span><span class="n">mhyp</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;INIT TIME STEPPING&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">TimeEvolution_SetTimeStep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">Integrator_InitTheta</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;READ BEHAVIOURS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ReadBehaviours</span><span class="p">()</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ReadModels</span><span class="p">()</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;READ BODIES&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ReadBodies</span><span class="p">()</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;LOAD BEHAVIOURS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">LoadBehaviours</span><span class="p">()</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">LoadModels</span><span class="p">()</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;READ DRIVEN DOF&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ReadDrivenDof</span><span class="p">()</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;LOAD TACTORS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">LoadTactors</span><span class="p">()</span>
+    <span class="c1">#</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;READ INI&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">()</span>
+
+    <span class="c1"># paranoid writes</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;WRITE BODIES&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">WriteBodies</span><span class="p">()</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;WRITE BEHAVIOURS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">WriteBehaviours</span><span class="p">()</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;WRITE DRIVEN DOF&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">WriteDrivenDof</span><span class="p">()</span>
+
+    <span class="c1"># open display &amp; postpro</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;DISPLAY &amp; WRITE&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">OpenDisplayFiles</span><span class="p">()</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">OpenPostproFiles</span><span class="p">()</span>
+    
+    <span class="c1"># if HDF5 is available</span>
+    <span class="k">if</span> <span class="n">h5_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">InitHDF5</span><span class="p">(</span><span class="n">h5_file</span><span class="p">)</span>
+
+    <span class="c1"># since constant compute elementary mass once</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE MASS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeMass</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="one_step"><a class="viewcode-back" href="../../../chipy_macro.html#pylmgc90.chipy.computation.one_step">[docs]</a><span class="k">def</span> <span class="nf">one_step</span><span class="p">(</span><span class="n">stype</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">relax</span><span class="p">,</span> <span class="n">gs_it1</span><span class="p">,</span> <span class="n">gs_it2</span><span class="p">,</span>
+             <span class="n">f_write</span><span class="p">,</span> <span class="n">f_display</span>                      <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute one step of a computation with rigids or linear deformable bodies.</span>
+
+<span class="sd">    :param stype: type of contact solver to use can only be:</span>
+<span class="sd">                  * &#39;Stored_Delassus_Loops         &#39;</span>
+<span class="sd">                  * &#39;Exchange Local Global         &#39;</span>
+<span class="sd">    :param norm: type of norm to use in contact solver to check convergence, can be:</span>
+<span class="sd">                 * &#39;Quad &#39;</span>
+<span class="sd">                 * &#39;Maxm &#39;</span>
+<span class="sd">                 * &#39;QM/16&#39;</span>
+<span class="sd">    :param tol: (real) desired tolerance to decided if contact solver has converged.</span>
+<span class="sd">    :param relax: (real) relaxation</span>
+<span class="sd">    :param gs_it1: (integer) maximum number of converge check of the contact solver before stopping (outer loop).</span>
+<span class="sd">    :param gs_it2: (integer) number of contact solver iteration to run before checking convergence (inner loop).</span>
+<span class="sd">    :param f_write: (integer) frequency at which to save into file(s).</span>
+<span class="sd">    :param f_display: (integer) frequency at which to save display files (if 0, no file generated).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;INCREMENT STEP&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">IncrementStep</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Fext&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeFext</span><span class="p">()</span>
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Fint&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeBulk</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;ASSEMB RHS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">AssembleMechanicalRHS</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Free Vlocy&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeFreeVelocity</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;SELECT PROX TACTORS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">SelectProxTactors</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;RESOLUTION&#39;</span> <span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">RecupRloc</span><span class="p">()</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">ExSolver</span><span class="p">(</span><span class="n">stype</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">relax</span><span class="p">,</span> <span class="n">gs_it1</span><span class="p">,</span> <span class="n">gs_it2</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">UpdateTactBehav</span><span class="p">()</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">StockRloc</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE DOF, FIELDS, etc.&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeDof</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;UPDATE DOF, FIELDS&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">UpdateStep</span><span class="p">()</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;WRITE OUT&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">WriteOut</span><span class="p">(</span><span class="n">f_write</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">f_display</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;VISU &amp; POSTPRO&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">(</span><span class="n">f_display</span><span class="p">)</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">WritePostproFiles</span><span class="p">()</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">checkInteractiveCommand</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="one_step_non_linear"><a class="viewcode-back" href="../../../chipy_macro.html#pylmgc90.chipy.computation.one_step_non_linear">[docs]</a><span class="k">def</span> <span class="nf">one_step_non_linear</span><span class="p">(</span><span class="n">NR_tol</span><span class="p">,</span> <span class="n">stype</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">relax</span><span class="p">,</span> <span class="n">gs_it1</span><span class="p">,</span> <span class="n">gs_it2</span><span class="p">,</span>
+                        <span class="n">f_write</span><span class="p">,</span> <span class="n">f_display</span>                              <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute one step of a computation for non linear deformable bodies.</span>
+
+<span class="sd">    :param NR_tol: tolerance to check convergence in the Newton-Raphson resolution loop</span>
+<span class="sd">    :param stype: type of contact solver to use can only be:</span>
+<span class="sd">                  * &#39;Stored_Delassus_Loops         &#39;</span>
+<span class="sd">                  * &#39;Exchange Local Global         &#39;</span>
+<span class="sd">    :param norm: type of norm to use in contact solver to check convergence, can be:</span>
+<span class="sd">                 * &#39;Quad &#39;</span>
+<span class="sd">                 * &#39;Maxm &#39;</span>
+<span class="sd">                 * &#39;QM/16&#39;</span>
+<span class="sd">    :param tol: (real) desired tolerance to decided if contact solver has converged.</span>
+<span class="sd">    :param relax: (real) relaxation</span>
+<span class="sd">    :param gs_it1: (integer) maximum number of converge check of the contact solver before stopping (outer loop).</span>
+<span class="sd">    :param gs_it2: (integer) number of contact solver iteration to run before checking convergence (inner loop).</span>
+<span class="sd">    :param f_write: (integer) frequency at which to save into file(s).</span>
+<span class="sd">    :param f_display: (integer) frequency at which to save display files (if 0, no file generated).</span>
+<span class="sd">    :return: return True or False depending if the while loop must be broken.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;INCREMENT STEP&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">IncrementStep</span><span class="p">()</span>
+  
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Fext&#39;</span><span class="p">)</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ComputeFext</span><span class="p">()</span>
+  
+    <span class="c1"># Newton loop</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_Initialize</span><span class="p">(</span><span class="n">NR_tol</span><span class="p">)</span>
+    <span class="n">is_converged</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+    <span class="c1">#looping until something changes in CheckConvergence</span>
+    <span class="k">while</span> <span class="n">is_converged</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">:</span>
+        <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE BULK&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">ComputeBulk</span><span class="p">()</span>
+  
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;ASSEMB RHS/KT&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">AssembleMechanicalRHS</span><span class="p">()</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">AssembleMechanicalLHS</span><span class="p">()</span>
+  
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Free Vlocy&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">ComputeFreeVelocity</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;SELECT PROX TACTORS&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">SelectProxTactors</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="c1">### Signorini Coulomb</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">RecupRloc</span><span class="p">()</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">ExSolver</span><span class="p">(</span><span class="n">stype</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">relax</span><span class="p">,</span> <span class="n">gs_it1</span><span class="p">,</span> <span class="n">gs_it2</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">StockRloc</span><span class="p">()</span>
+        <span class="c1">###</span>
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE DOF&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">ComputeDof</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">NR_norm</span> <span class="o">=</span> <span class="n">macro</span><span class="o">.</span><span class="n">mecaMAILx_ComputeResidueNorm</span><span class="p">()</span>
+          <span class="n">is_converged</span> <span class="o">=</span> <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_CheckConvergence</span><span class="p">(</span><span class="n">NR_norm</span><span class="p">)</span>
+  
+    <span class="c1">### end while NR</span>
+  
+    <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE TIME STEP&#39;</span><span class="p">)</span>
+    <span class="c1">#istate = 1 =&gt; redo step</span>
+    <span class="c1">#istate = 2 =&gt; stop</span>
+  
+    <span class="n">istate</span> <span class="o">=</span> <span class="n">macro</span><span class="o">.</span><span class="n">NewtonRaphson_ComputeTimeStep</span><span class="p">()</span>
+  
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">istate</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">:</span>
+  
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;UPDATE TACT BEHAV&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">UpdateTactBehav</span><span class="p">()</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">StockRloc</span><span class="p">()</span>
+  
+        <span class="n">lmgc90</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;UPDATE DOF&#39;</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">UpdateStep</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="c1">### write results ###</span>
+        <span class="c1">#</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">WriteOut</span><span class="p">(</span><span class="n">f_write</span><span class="p">)</span>
+  
+        <span class="k">if</span> <span class="n">f_display</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">macro</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">(</span><span class="n">f_display</span><span class="p">)</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">WritePostproFiles</span><span class="p">()</span>
+  
+        <span class="n">macro</span><span class="o">.</span><span class="n">checkInteractiveCommand</span><span class="p">()</span>
+  
+        <span class="k">if</span> <span class="n">istate</span> <span class="o">==</span> <span class="mi">2</span> <span class="p">:</span>
+          <span class="c1"># istate =&gt; Stop</span>
+          <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1">### end while time loop ###</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="finalize"><a class="viewcode-back" href="../../../chipy_macro.html#pylmgc90.chipy.computation.finalize">[docs]</a><span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finalize an LMGC90 computation.</span>
+
+<span class="sd">    :param cleanup: boolean stating if the memory of LMGC90 must be purged</span>
+<span class="sd">                    (True by default)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">macro</span><span class="o">.</span><span class="n">CloseDisplayFiles</span><span class="p">()</span>
+    <span class="n">macro</span><span class="o">.</span><span class="n">ClosePostproFiles</span><span class="p">()</span>
+    
+    <span class="c1"># this is the end</span>
+    <span class="k">if</span> <span class="n">cleanup</span><span class="p">:</span>
+        <span class="n">macro</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.chipy.computation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

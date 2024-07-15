@@ -1,0 +1,343 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.extrusion &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.extrusion</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.extrusion</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module qui fournit des macros pour extruder des corps rigides 2D</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">.mesh</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">..avatars</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.avatar</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulk.rigid3d</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">..utilities.error</span>    <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># fonction qui extrude un rigide 2D (defini dans le plan xOy), suivant l&#39;axe Oz</span>
+<div class="viewcode-block" id="extrudeRigid"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.extrudeRigid">[docs]</a><span class="k">def</span> <span class="nf">extrudeRigid</span><span class="p">(</span><span class="n">body2D</span><span class="p">,</span> <span class="n">model3D</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.e0</span><span class="p">,</span> <span class="n">extrudedDisk</span><span class="o">=</span><span class="s1">&#39;Sphere&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
+   <span class="sd">&#39;&#39;&#39;extrudeRigid(body2D, model3D, depth, factor=1.e0, number=None):</span>
+
+<span class="sd">   this function builds a 3D rigid body by extruding a given 2D rigid avatar and returns </span>
+<span class="sd">   the generated body. The extruded body is made of the same material as the</span>
+<span class="sd">   given one. The colors of each contactor of the body is the same as those of</span>
+<span class="sd">   the coresponding contactor of the given body.</span>
+
+<span class="sd">   Warning: extrusion follow axis Oz, except for the JONCx, which are placed </span>
+<span class="sd">   in xOz plane</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - body2D: a 2D rigid body</span>
+<span class="sd">   - model3D: 3D rigid model for the extruded body</span>
+<span class="sd">   - depth: depth of the extrusion</span>
+
+<span class="sd">   optional paramters:</span>
+
+<span class="sd">   - factor: dilatation factor of homothety</span>
+<span class="sd">   - extrudedDisk: a string used to define how to extrude a disk:</span>
+
+<span class="sd">     * &#39;Sphere&#39;: for a sphere (SPHER)</span>
+<span class="sd">     * &#39;Cylinder&#39;: for a solid cylinder (CYLND)</span>
+
+<span class="sd">   - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+   <span class="c1"># verification de la nature de l&#39;objet donne</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">body2D</span><span class="p">,</span> <span class="n">avatar</span><span class="p">):</span>
+      <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;In extrudeRigid: first argument of this function must be an avatar!&quot;</span><span class="p">)</span>
+
+   <span class="c1"># verification du type d&#39;avatar</span>
+   <span class="k">if</span> <span class="n">body2D</span><span class="o">.</span><span class="n">atype</span> <span class="o">!=</span> <span class="s1">&#39;RBDY2&#39;</span><span class="p">:</span>
+      <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;In extrudeRigid: first argument of this function must be a rigid avatar!&quot;</span><span class="p">)</span>
+
+   <span class="c1"># creation d&#39;un nouveau corps rigide 3D</span>
+   <span class="c1"># N.B.: on ne renseigne ni le rayoin pour la masse, ni les inerties </span>
+   <span class="c1">#       principales pour qu&#39;elles soient calculees par LMGC90</span>
+   <span class="n">body3D</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">)</span> 
+   <span class="c1"># on lui attribue un comportement volumique de type rigide</span>
+   <span class="n">body3D</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid3d</span><span class="p">()</span> <span class="p">)</span> 
+
+   <span class="c1"># on recupere les coordonnees du centre d&#39;inertie du corps 2D</span>
+   <span class="n">mass_center</span> <span class="o">=</span> <span class="n">body2D</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span> 
+
+   <span class="c1"># on determine si le corps est pas un cluster (i.e. possede un seul </span>
+   <span class="c1"># contacteur : le numero 1)</span>
+   <span class="n">is_cluster</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">body2D</span><span class="o">.</span><span class="n">contactors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+
+   <span class="c1"># on determine si le coprs possede (au moins) un contacteur polygone</span>
+   <span class="n">has_polygon</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">for</span> <span class="n">contactor</span> <span class="ow">in</span> <span class="n">body2D</span><span class="o">.</span><span class="n">contactors</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">contactor</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="s1">&#39;POLYG&#39;</span><span class="p">:</span>
+         <span class="n">has_polygon</span> <span class="o">=</span> <span class="kc">True</span>
+         <span class="k">break</span>
+   
+   <span class="c1"># on determine si le corps est un jonc (i.e. possede un contacteur jonc)</span>
+   <span class="n">is_jonc</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">for</span> <span class="n">contactor</span> <span class="ow">in</span> <span class="n">body2D</span><span class="o">.</span><span class="n">contactors</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">contactor</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="s1">&#39;JONCx&#39;</span><span class="p">:</span>
+         <span class="n">is_jonc</span> <span class="o">=</span> <span class="kc">True</span>
+         <span class="k">break</span>
+
+   <span class="c1"># si le corps est un cluster ou contient un polygone</span>
+   <span class="k">if</span> <span class="n">is_cluster</span> <span class="ow">or</span> <span class="n">has_polygon</span><span class="p">:</span>
+      <span class="c1"># on place le centre d&#39;inertie a l&#39;origine, pour que LMGC90 le </span>
+      <span class="c1"># recalcule a partir des positions des contacteurs (sommets ou centres)</span>
+      <span class="n">body3D</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> 
+         <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]),</span>
+         <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># sinon,</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># si le corps est un jonc</span>
+      <span class="k">if</span> <span class="n">is_jonc</span><span class="p">:</span>
+         <span class="c1"># on place le centre d&#39;inertie dans le plan y = depth/2    </span>
+         <span class="n">body3D</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> 
+            <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">factor</span><span class="o">*</span><span class="n">mass_center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> 
+               <span class="mf">0.5</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span> <span class="n">factor</span><span class="o">*</span><span class="n">mass_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+      <span class="c1"># sinon,</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># on place le centre d&#39;inertie dans le plan z = depth/2    </span>
+         <span class="c1"># N.B. : le corps est donc un disque (creux ou plein)</span>
+         <span class="n">body3D</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> 
+            <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">factor</span><span class="o">*</span><span class="n">mass_center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> 
+               <span class="n">factor</span><span class="o">*</span><span class="n">mass_center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">depth</span><span class="p">]),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+
+   <span class="c1"># on definit les groupes pour le corps</span>
+   <span class="n">body3D</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele au corps</span>
+   <span class="n">body3D</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model3D</span><span class="p">)</span>
+   <span class="c1"># on affecte au corps le materiau constitutif du corps 2D</span>
+   <span class="n">body3D</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">body2D</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">material</span><span class="p">)</span>
+
+   <span class="c1"># pour chaque contacteur</span>
+   <span class="k">for</span> <span class="n">contactor</span> <span class="ow">in</span> <span class="n">body2D</span><span class="o">.</span><span class="n">contactors</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># on tente de calculer le type et les options du contacteur constituant l&#39;extrusion 3D du contacteur courant</span>
+            <span class="n">shape</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">contactor</span><span class="o">.</span><span class="n">extrusion</span><span class="p">(</span><span class="n">mass_center</span><span class="o">=</span><span class="n">mass_center</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">factor</span><span class="p">,</span> <span class="n">extrudedDisk</span><span class="o">=</span><span class="n">extrudedDisk</span><span class="p">)</span>
+            <span class="c1"># si ca reussi, on ajoute le contacteur au corps resulatant de l&#39;extrusion</span>
+            <span class="n">body3D</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">contactor</span><span class="o">.</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># si on echoue a cause de la valeur d&#39;une option, on affiche le warning ad hoc</span>
+            <span class="n">showWarning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+      <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+         <span class="c1"># si on echoue parce que le contatceur n&#39;a pas defini sa facon d&#39;etre extrude, on previent l&#39;utilisateur</span>
+         <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;In extrudeRigid: a contactor &quot;</span> <span class="o">+</span> <span class="n">contactor</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="s2">&quot; CANNOT be extruded! Skipping.&quot;</span><span class="p">)</span>
+
+   <span class="c1"># si le corps n&#39;est pas un jonc, on passe la face extrude (z=depth) du plan xOy, au plan xOz (y=0)</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">is_jonc</span><span class="p">:</span>
+      <span class="c1"># on calcule le volume et l&#39;inertie des objets extrudes (=&gt; calcul du frame attache a chaque bulk)</span>
+      <span class="n">body3D</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+      <span class="c1"># on tourne le corps</span>
+      <span class="n">body3D</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="mf">0.5</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">depth</span><span class="p">])</span>
+      <span class="c1"># on translate le corps</span>
+      <span class="n">body3D</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dz</span><span class="o">=-</span><span class="n">depth</span><span class="p">)</span>
+
+   <span class="c1"># on renvoie le corps genere</span>
+   <span class="k">return</span> <span class="n">body3D</span></div>
+
+<span class="c1"># fonction qui extrude un ensemble de corps rigides 2D et place</span>
+<span class="c1"># les corps extrudes dans le plan xOz</span>
+<div class="viewcode-block" id="extrudeRigids"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.extrudeRigids">[docs]</a><span class="k">def</span> <span class="nf">extrudeRigids</span><span class="p">(</span><span class="n">bodies2D</span><span class="p">,</span> <span class="n">model3D</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.e0</span><span class="p">,</span> <span class="n">extrudedDisk</span><span class="o">=</span><span class="s1">&#39;Sphere&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
+   <span class="sd">&#39;&#39;&#39;extrudeRigids(bodies2D, model3D, depth, factor=1.e0, number=None):</span>
+
+<span class="sd">   this function extrudes each avatar in a given avatar container and returns</span>
+<span class="sd">   the generated list of 3D avatars in a new avatar container.</span>
+
+<span class="sd">   Warning: extrusion follow axis Oz, except for the JONCx, which are placed </span>
+<span class="sd">   in xOz plane</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - bodies2D: a 2D rigid avatar container</span>
+<span class="sd">   - model3D: 3D rigid model for the extruded body</span>
+<span class="sd">   - depth: depth of the extrusion</span>
+
+<span class="sd">   optional paramters:</span>
+
+<span class="sd">   - factor: dilatation factor of homothety</span>
+<span class="sd">   - extrudedDisk: a string used to define how to extrude a disk:</span>
+
+<span class="sd">     * &#39;Sphere&#39;: for a sphere (SPHER)</span>
+<span class="sd">     * &#39;Cylinder&#39;: for a solid cylinder (CYLND)</span>
+
+<span class="sd">   - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+   <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bodies2D</span><span class="p">,</span> <span class="n">avatars</span><span class="p">):</span>
+     <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;In extrudeRigids: first argument of this function must be an avatar container!&quot;</span><span class="p">)</span>
+  
+   <span class="c1"># on cree un conteneur d&#39;avatars pour stocker les corps extrudes</span>
+   <span class="n">bodies3D</span><span class="o">=</span><span class="n">avatars</span><span class="p">()</span>
+  
+   <span class="c1"># pour chaque corps dans le container</span>
+   <span class="k">for</span> <span class="n">body2D</span> <span class="ow">in</span> <span class="n">bodies2D</span><span class="p">:</span>
+     <span class="c1"># on extrude le corps courant, pour obtenir un corps 3D</span>
+     <span class="n">body3D</span> <span class="o">=</span> <span class="n">extrudeRigid</span><span class="p">(</span><span class="n">body2D</span><span class="o">=</span><span class="n">body2D</span><span class="p">,</span> <span class="n">model3D</span><span class="o">=</span><span class="n">model3D</span><span class="p">,</span>
+     <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">factor</span><span class="p">,</span> <span class="n">extrudedDisk</span><span class="o">=</span><span class="n">extrudedDisk</span><span class="p">)</span>
+     <span class="c1"># on l&#39;ajoute a la liste des corps</span>
+     <span class="n">bodies3D</span> <span class="o">+=</span> <span class="n">body3D</span>
+  
+   <span class="c1"># on renvoie la liste de corps generee</span>
+   <span class="k">return</span> <span class="n">bodies3D</span></div>
+
+<span class="c1"># extrude plan meshes along z-axis</span>
+<span class="k">def</span> <span class="nf">extrudeMesh</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">lz</span><span class="p">,</span> <span class="n">nb_lz</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;vol_mesh = extrudeMesh(m, lz, nb_lz=1):</span>
+
+<span class="sd">   This function returns the extrusion of an input linear mesh along z-axis.</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - m: a 2D mesh</span>
+<span class="sd">   - lz: height of the extruded mesh</span>
+<span class="sd">   - nb_lz: number of layers to extrude</span>
+
+<span class="sd">   All elements are extruded:</span>
+<span class="sd">     Point-&gt;S2</span>
+<span class="sd">     S2-&gt;Q4</span>
+<span class="sd">     T3-&gt;PR6</span>
+<span class="sd">     Q4-&gt;H8</span>
+
+<span class="sd">   All elements of the original surface are kept on the surface at bottom and top.</span>
+<span class="sd">   All physical entities name are modified a &#39;E&#39; is appended if the element is the</span>
+<span class="sd">   result of the extrusion, a &#39;B&#39; is appended if the element is the original bottom</span>
+<span class="sd">   element and a &#39;T&#39; is appended if the element is the top element of the original</span>
+<span class="sd">   surface.</span>
+
+<span class="sd">   &#39;&#39;&#39;</span>
+
+   <span class="c1"># check object tyep</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">mesh</span><span class="p">):</span>
+      <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;In extrudeMesh: first argument of this function must be an mesh object!&quot;</span><span class="p">)</span>
+   <span class="c1"># should also check dimension ?</span>
+
+   <span class="n">vol_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+   
+   <span class="c1"># possible extruded elements</span>
+   <span class="n">connec_type</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NOTHING&#39;</span><span class="p">,</span><span class="s1">&#39;S2xxx&#39;</span><span class="p">,</span><span class="s1">&#39;Q4xxx&#39;</span><span class="p">,</span><span class="s1">&#39;PRI6x&#39;</span><span class="p">,</span><span class="s1">&#39;H8xxx&#39;</span><span class="p">]</span>
+
+   <span class="c1">#adding nodes of each new layers</span>
+   <span class="n">nb_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_lz</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+     <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+       <span class="n">new_coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">n</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">l</span><span class="o">*</span><span class="n">lz</span><span class="o">/</span><span class="n">nb_lz</span><span class="p">])</span>
+       <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">new_coor</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="n">l</span><span class="o">*</span><span class="n">nb_nodes</span><span class="o">+</span><span class="n">n</span><span class="o">.</span><span class="n">number</span><span class="p">))</span>
+
+   <span class="c1">#adding elements</span>
+   <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bulks</span><span class="p">):</span>
+     <span class="n">elem_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)</span>
+     <span class="k">if</span> <span class="n">elem_size</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">elem_size</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="p">:</span>
+       <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;in extrudeMesh: cannot extrude element os size &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">elemen_size</span><span class="p">))</span>
+       <span class="k">continue</span>
+
+     <span class="c1">#check if connect is to be permuted...</span>
+     <span class="n">perm</span> <span class="o">=</span> <span class="kc">False</span>
+     <span class="k">if</span> <span class="n">elem_size</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">elem_size</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+       <span class="n">normal</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">vol_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="n">vol_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">,</span>
+                            <span class="n">vol_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">elem_size</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="n">vol_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span>
+       <span class="k">if</span> <span class="n">normal</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">lz</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">perm</span> <span class="o">=</span> <span class="kc">True</span>
+
+     <span class="n">new_c</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)</span>
+     <span class="k">if</span> <span class="n">perm</span><span class="p">:</span>
+       <span class="n">new_c</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+     <span class="c1">#perm top layer when extruding S2-&gt;Q4</span>
+     <span class="k">if</span> <span class="n">elem_size</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+       <span class="n">new_c</span> <span class="o">=</span> <span class="n">new_c</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">nb_nodes</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_c</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+     <span class="k">else</span><span class="p">:</span>
+       <span class="n">new_c</span> <span class="o">=</span> <span class="n">new_c</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">nb_nodes</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_c</span><span class="p">]</span>
+
+     <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">connec_type</span><span class="p">[</span><span class="n">elem_size</span><span class="p">],</span> <span class="n">new_c</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">+</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">))</span>
+     <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">nb_lz</span><span class="p">):</span>
+       <span class="n">nnew_c</span> <span class="o">=</span> <span class="p">[</span> <span class="n">c</span><span class="o">+</span><span class="n">l</span><span class="o">*</span><span class="n">nb_nodes</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">new_c</span> <span class="p">]</span>
+       <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">connec_type</span><span class="p">[</span><span class="n">elem_size</span><span class="p">],</span> <span class="n">nnew_c</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">+</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">))</span>
+
+     <span class="n">elem_dim</span> <span class="o">=</span> <span class="n">geoElement2dimension</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">etype</span><span class="p">]</span>
+     <span class="c1">#needs to add original surfacic elements on top and bottom</span>
+     <span class="k">if</span> <span class="n">perm</span><span class="p">:</span>
+       <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">+</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">))</span>
+       <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">nb_lz</span><span class="o">*</span><span class="n">nb_nodes</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">e</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">+</span><span class="s1">&#39;T&#39;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">))</span>
+     <span class="k">else</span><span class="p">:</span>
+       <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">e</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">+</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">))</span>
+       <span class="n">vol_mesh</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">element</span><span class="p">(</span><span class="n">elem_dim</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">nb_lz</span><span class="o">*</span><span class="n">nb_nodes</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">connectivity</span><span class="p">],</span> <span class="n">e</span><span class="o">.</span><span class="n">physicalEntity</span><span class="o">+</span><span class="s1">&#39;T&#39;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">))</span>
+
+   <span class="k">return</span> <span class="n">vol_mesh</span>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.extrusion</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

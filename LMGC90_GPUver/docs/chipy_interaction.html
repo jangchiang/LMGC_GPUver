@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Interactions options &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Kernel options" href="chipy_kernel.html" />
+    <link rel="prev" title="Contactors options" href="chipy_contactor.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_kernel.html" title="Kernel options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_contactor.html" title="Contactors options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interactions options</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-pylmgc90.chipy"></span><section id="interactions-options">
+<h1>Interactions options<a class="headerlink" href="#interactions-options" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><ul>
+<li><p>Common</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.SelectProxTactors" title="pylmgc90.chipy.macro.SelectProxTactors"><code class="xref py py-func docutils literal notranslate"><span class="pre">SelectProxTactors()</span></code></a> can take <cite>freq_detect</cite> argument
+to specify the frequency at which the neighbourhood detection must be made</p></li>
+<li><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.overall_SelectProxTactors" title="pylmgc90.chipy.lmgc90.overall_SelectProxTactors"><code class="xref py py-func docutils literal notranslate"><span class="pre">overall_SelectProxTactors()</span></code></a> can take <cite>freq_detect</cite> argument
+to specify the frequency at which the neighbourhood detection must be made</p></li>
+<li><p><a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.StockRloc" title="pylmgc90.chipy.macro.StockRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">StockRloc()</span></code></a></p></li>
+<li><p><a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.RecupRloc" title="pylmgc90.chipy.macro.RecupRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">RecupRloc()</span></code></a></p></li>
+</ul>
+</li>
+<li><p>2D</p></li>
+<li><p>3D</p>
+<ul>
+<li><p>PRPR</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_SetTolRecupRloc" title="pylmgc90.chipy.lmgc90.PRPRx_SetTolRecupRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_SetTolRecupRloc()</span></code></a> (tol)</p>
+<p><strong>Detection</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_SelectProxTactors" title="pylmgc90.chipy.lmgc90.PRPRx_SelectProxTactors"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_SelectProxTactors()</span></code></a> (reset=0)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_CleanMemory" title="pylmgc90.chipy.lmgc90.PRPRx_CleanMemory"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_CleanMemory()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_ShrinkPolyrFaces" title="pylmgc90.chipy.lmgc90.PRPRx_ShrinkPolyrFaces"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_ShrinkPolyrFaces()</span></code></a> (shrink)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_LowSizeArrayPolyr" title="pylmgc90.chipy.lmgc90.PRPRx_LowSizeArrayPolyr"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_LowSizeArrayPolyr()</span></code></a> (sfactor)</p>
+<p><strong>Cundall Common plane</strong></p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseCpCundallDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseCpCundallDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseCpCundallDetection()</span></code></a> (nb_iter)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_SetCundallNeighbor" title="pylmgc90.chipy.lmgc90.PRPRx_SetCundallNeighbor"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_SetCundallNeighbor()</span></code></a> (neighbor)</p>
+</div></blockquote>
+<p><strong>Face to face common plane</strong></p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseCpF2fExplicitDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseCpF2fExplicitDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseCpF2fExplicitDetection()</span></code></a> (tol)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseCpF2fDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseCpF2fDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseCpF2fDetection()</span></code></a> (tol,iter)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_SetF2fMinimalSurfaceSize" title="pylmgc90.chipy.lmgc90.PRPRx_SetF2fMinimalSurfaceSize"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_SetF2fMinimalSurfaceSize()</span></code></a> (tol)</p>
+</div></blockquote>
+<p><strong>Non convex detection</strong></p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseNcDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseNcDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseNcDetection()</span></code></a> (gdist)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseNcF2fDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseNcF2fDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseNcF2fDetection()</span></code></a> (gdist,tol)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseNcF2fExplicitDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseNcF2fExplicitDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseNcF2fExplicitDetection()</span></code></a> (gdist,tol)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_WithNodalContact" title="pylmgc90.chipy.lmgc90.PRPRx_WithNodalContact"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_WithNodalContact()</span></code></a></p>
+</div></blockquote>
+<p><strong>External detection</strong></p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_UseExternalDetection" title="pylmgc90.chipy.lmgc90.PRPRx_UseExternalDetection"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_UseExternalDetection()</span></code></a></p>
+</div></blockquote>
+<p><strong>Accessors</strong></p>
+<p>nb_PRPRx = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.inter_handler_3D_getNb" title="pylmgc90.chipy.lmgc90.inter_handler_3D_getNb"><code class="xref py py-func docutils literal notranslate"><span class="pre">inter_handler_3D_getNb()</span></code></a> ( PRPRx_ID )</p>
+<p>vector = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_GetInteractionVector" title="pylmgc90.chipy.lmgc90.PRPRx_GetInteractionVector"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_GetInteractionVector()</span></code></a> (datatype, icdan)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_SetInteractionInternal" title="pylmgc90.chipy.lmgc90.PRPRx_SetInteractionInternal"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_SetInteractionInternal()</span></code></a> (i, icdan, value)</p>
+<p>value = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_GetInteractionInternal" title="pylmgc90.chipy.lmgc90.PRPRx_GetInteractionInternal"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_GetInteractionInternal()</span></code></a> (i, icdan)</p>
+<p>comment= <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_GetInteractionInternalComment" title="pylmgc90.chipy.lmgc90.PRPRx_GetInteractionInternalComment"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_GetInteractionInternalComment()</span></code></a> (icdan)</p>
+<p>array = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.inter_handler_3D_getAll" title="pylmgc90.chipy.lmgc90.inter_handler_3D_getAll"><code class="xref py py-func docutils literal notranslate"><span class="pre">inter_handler_3D_getAll()</span></code></a> ( PRPRx_ID )</p>
+<p><strong>IO</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_ReadIniVlocRloc" title="pylmgc90.chipy.lmgc90.PRPRx_ReadIniVlocRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_ReadIniVlocRloc()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_WriteLastVlocRloc" title="pylmgc90.chipy.lmgc90.PRPRx_WriteLastVlocRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_WriteLastVlocRloc()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_WriteOutVlocRloc" title="pylmgc90.chipy.lmgc90.PRPRx_WriteOutVlocRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_WriteOutVlocRloc()</span></code></a></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_BinaryReadIniVlocRloc()</span></code></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_BinaryWriteLastVlocRloc()</span></code></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_BinaryWriteOutVlocRloc()</span></code></p>
+<p><strong>Log</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_DisplayProxTactors" title="pylmgc90.chipy.lmgc90.PRPRx_DisplayProxTactors"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_DisplayProxTactors()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_DisplayOutVlocRloc" title="pylmgc90.chipy.lmgc90.PRPRx_DisplayOutVlocRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_DisplayOutVlocRloc()</span></code></a></p>
+<p><strong>Debugging</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_VerboseF2F" title="pylmgc90.chipy.lmgc90.PRPRx_VerboseF2F"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_VerboseF2F()</span></code></a> (cd,an)</p>
+<p><strong>Display</strong></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_VisavisVTKDrawAll()</span></code></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_CpVTKDrawAll()</span></code> (rd)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.PRPRx_SetReactionTrackingLength" title="pylmgc90.chipy.lmgc90.PRPRx_SetReactionTrackingLength"><code class="xref py py-func docutils literal notranslate"><span class="pre">PRPRx_SetReactionTrackingLength()</span></code></a> (length)</p>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_contactor.html"
+                        title="previous chapter">Contactors options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chipy_kernel.html"
+                        title="next chapter">Kernel options</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chipy_interaction.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_kernel.html" title="Kernel options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_contactor.html" title="Contactors options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interactions options</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

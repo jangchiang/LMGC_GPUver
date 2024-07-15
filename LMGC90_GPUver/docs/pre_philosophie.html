@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Philosophy &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Material definition" href="pre_material.html" />
+    <link rel="prev" title="LMGC90 pre-processor documentation" href="pre_index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_material.html" title="Material definition"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_index.html" title="LMGC90 pre-processor documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Philosophy</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="philosophy">
+<h1>Philosophy<a class="headerlink" href="#philosophy" title="Permalink to this headline">¶</a></h1>
+<p>The point of the preprocessor is the generation of a simulation
+case. It allows to define an avatar of a body (a numerical model) in a self
+content way so that LMGC90’s software will have all needed data to
+simulate its behaviour. Furthermore, within the
+preprocessor it is possible to copy, translate or rotate any avatar or container of avatars.</p>
+<section id="model-and-material-definition">
+<span id="model-and-material-example"></span><h2>Model and Material definition<a class="headerlink" href="#model-and-material-definition" title="Permalink to this headline">¶</a></h2>
+<p>Models are necessary to define which physics is considered. Material
+contains physical parameters necessary to simulate a model.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mod</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rigid&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Rxx2D&#39;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TDURx&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1000.</span><span class="p">)</span>
+<span class="n">mut</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TMOUx&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">100.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p id="avatar-definition">For a model, the input parameters are:</p>
+<ul class="simple">
+<li><p>‘name’: a 5 characters string of your choice</p></li>
+<li><p>‘physics’:  either ‘MECAx’, ‘THERx’, ‘POROx’ or ‘MULTI’.</p></li>
+<li><p>‘element’:  for rigids ‘Rxx2D’ or ‘Rxx3D’, there is number of other keyword for meshes</p></li>
+<li><p>‘dimension’:  2 or 3 (as an integer)</p></li>
+</ul>
+<p>For a material, the input parameters are:</p>
+<ul class="simple">
+<li><p>‘name’: a 5 characters string of your choice</p></li>
+<li><p>‘materialType’: ‘RIGID’ for rigids, otherwise a keyword specifying the behaviour law of the material</p></li>
+<li><p>after that there are a bunch of parameters which depend on the ‘materialType’ value.</p></li>
+</ul>
+</section>
+<section id="id1">
+<h2>Avatar definition<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>As previously told an <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar" title="pylmgc90.pre.avatar"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar</span></code></a> is a numerical representation
+of a physical object. There are a lot of ways to create avatars, in this
+basic presentation, two generators will be used:</p>
+<ul class="simple">
+<li><p>one to create a disk: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidDisk" title="pylmgc90.pre.rigidDisk"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidDisk()</span></code></a></p></li>
+<li><p>one to create a foundation: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidJonc" title="pylmgc90.pre.rigidJonc"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidJonc()</span></code></a></p></li>
+</ul>
+<p>It is to be noted that to generate a rigid avatar, fitting model and
+material objects must be provided:</p>
+<p><strong>Example:</strong></p>
+<a class="reference internal image-reference" href="_images/disk.png"><img alt="disk and wall" class="align-right" src="_images/disk.png" style="height: 150px;" /></a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">radius</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">disk</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">rigidDisk</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.1</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span> <span class="n">mat</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+
+<span class="n">floor</span><span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">rigidJonc</span><span class="p">(</span><span class="n">axe1</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">axe2</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="o">-</span><span class="mf">0.05</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To impose initial values to degrees of freeedom of an avatar use: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.imposeInitValue" title="pylmgc90.pre.avatar.imposeInitValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.imposeInitValue</span></code></a>.
+To impose driven degrees of freedom of an avatar use: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.imposeDrivenDof" title="pylmgc90.pre.avatar.imposeDrivenDof"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.imposeDrivenDof</span></code></a>.</p>
+<p>Floor boundary condition:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">floor</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The functions used to generate the two rigid avatars (disk and floor)
+are based on set of lower functions allowing more fine-tune generation.
+The intested reader can read the <a class="reference internal" href="#avatar-generation">Avatar generation</a> section.</p>
+</section>
+<section id="containers">
+<h2>Containers<a class="headerlink" href="#containers" title="Permalink to this headline">¶</a></h2>
+<p>Since several model, material, avatar, etc need to be defined some storage mechanism are necessary.
+Instead of using Python list of objects pylmgc90.pre built-in containers
+are defined. Available containers are: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.models" title="pylmgc90.pre.models"><code class="xref py py-class docutils literal notranslate"><span class="pre">models</span></code></a>, <a class="reference internal" href="pre_classes.html#pylmgc90.pre.materials" title="pylmgc90.pre.materials"><code class="xref py py-class docutils literal notranslate"><span class="pre">materials</span></code></a>, <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatars" title="pylmgc90.pre.avatars"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatars</span></code></a>.
+Some containers are also hidden in an avatar: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.nodes" title="pylmgc90.pre.nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">nodes</span></code></a>, <a class="reference internal" href="pre_classes.html#pylmgc90.pre.bulks" title="pylmgc90.pre.bulks"><code class="xref py py-class docutils literal notranslate"><span class="pre">bulks</span></code></a> and <a class="reference internal" href="pre_classes.html#pylmgc90.pre.contactors" title="pylmgc90.pre.contactors"><code class="xref py py-class docutils literal notranslate"><span class="pre">contactors</span></code></a>.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mods</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">models</span><span class="p">()</span>
+<span class="n">mods</span><span class="o">.</span><span class="n">addModel</span><span class="p">(</span><span class="n">mod</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="n">mats</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">materials</span><span class="p">()</span>
+<span class="n">mats</span><span class="o">+=</span><span class="n">mat</span>
+<span class="n">mats</span><span class="o">.</span><span class="n">addMaterial</span><span class="p">(</span><span class="n">mut</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="n">bodies</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatars</span><span class="p">()</span>
+<span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">disk</span><span class="p">)</span>
+<span class="n">bodies</span><span class="o">+=</span><span class="n">floor</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-operations">
+<h2>Basic operations<a class="headerlink" href="#basic-operations" title="Permalink to this headline">¶</a></h2>
+<p>The methods <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.translate" title="pylmgc90.pre.avatar.translate"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.translate</span></code></a> and <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.rotate" title="pylmgc90.pre.avatar.rotate"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.rotate</span></code></a> allow to translate and
+rotate respectively an avatar. To duplicate an avatar, be sure to use deep copy and not shallow copy.</p>
+<p>The translation and rotation can be applied to a whole container of <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatars" title="pylmgc90.pre.avatars"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatars</span></code></a>.</p>
+<p><strong>Example:</strong></p>
+<a class="reference internal image-reference" href="_images/column.png"><img alt="column of disks and wall" class="align-right" src="_images/column.png" style="height: 150px;" /></a>
+<p>Column creation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="n">nb_disks</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">column</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatars</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_disks</span><span class="p">):</span>
+  <span class="n">new_disk</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">disk</span><span class="p">)</span>
+  <span class="n">new_disk</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dy</span><span class="o">=</span><span class="n">i</span><span class="o">*</span><span class="mf">2.</span><span class="o">*</span><span class="n">radius</span><span class="p">)</span>
+  <span class="n">column</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">new_disk</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/heap.png"><img alt="columns of disks and wall" class="align-right" src="_images/heap.png" style="height: 150px;" /></a>
+<p>Columns creation and adding to avatar container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bodies</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatars</span><span class="p">()</span>
+<span class="n">nb_columns</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_columns</span><span class="p">):</span>
+  <span class="n">new_column</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+  <span class="n">new_column</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">dx</span><span class="o">=</span><span class="n">i</span><span class="o">*</span><span class="mf">2.</span><span class="o">*</span><span class="n">radius</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">new_column</span><span class="p">:</span>
+    <span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/turned_heap.png"><img alt="turned columns of disks and wall" class="align-right" src="_images/turned_heap.png" style="height: 150px;" /></a>
+<p>Adding floor an rotating it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">floor</span><span class="p">)</span>
+<span class="n">bodies</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;axis&#39;</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">0.05</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">6.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference download internal" download="" href="_downloads/45afbeb0a9155c011dc7118c837e3fae/philosophie.py"><code class="xref download docutils literal notranslate"><span class="pre">this</span> <span class="pre">file</span></code></a> for the complete generation script.
+The example shows how to generate a simple 2D rigid case. This small set of functions allows a lot
+of things already. But it becomes boring to always have to redefine some common behaviours when generating
+a lot of samples. That is why some common operations are already implemented using those basic features.</p>
+</section>
+<section id="avatar-generation">
+<h2>Avatar generation<a class="headerlink" href="#avatar-generation" title="Permalink to this headline">¶</a></h2>
+<p>An <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar" title="pylmgc90.pre.avatar"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar</span></code></a> is first defined by its geometrical discretization:</p>
+<ul class="simple">
+<li><p>a set of nodes: center of inertia for a rigid body, nodes of the mesh for a meshed body (see <a class="reference internal" href="pre_classes.html#pylmgc90.pre.node" title="pylmgc90.pre.node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node</span></code></a>),</p></li>
+<li><p>a list of geometrical elements connected to nodes.  A rigid model is defined
+by only one element attached to its only node (center of inertia).</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">disk</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">no</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.1</span><span class="p">]),</span><span class="n">number</span><span class="o">=</span><span class="mi">1</span> <span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">no</span> <span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Once the nodes and elements are defined for an avatar, <strong>groups</strong> of element must be defined. There is always at least
+one group called ‘all’ which contained all the elements. This notion of group is inherited from the mesh manipulation
+and appears for rigid avatars for consistency’s sake. Thus the <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.defineGroups" title="pylmgc90.pre.avatar.defineGroups"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.defineGroups</span></code></a> method should always
+be called.</p>
+<p>Modeling properties are then defined:</p>
+<ul class="simple">
+<li><p>list of bulk elements: element with a given material and a model (see <a class="reference internal" href="pre_classes.html#pylmgc90.pre.bulk" title="pylmgc90.pre.bulk"><code class="xref py py-class docutils literal notranslate"><span class="pre">bulk</span></code></a>),</p></li>
+<li><p>list of contactors: a basic shape attached to some geometrical
+element such as the center of gravity for a rigid object or a patch
+of linear/surfacic elements for a deformable one (see
+<a class="reference internal" href="pre_classes.html#pylmgc90.pre.contactor" title="pylmgc90.pre.contactor"><code class="xref py py-class docutils literal notranslate"><span class="pre">contactor</span></code></a>),</p></li>
+<li><p>initial or driven values of degrees of freedom may be defined.</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<a class="reference internal image-reference" href="_images/disk.png"><img alt="disk and wall" class="align-right" src="_images/disk.png" style="height: 150px;" /></a>
+<p>Disk creation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="n">radius</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">disk</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.1</span><span class="p">]),</span><span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">mut</span><span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">radius</span><span class="p">)</span>
+<span class="n">disk</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Foundation creation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">floor</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="o">-</span><span class="mf">0.05</span><span class="p">]),</span><span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">)</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">)</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;JONCx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="n">axe1</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">axe2</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="n">floor</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Floor boundary condition:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">floor</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span><span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that for rigids (as other models), the
+<a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.defineGroups" title="pylmgc90.pre.avatar.defineGroups"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.defineGroups</span></code></a> method must be called in order to be
+able to add model, material, contactors, etc.</p>
+<p>When a rigid body defined without giving precision on volume or
+inertia, a call to <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.computeRigidProperties" title="pylmgc90.pre.avatar.computeRigidProperties"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.computeRigidProperties</span></code></a> is also
+necessary once the model and material are defined.</p>
+<p>Some basic features, like imposing initial or driven values of degrees of freedom, can be applied to a set of
+nodes thanks to their group name. To impose initial values to degrees of freeedom of an avatar use: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.imposeInitValue" title="pylmgc90.pre.avatar.imposeInitValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.imposeInitValue</span></code></a>.
+To impose driven degrees of freedom of an avatar use: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.imposeDrivenDof" title="pylmgc90.pre.avatar.imposeDrivenDof"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar.imposeDrivenDof</span></code></a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Philosophy</a><ul>
+<li><a class="reference internal" href="#model-and-material-definition">Model and Material definition</a></li>
+<li><a class="reference internal" href="#id1">Avatar definition</a></li>
+<li><a class="reference internal" href="#containers">Containers</a></li>
+<li><a class="reference internal" href="#basic-operations">Basic operations</a></li>
+<li><a class="reference internal" href="#avatar-generation">Avatar generation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_index.html"
+                        title="previous chapter">LMGC90 pre-processor documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_material.html"
+                        title="next chapter">Material definition</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_philosophie.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_material.html" title="Material definition"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_index.html" title="LMGC90 pre-processor documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Philosophy</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

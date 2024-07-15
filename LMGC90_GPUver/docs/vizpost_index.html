@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Displaying and postprocessing results of LMGC90 &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input and Output files in LMGC90" href="restart_index.html" />
+    <link rel="prev" title="Kernel options" href="chipy_kernel.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="restart_index.html" title="Input and Output files in LMGC90"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_kernel.html" title="Kernel options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Displaying and postprocessing results of LMGC90</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="displaying-and-postprocessing-results-of-lmgc90">
+<h1>Displaying and postprocessing results of LMGC90<a class="headerlink" href="#displaying-and-postprocessing-results-of-lmgc90" title="Permalink to this headline">¶</a></h1>
+<section id="displaying">
+<h2>Displaying<a class="headerlink" href="#displaying" title="Permalink to this headline">¶</a></h2>
+<p>LMGC90 offers <em>functions</em> to generates <strong>vtk</strong> files. Such files can be displayed by paraview or visit.</p>
+<p>Generating <strong>vtk</strong> files is driven by some functions of the
+<strong>pylmgc90.chipy</strong> module</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># open some vtk files (pvd) and initialize some internal variables</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">OpenDisplayFiles</span><span class="p">()</span>
+
+<span class="c1"># Time loop</span>
+
+  <span class="c1"># writes the vtk files</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">()</span>
+
+<span class="c1"># close files</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">CloseDisplayFiles</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.OpenDisplayFiles" title="pylmgc90.chipy.macro.OpenDisplayFiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">OpenDisplayFiles()</span></code></a> for function optional arguments.
+In case of restart in an existing folder the value of
+argument <em>restart</em> will give ne number of the first file to write.</p>
+<p>See <a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.WriteDisplayFiles" title="pylmgc90.chipy.macro.WriteDisplayFiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">WriteDisplayFiles()</span></code></a> for function optional arguments.</p>
+<p>Files are written in <strong>DISPLAY</strong> folder.  You will obtain sequence of vtu
+(unstructured mesh) or vtp (polydata) files and pvd (xml) files which
+relates files to physical time.</p>
+<p>The following files are created :</p>
+<ul class="simple">
+<li><p><strong>mecafe_xx.vtu</strong>, <strong>mecafe.pvd</strong> : contains values attached to <em>MAILx</em> with <em>MECAx</em> model</p></li>
+<li><p><strong>therfe_xx.vtu</strong>, <strong>therfe.pvd</strong>: contains values attached to <em>MAILx</em> with <em>THERx</em> model</p></li>
+<li><p><strong>porofe_xx.vtu</strong>,  <strong>porofe.pvd</strong> :  contains values attached to <em>MAILx</em> with <em>POROx</em> model</p></li>
+<li><p><strong>rigids_xx.vtu</strong>,  <strong>rigids.pvd</strong> : contains values attached to <em>RBDY2</em> or <em>RBDY3</em> models</p></li>
+<li><p><strong>tacts_xx.vtp</strong>,  <strong>tacts.pvd</strong>: contains value attached to contactors</p></li>
+<li><p><strong>ptc_xx.vtu</strong> : contains value attached to contacts</p></li>
+</ul>
+<p>It is possible to add some fields to the files. For example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create an array to store a nodal field for each mesh</span>
+<span class="n">status</span><span class="o">=</span><span class="p">[]</span>
+<span class="c1"># here the nodal field is generated by a built-in function</span>
+<span class="n">status</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mecaMAILx_GetDofStatus</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="c1"># time loop</span>
+
+  <span class="c1"># ...</span>
+
+  <span class="c1"># add a nodel field to mecafe files</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">freq_display</span><span class="p">,</span><span class="n">DrvDof</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;mecaFE&#39;</span><span class="p">,</span><span class="s1">&#39;node&#39;</span><span class="p">,</span><span class="n">status</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="postprocessing">
+<h2>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
+<p>LMGC90 offers some builtin <em>functions</em> to analyze the results.</p>
+<p>Generating these files is driven by some functions of the
+<strong>pylmgc90.chipy</strong> module</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># open some postpro files and initialize some internal variables</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">OpenPostproFiles</span><span class="p">()</span>
+
+<span class="c1"># Time loop</span>
+
+  <span class="c1"># writes the vtk files</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WritePostproFiles</span><span class="p">()</span>
+
+<span class="c1"># close files</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ClosePostproFiles</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <em>OpenPostproFiles()</em> function has an optional argument:
+<em>restart=0</em>. In case of restart in an existing folder the value of
+argument <em>restart</em> will give ne number of the first file to write.</p>
+<p>Files are created in <strong>POSTPRO</strong> folder.
+The postpro commands are declared during the pre-processing phase see
+<a class="reference internal" href="pre_post.html#pre-post-label"><span class="std std-ref">Managing POSTPRO</span></a> .
+The content of the files is described in <em>manuals/LMGC90_Postpro.pdf</em>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Displaying and postprocessing results of LMGC90</a><ul>
+<li><a class="reference internal" href="#displaying">Displaying</a></li>
+<li><a class="reference internal" href="#postprocessing">Postprocessing</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_kernel.html"
+                        title="previous chapter">Kernel options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="restart_index.html"
+                        title="next chapter">Input and Output files in LMGC90</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/vizpost_index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="restart_index.html" title="Input and Output files in LMGC90"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_kernel.html" title="Kernel options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Displaying and postprocessing results of LMGC90</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

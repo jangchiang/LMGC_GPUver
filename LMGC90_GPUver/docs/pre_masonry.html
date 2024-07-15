@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Masonry &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Mesh" href="pre_mesh.html" />
+    <link rel="prev" title="Granular material" href="pre_granular.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_mesh.html" title="Mesh"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_granular.html" title="Granular material"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Masonry</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-pylmgc90"></span><section id="masonry">
+<h1>Masonry<a class="headerlink" href="#masonry" title="Permalink to this headline">¶</a></h1>
+<p>This section details the pre-processing functions dedicated to masonry structures.
+Here are provided two types of function, those generating bricks, and those using
+the bricks to generate a wall. After that is up to the user to put together the
+walls so that they fit.</p>
+<section id="brick-generation">
+<h2>Brick generation<a class="headerlink" href="#brick-generation" title="Permalink to this headline">¶</a></h2>
+<p>Two classes have been designed for brick creation: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.brick2D" title="pylmgc90.pre.brick2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.brick2D</span></code></a>, and <a class="reference internal" href="pre_classes.html#pylmgc90.pre.brick3D" title="pylmgc90.pre.brick3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.brick3D</span></code></a>.
+The only inputs for these class are a name and the sizes of the brick.
+But the brick object is not an avatar yet, it merely defined its geometry.
+To obtain usable avatar(s), one of the three following methods has to be used for 2D bricks:</p>
+<ul class="simple">
+<li><p>to obtain a rigid avatar: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.brick2D.rigidBrick" title="pylmgc90.pre.brick2D.rigidBrick"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.brick2D.rigidBrick</span></code></a></p></li>
+<li><p>to obtain a continuous deformable avatar: <a class="reference internal" href="pre_classes.html#pylmgc90.pre.brick2D.deformableBrick" title="pylmgc90.pre.brick2D.deformableBrick"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.brick2D.deformableBrick</span></code></a></p></li>
+<li><p>to obtain an exploded deformable avatar (each mesh element being one avatar) <a class="reference internal" href="pre_classes.html#pylmgc90.pre.brick2D.explodedDeformableBrick" title="pylmgc90.pre.brick2D.explodedDeformableBrick"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.brick2D.explodedDeformableBrick</span></code></a></p></li>
+</ul>
+<p>Concerning the obtained deformable avatars, each brick has <code class="docutils literal notranslate"><span class="pre">CLxxx</span></code> contactors on the
+lower and right sides and <code class="docutils literal notranslate"><span class="pre">ALpxx</span></code> on the upper and left sides.</p>
+<p>To obtain 3D rigids either the <a class="reference internal" href="pre_classes.html#pylmgc90.pre.brick3D.rigidBrick" title="pylmgc90.pre.brick3D.rigidBrick"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.brick3D.rigidBrick</span></code></a> method is available in 3D
+bricks, or the  <a class="reference internal" href="pre_miscellaneous.html#extrusions"><span class="std std-ref">extrusion functions</span></a> can be used on the avatar(s)
+generated with the 2D bricks.</p>
+<p><strong>Example:</strong></p>
+<p>Creation of 2D brick:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">lx</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">ly</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">brick</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">brick2D</span><span class="p">(</span><span class="s1">&#39;std_brick&#39;</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/row.png"><img alt="a row of 12 2D bricks" class="align-right" src="_images/row.png" style="height: 150px;" /></a>
+<p>Creation of a row of rigid bricks:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nb_bricks</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">bodies</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatars</span><span class="p">()</span>
+<span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;PLEXx&#39;</span><span class="p">,</span><span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span><span class="n">density</span><span class="o">=</span><span class="mf">2000.</span><span class="p">)</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rigid&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Rxx2D&#39;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_bricks</span><span class="p">):</span>
+  <span class="n">bodies</span> <span class="o">+=</span> <span class="n">brick</span><span class="o">.</span><span class="n">rigidBrick</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="o">/</span><span class="mf">2.</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="wall-generation">
+<h2>Wall generation<a class="headerlink" href="#wall-generation" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="pre_classes.html#pylmgc90.pre.paneresse_simple" title="pylmgc90.pre.paneresse_simple"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.paneresse_simple</span></code></a> and <a class="reference internal" href="pre_classes.html#pylmgc90.pre.paneresse_double" title="pylmgc90.pre.paneresse_double"><code class="xref py py-class docutils literal notranslate"><span class="pre">pre.paneresse_double</span></code></a> classes
+allow to automatically generate  simple walls without openings with regular
+rigid bricks. The appealing side of these classes is that all the troubles
+due to the “harpage” is taken care of automatically. The only things left
+is to write the visibility tables.</p>
+<p>Otherwise the governing idea of wall generation is to define several brick
+objects. Make a list of bricks to make a row and a list of rows to make a
+wall. Then the avatars which defined the wall are built through nested loops
+in a similar way than in previous example.</p>
+<p><strong>Example:</strong></p>
+<a class="reference internal image-reference" href="_images/wall.png"><img alt="a &quot;paneresse simple&quot; wall" class="align-right" src="_images/wall.png" style="height: 150px;" /></a>
+<p>Generation of a 3D wall of rigid bricks in “paneresse simple” configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dim</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;PLEXx&#39;</span><span class="p">,</span><span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span><span class="n">density</span><span class="o">=</span><span class="mf">2000.</span><span class="p">)</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rigid&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Rxx3D&#39;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+
+<span class="n">simple_brick</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">brick3D</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;brique simple&#39;</span><span class="p">,</span> <span class="n">lx</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">ly</span><span class="o">=</span><span class="mf">0.11</span><span class="p">,</span> <span class="n">lz</span><span class="o">=</span><span class="mf">0.06</span><span class="p">)</span>
+<span class="n">wall</span>   <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">paneresse_simple</span><span class="p">(</span><span class="n">brick_ref</span><span class="o">=</span><span class="n">simple_brick</span><span class="p">,</span> <span class="n">disposition</span><span class="o">=</span><span class="s2">&quot;paneresse&quot;</span><span class="p">)</span>
+
+<span class="n">wall</span><span class="o">.</span><span class="n">setFirstRowByLength</span><span class="p">(</span><span class="n">first_brick_type</span><span class="o">=</span><span class="s2">&quot;1/2&quot;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mf">2.3</span><span class="p">,</span> <span class="n">joint_thickness</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">wall</span><span class="o">.</span><span class="n">setNumberOfRows</span><span class="p">(</span><span class="mf">10.</span><span class="p">)</span>
+<span class="n">wall</span><span class="o">.</span><span class="n">setJointThicknessBetweenRows</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="n">wall</span><span class="o">.</span><span class="n">computeHeight</span><span class="p">()</span>
+
+<span class="n">bodies</span> <span class="o">=</span> <span class="n">wall</span><span class="o">.</span><span class="n">buildRigidWall</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="s1">&#39;REDxx&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>For the generation of 2D wall or rigid bricks with different bricks and openings,
+see <a class="reference download internal" download="" href="_downloads/2d00855eaa2c3c42e85cfb2b3a3defdf/masonry.py"><code class="xref download docutils literal notranslate"><span class="pre">this</span></code></a> complete example.</p>
+<a class="reference internal image-reference" href="_images/masonry.png"><img alt="a wall with openings" class="align-center" src="_images/masonry.png" style="height: 150px;" /></a>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Masonry</a><ul>
+<li><a class="reference internal" href="#brick-generation">Brick generation</a></li>
+<li><a class="reference internal" href="#wall-generation">Wall generation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_granular.html"
+                        title="previous chapter">Granular material</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_mesh.html"
+                        title="next chapter">Mesh</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_masonry.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_mesh.html" title="Mesh"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_granular.html" title="Granular material"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Masonry</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,383 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Interaction model and parameters definition &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visibility table definition" href="pre_visibility.html" />
+    <link rel="prev" title="Model definition" href="pre_model.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_visibility.html" title="Visibility table definition"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_model.html" title="Model definition"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interaction model and parameters definition</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="interaction-model-and-parameters-definition">
+<h1>Interaction model and parameters definition<a class="headerlink" href="#interaction-model-and-parameters-definition" title="Permalink to this headline">¶</a></h1>
+<p>One needs to define a tact_behav object with <a class="reference internal" href="pre_classes.html#pylmgc90.pre.tact_behav" title="pylmgc90.pre.tact_behav"><code class="xref py py-func docutils literal notranslate"><span class="pre">pre.tact_behav()</span></code></a> which corresponds to an
+interaction model with its parameters.</p>
+<p><strong>Example :</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lcsas</span><span class="o">=</span><span class="n">pre</span><span class="o">.</span><span class="n">tact_behav</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;gapc0&#39;</span><span class="p">,</span> <span class="n">law</span><span class="o">=</span><span class="s1">&#39;MAC_CZM&#39;</span><span class="p">,</span> <span class="n">dyfr</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">stfr</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="mf">4.e+14</span><span class="p">,</span> <span class="n">ct</span><span class="o">=</span><span class="mf">3.e+14</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mf">60.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Various models are available. The contact detection computes some
+quantities as: local frame, initale gap <img class="math" src="_images/math/c0c64921f6c128ed067369c948072ffbff1b8355.png" alt="g_{\star}"/>,
+etc. Unkowns are relative velocity <img class="math" src="_images/math/58c3b6e771d4df82aa2f21484f8af39f56ec52f1.png" alt="\Vln"/>, <img class="math" src="_images/math/a5708f2f3995a158b0e2322feecff21e296b3ec6.png" alt="\Vlt"/> and
+contact reactions (impulse) <img class="math" src="_images/math/a684318854a90f9cd22ccfa461a899f5e3496ae0.png" alt="\Rln"/>, <img class="math" src="_images/math/d3f06b02e8dafac63d9278ac531db715b2a83633.png" alt="\Rlt"/>.</p>
+<p>Meaning of some parameters:</p>
+<ul class="simple">
+<li><p>friction: either constant <em>fric</em> or <em>stfr</em> static and <em>dyfr</em>
+dynamic friction</p></li>
+<li><p>restitution (newton): <em>rstn</em> normal, <em>rstt</em> tangential</p></li>
+<li><p>cohesion: <em>cohn</em> normal, <em>coht</em> tangential (unused with wet model)</p></li>
+<li><p>CZM parameters:</p>
+<ul>
+<li><p><em>cn</em> normal stiffness (pure mode I)</p></li>
+<li><p><em>ct</em> tangential stiffness (pure mode II)</p></li>
+<li><p><em>s1</em> and <em>s2</em> critical stress (pure mode I and pure mode II)</p></li>
+<li><p><em>G1</em> and <em>G2</em> fracture energy (pure mode I and pure mode II)</p></li>
+<li><p><em>dp1</em> and <em>dp2</em> plastic displacement for TH (dp1=s1/cn and dp2=s2/ct means triangles)</p></li>
+<li><p><em>du1</em> and <em>du2</em> rupture displacement (pure mode I and pure mode II) for ABP</p></li>
+<li><p><em>phi</em> ratio between micro and macro fracture energy for ABP</p></li>
+</ul>
+</li>
+</ul>
+<p>Furthermore some interaction have some internal variables (not managed
+by the user) which needs a careful use of <a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.StockRloc" title="pylmgc90.chipy.macro.StockRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">chipy.macro.StockRloc()</span></code></a>,
+<a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.UpdateTactBehav" title="pylmgc90.chipy.macro.UpdateTactBehav"><code class="xref py py-func docutils literal notranslate"><span class="pre">chipy.macro.UpdateTactBehav()</span></code></a>, <a class="reference internal" href="chipy_macro.html#pylmgc90.chipy.macro.RecupRloc" title="pylmgc90.chipy.macro.RecupRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">chipy.macro.RecupRloc()</span></code></a>.</p>
+<p>Here is a list of existing models with the expected parameters.
+Each model is described by a normal and a tangential part.
+Most models are rewritten, through change of variables, as a guenuine Signorini-Coulomb problem.</p>
+<section id="rigid-rigid">
+<h2>RIGID/RIGID :<a class="headerlink" href="#rigid-rigid" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p><strong>IQS_CLB</strong> : fric  (<img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/>).</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/1aaa246a0abf2d207db1d6aa367a404ef534a637.png" alt="\bar{g} =
+\max(0,g_{\star}) + h \Vln"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and  <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/></p>
+</li>
+<li><p><strong>IQS_CLB_g0</strong> : fric  (<img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/>).</p></li>
+</ul>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/05b5796df4dd3a742959f188b0698bb3185c3ddd.png" alt="\bar{g} =
+\max(0,g_{\star}-g_0) + h \Vln"/> and <img class="math" src="_images/math/912364582e2a6ceac3fc2e260b95d0d9af1b4a7e.png" alt="\bRln =
+\Rln"/>.</div>
+<div class="line"><img class="math" src="_images/math/f0e0c2732f70f66671b3ebd3d28404bf65f2babc.png" alt="g_0"/> is the gap computed at the first step and stored as an internal variable.</div>
+</div>
+<div class="line-block">
+<div class="line">Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and  <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/></div>
+</div>
+<div class="line-block">
+<div class="line">Internal variables : g_ref</div>
+</div>
+</div></blockquote>
+<ul>
+<li><p><strong>IQS_DS_CLB</strong> : dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>).</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/1aaa246a0abf2d207db1d6aa367a404ef534a637.png" alt="\bar{g} =
+\max(0,g_{\star}) + h \Vln"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and
+<img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/>.</p>
+<p>The friction coefficient is depending on the contact status (be carefull <img class="math" src="_images/math/b97ee7701911495668c00e14a41fb2d59b1e8a0f.png" alt="\mu_d \leq \mu_s"/>) :</p>
+<blockquote>
+<div><p>If status_begin == stick then <img class="math" src="_images/math/68db241bbf78fb43395c650d4483557105b4e986.png" alt="\mu=\mu_s"/></p>
+<p>else  <img class="math" src="_images/math/8847d6a2007d291b7eb41db3e3c6ac831925b04e.png" alt="\mu=\mu_d"/></p>
+</div></blockquote>
+</li>
+<li><p><strong>IQS_WET_DS_CLB</strong> : cohn (<img class="math" src="_images/math/afd46d5eebe5c61559405c18114dacf55cf4cbc9.png" alt="\Rln^{coh}"/>), coht (not used), Wthk (<img class="math" src="_images/math/660d9edafedaf51681f69e5a8444fa10fa269ec2.png" alt="g^{coh}"/>), dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>).</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/1aaa246a0abf2d207db1d6aa367a404ef534a637.png" alt="\bar{g} =
+\max(0,g_{\star}) + h \Vln"/> and</p>
+<blockquote>
+<div><p>if <img class="math" src="_images/math/dd0bc3d864f7f7d59f776691135939747a5c8092.png" alt="g_{\star} \le g^{coh}"/> then <img class="math" src="_images/math/c72b3e19df0c9c2de4d1954a8aa7ac0e952745ba.png" alt="\bRln = \Rln + \Rln^{coh}"/></p>
+<p>else <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+</div></blockquote>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and
+<img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/>.</p>
+<p>The friction coefficient is depending on the contact status:</p>
+<blockquote>
+<div><p>if status_begin == stick then <img class="math" src="_images/math/68db241bbf78fb43395c650d4483557105b4e986.png" alt="\mu=\mu_s"/></p>
+<p>else  <img class="math" src="_images/math/8847d6a2007d291b7eb41db3e3c6ac831925b04e.png" alt="\mu=\mu_d"/></p>
+</div></blockquote>
+</li>
+<li><p><strong>IQS_MOHR_DS_CLB</strong> : cohn (<img class="math" src="_images/math/dcccbf406d4d6806e9be9d637a21a75de06a6f0b.png" alt="\sigma_n^{coh}"/>), coht (<img class="math" src="_images/math/15c8984c2b840106415b48e0d740bb99175705f4.png" alt="\sigma_t^{coh}"/>), dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>).</p>
+<p><img class="math" src="_images/math/71b79f4465486353c04e7e5af5f7c2036981f4ee.png" alt="\Rln^{coh}=S \sigma_n^{coh}"/>, <img class="math" src="_images/math/3b8192a84aa3fd07e9f62bee4fb2224365b9f270.png" alt="\Rlt^{coh}=S \sigma_t^{coh}"/>, with <img class="math" src="_images/math/f6f0e9a65a6110aa5843bfd1a9ad345a48695c12.png" alt="S"/> the contact surface computed during contact detection.</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/9768937ca2729112740d342cf595813172abe040.png" alt="\bar{g} = \max(0,g_{\star}) + h \Vln"/> and</p>
+<blockquote>
+<div><p>if status_begin == cohesive then <img class="math" src="_images/math/c72b3e19df0c9c2de4d1954a8aa7ac0e952745ba.png" alt="\bRln = \Rln + \Rln^{coh}"/></p>
+<p>else <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+</div></blockquote>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/>.</p>
+<p>The friction coefficient is depending on the contact status:</p>
+<blockquote>
+<div><p>if status_begin == cohesive then <img class="math" src="_images/math/5701d51282a0d539e7c35cfe8961107b10d58587.png" alt="\mu = \sigma_t^{coh}/ \sigma_n^{coh}"/></p>
+<p>else</p>
+<blockquote>
+<div><p>if status_begin == stick then <img class="math" src="_images/math/68db241bbf78fb43395c650d4483557105b4e986.png" alt="\mu=\mu_s"/></p>
+<p>else  <img class="math" src="_images/math/8847d6a2007d291b7eb41db3e3c6ac831925b04e.png" alt="\mu=\mu_d"/></p>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p><strong>IQS_STICK</strong> :</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/1aaa246a0abf2d207db1d6aa367a404ef534a637.png" alt="\bar{g} =
+\max(0,g_{\star}) + h \Vln"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential :</p>
+<blockquote>
+<div><p>if  <img class="math" src="_images/math/2e4034e75b86071a67da6e1a23810325b6170e10.png" alt="\Rln \geq 0"/> then <img class="math" src="_images/math/d3f06b02e8dafac63d9278ac531db715b2a83633.png" alt="\Rlt"/> such that <img class="math" src="_images/math/dae269d5427c9304924df567062dcb70247aa411.png" alt="\Vlt = 0"/></p>
+<p>else  <img class="math" src="_images/math/05e08300d8c13ce0cf544de111ddc6dbdbb61de2.png" alt="\Rlt = 0"/> and <img class="math" src="_images/math/a5708f2f3995a158b0e2322feecff21e296b3ec6.png" alt="\Vlt"/> free</p>
+</div></blockquote>
+</li>
+<li><p><strong>RST_CLB</strong> : rstn (<img class="math" src="_images/math/a56e903451769b1d837587e29ab65a81884d6edb.png" alt="e_n"/>), rstt (<img class="math" src="_images/math/acb0614d44e06034c88ff87f2ba649a325acd1bd.png" alt="e_t"/>), fric (<img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/>).</p>
+<p>if <img class="math" src="_images/math/fb93f88b262f04419bdff78bf7c77fc847b14e8f.png" alt="g_{\star} \leq 0"/> then</p>
+<blockquote>
+<div><p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/eb753c35ad2048d70be813d721f48ac449a47152.png" alt="\bar{g} = \Vln+e_n\Vln{}_{,begin}"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/e4ddc1829efe264ab2448eea1495e411511f61c5.png" alt="\bVlt = \Vlt+e_t\Vlt{}_{,begin}"/> and <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/></p>
+</div></blockquote>
+<p>else</p>
+<blockquote>
+<div><p><img class="math" src="_images/math/a371a10a4c1aaad769ca1d134a534ececda0cae5.png" alt="\Rln = 0"/> and  <img class="math" src="_images/math/05e08300d8c13ce0cf544de111ddc6dbdbb61de2.png" alt="\Rlt = 0"/></p>
+</div></blockquote>
+</li>
+<li><p><strong>IQS_MAL_CZM</strong> : dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>), cn, ct, s1, s2, G1, G2</p></li>
+<li><p><strong>IQS_TH_CZM</strong> : dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>), cn, ct, s1, s2, G1, G2, dp1, dp2</p></li>
+<li><p><strong>IQS_ABP_CZM</strong> : dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>), cn, ct, s1, s2, G1, G2, du1, du2, phi</p></li>
+<li><p><strong>IQS_EXPO_CZM</strong> : dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>), cn, ct, s1, s2, G1, G2, eta</p></li>
+<li><p><strong>IQS_EXPO_CZM_SPRING</strong> : dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>), cn, ct, s1, s2, G1, G2, eta, k1, k2</p></li>
+<li><p><strong>IQS_MAC_CZM</strong>: dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>), cn, ct , b, w.</p>
+<p><img class="math" src="_images/math/71b79f4465486353c04e7e5af5f7c2036981f4ee.png" alt="\Rln^{coh}=S \sigma_n^{coh}"/>, <img class="math" src="_images/math/3b8192a84aa3fd07e9f62bee4fb2224365b9f270.png" alt="\Rlt^{coh}=S \sigma_t^{coh}"/>, with <img class="math" src="_images/math/f6f0e9a65a6110aa5843bfd1a9ad345a48695c12.png" alt="S"/> the contact surface computed during contact detection.</p>
+<p><img class="math" src="_images/math/db28df118f5a07fada0696892f1ebca3ecc1ed8c.png" alt="\sigma_n^{coh} = \beta^2 cn \lbrack\mid u \mid \rbrack \cdot
+n"/> and  <img class="math" src="_images/math/43a636abecf1d858887220bf87c3fad47478a167.png" alt="\sigma_t^{coh} = \beta^2 ct \lbrack\mid u \mid
+\rbrack \cdot (I - n \times n)"/></p>
+<p><img class="math" src="_images/math/e1744f698d8190d836316150f302c52b7c486bca.png" alt="f(\beta)=0"/></p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/1aaa246a0abf2d207db1d6aa367a404ef534a637.png" alt="\bar{g} =
+\max(0,g_{\star}) + h \Vln"/> and <img class="math" src="_images/math/99f6eeea25801697df17b4d00752d7616e7cbac9.png" alt="\bRln = \Rln +\Rln^{coh}"/>.</p>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and
+<img class="math" src="_images/math/8d3b1aea2d880771c7cf93bce9566f2ea74acb89.png" alt="\bRlt = \Rlt + \Rlt^{coh}"/></p>
+<p><img class="math" src="_images/math/592957d08870476c8e334f0473c66f15bf49a82d.png" alt="\mu"/> can depend on the damage parameter</p>
+<p>internal variables : taille_ele,saut_de_ut,saut_de_un,[3D saut_de_us],beta,TPSini</p>
+</li>
+</ul>
+</section>
+<section id="any-deformable">
+<h2>any/DEFORMABLE :<a class="headerlink" href="#any-deformable" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p><strong>GAP_SGR_CLB</strong> : fric</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/d7030507ccb39b71e20ca2c986bdde2f95dd3dfd.png" alt="\bar{g}=g_{\star} + h \Vln"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and  <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/></p>
+</li>
+<li><p><strong>GAP_SGR_CLB_g0</strong> : fric</p></li>
+</ul>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/3539ddf0dc0d1e3ee3b3fcd583314ab8610c77cf.png" alt="\bar{g} = g_{\star}-g_0 + h \Vln"/> and <img class="math" src="_images/math/912364582e2a6ceac3fc2e260b95d0d9af1b4a7e.png" alt="\bRln =
+\Rln"/>.</div>
+<div class="line"><img class="math" src="_images/math/f0e0c2732f70f66671b3ebd3d28404bf65f2babc.png" alt="g_0"/> (g_ref) is the gap computed at the first step and stored as an internal variable.</div>
+</div>
+<div class="line-block">
+<div class="line">Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and  <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/></div>
+</div>
+<div class="line-block">
+<div class="line">Internal variables : g_ref</div>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li><p><strong>preGAP_SGR_CLB</strong>: pgap, fric</p></li>
+</ul>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Internal variables : taille_ele,</div>
+</div>
+</div></blockquote>
+<ul>
+<li><p><strong>GAP_SGR_STICK</strong></p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/7e72c0871e131a958417bc3cd0bea9bba125dd2d.png" alt="\bar{g} = g_{\star} + h \Vln"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential :</p>
+<blockquote>
+<div><p>if  <img class="math" src="_images/math/2e4034e75b86071a67da6e1a23810325b6170e10.png" alt="\Rln \geq 0"/> then <img class="math" src="_images/math/d3f06b02e8dafac63d9278ac531db715b2a83633.png" alt="\Rlt"/> such that <img class="math" src="_images/math/dae269d5427c9304924df567062dcb70247aa411.png" alt="\Vlt = 0"/></p>
+<p>else  <img class="math" src="_images/math/05e08300d8c13ce0cf544de111ddc6dbdbb61de2.png" alt="\Rlt = 0"/> and <img class="math" src="_images/math/a5708f2f3995a158b0e2322feecff21e296b3ec6.png" alt="\Vlt"/> free</p>
+</div></blockquote>
+</li>
+<li><p><strong>GAP_MOHR_DS_CLB</strong> : cohn (<img class="math" src="_images/math/dcccbf406d4d6806e9be9d637a21a75de06a6f0b.png" alt="\sigma_n^{coh}"/>), coht (<img class="math" src="_images/math/15c8984c2b840106415b48e0d740bb99175705f4.png" alt="\sigma_t^{coh}"/>), dyfr (<img class="math" src="_images/math/f893dc51085a7b66f247cb1ef73182c50a53e12b.png" alt="\mu_d"/>), stfr (<img class="math" src="_images/math/feed00b13a13dd192a65483eb1d20915753d4cc2.png" alt="\mu_s"/>).</p>
+<p><img class="math" src="_images/math/71b79f4465486353c04e7e5af5f7c2036981f4ee.png" alt="\Rln^{coh}=S \sigma_n^{coh}"/>, <img class="math" src="_images/math/3b8192a84aa3fd07e9f62bee4fb2224365b9f270.png" alt="\Rlt^{coh}=S \sigma_t^{coh}"/>, with <img class="math" src="_images/math/f6f0e9a65a6110aa5843bfd1a9ad345a48695c12.png" alt="S"/> the contact surface computed during contact detection.</p>
+<p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/7e72c0871e131a958417bc3cd0bea9bba125dd2d.png" alt="\bar{g} = g_{\star} + h \Vln"/> and</p>
+<blockquote>
+<div><p>if status_begin == cohesive then <img class="math" src="_images/math/c72b3e19df0c9c2de4d1954a8aa7ac0e952745ba.png" alt="\bRln = \Rln + \Rln^{coh}"/></p>
+<p>else <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+</div></blockquote>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/>.</p>
+<p>The friction coefficient is depending on the contact status:</p>
+<blockquote>
+<div><p>if status_begin == cohesive then <img class="math" src="_images/math/5701d51282a0d539e7c35cfe8961107b10d58587.png" alt="\mu = \sigma_t^{coh}/ \sigma_n^{coh}"/></p>
+<p>else</p>
+<blockquote>
+<div><p>if status_begin == stick then <img class="math" src="_images/math/68db241bbf78fb43395c650d4483557105b4e986.png" alt="\mu=\mu_s"/></p>
+<p>else  <img class="math" src="_images/math/8847d6a2007d291b7eb41db3e3c6ac831925b04e.png" alt="\mu=\mu_d"/></p>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p><strong>VEL_SGR_CLB</strong> : fric</p>
+<p>if <img class="math" src="_images/math/fb93f88b262f04419bdff78bf7c77fc847b14e8f.png" alt="g_{\star} \leq 0"/> then</p>
+<blockquote>
+<div><p>Normal : <strong>Signorini</strong> formulation with <img class="math" src="_images/math/211837d7976d27cc28c20268e8300ced2687cbc5.png" alt="\bar{g} = \Vln"/> and <img class="math" src="_images/math/552e3c654d9563f82681206dc8203fcee34df7f6.png" alt="\bRln = \Rln"/>.</p>
+<p>Tangential : <strong>Coulomb</strong> formulation with <img class="math" src="_images/math/189f6bb1c8b7e853446167a7e0542dc0a46bd050.png" alt="\bVlt = \Vlt"/> and <img class="math" src="_images/math/220908349c1fb73702958631d1f3fbbe7cee27bd.png" alt="\bRlt = \Rlt"/></p>
+</div></blockquote>
+<p>else</p>
+<blockquote>
+<div><p><img class="math" src="_images/math/a371a10a4c1aaad769ca1d134a534ececda0cae5.png" alt="\Rln = 0"/> and  <img class="math" src="_images/math/05e08300d8c13ce0cf544de111ddc6dbdbb61de2.png" alt="\Rlt = 0"/></p>
+</div></blockquote>
+</li>
+<li><p><strong>MAL_CZM</strong> : dyfr, stfr, cn, ct, s1, s2, G1, G2</p></li>
+<li><p><strong>TH_CZM</strong> : dyfr, stfr, cn, ct, s1, s2, G1 , G2, dp1, dp2</p></li>
+<li><p><strong>ABP_CZM</strong> : dyfr, stfr, cn, ct, s1, s2, G1 , G2, du1, du2, phi</p></li>
+<li><p><strong>EXPO_CZM</strong> : dyfr, stfr, cn, ct, s1, s2, G1 , G2, eta</p></li>
+<li><p><strong>EXPO_CZM_SPRING</strong> : dyfr, stfr, cn, ct, s1, s2, G1 , G2, eta, k1, k2</p></li>
+<li><p><strong>MAC_CZM</strong> : dyfr, stfr, cn, ct, b, w</p></li>
+<li><p><strong>MP_CZM</strong> : dyfr, stfr, cn, ct, p, p0, w</p></li>
+<li><p><strong>MP3_CZM</strong>: dyfr, stfr, cn, ct, p, p0, smax, w</p></li>
+<li><p><strong>MP3_CZM_THER</strong> : dyfr, stfr, cn, ct, p, p0, smax, w, lambdas, lambdac</p></li>
+</ul>
+</section>
+<section id="point-point">
+<h2>POINT/POINT:<a class="headerlink" href="#point-point" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><strong>ELASTIC_WIRE</strong>: stiffness, prestrain</p></li>
+<li><p><strong>BRITTLE_ELASTIC_WIRE</strong> : stiffness, prestrain, Fmax</p></li>
+<li><p><strong>ELASTIC_ROD</strong> : stiffness, prestrain</p></li>
+<li><p><strong>VOIGT_ROD</strong> : stiffness, prestrain, viscosity</p></li>
+<li><p><strong>NARD_ROD</strong> : E, nu, s1, s2</p></li>
+</ul>
+</section>
+<section id="any-any">
+<h2>any/any:<a class="headerlink" href="#any-any" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><strong>COUPLED_DOF</strong> :</p></li>
+<li><p><strong>NORMAL_COUPLED_DOF</strong> :</p></li>
+<li><p><strong>TANGENTIAL_COUPLED_DOF</strong> :</p></li>
+<li><p><strong>ELASTIC_REPELL_CLB</strong> : stiffness, fric</p></li>
+<li><p><strong>ELASTIC_REPELL_CLB_g0</strong> : stiffness, fric</p></li>
+<li><p><strong>VISCO_ELASTIC_REPELL_CLB</strong> : stiffness, viscosity, fric</p></li>
+</ul>
+</section>
+<section id="genuine-laws">
+<h2>Genuine Laws:<a class="headerlink" href="#genuine-laws" title="Permalink to this headline">¶</a></h2>
+<p><strong>Signorini</strong> condition (unilateral condition)</p>
+<blockquote>
+<div><div class="math">
+<p><img src="_images/math/94a0b6ca21d4ebcd3fd2daef333a03202e84a91e.png" alt="\bar{g} \geq 0; \;\; \bRln \geq 0; \;\; \bar{g} \cdot \bRln = 0"/></p>
+</div></div></blockquote>
+<p><strong>Coulomb</strong> friction</p>
+<blockquote>
+<div><div class="math">
+<p><img src="_images/math/ea973f5331cf2b2d9dd5d18ff86cfa54248674f2.png" alt="\parallel \bRlt \parallel \leqslant \mu \bRln
+\left \lbrace
+\begin{array}{l} \parallel \bRlt \parallel &lt;  \mu \bRln \Rightarrow \bVlt = 0 \\
+                       \parallel \bRlt \parallel = \mu \bRln \Rightarrow \exists \alpha \geqslant 0, \bVlt = -\alpha \bRlt
+\end{array}
+\right ."/></p>
+</div></div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Interaction model and parameters definition</a><ul>
+<li><a class="reference internal" href="#rigid-rigid">RIGID/RIGID :</a></li>
+<li><a class="reference internal" href="#any-deformable">any/DEFORMABLE :</a></li>
+<li><a class="reference internal" href="#point-point">POINT/POINT:</a></li>
+<li><a class="reference internal" href="#any-any">any/any:</a></li>
+<li><a class="reference internal" href="#genuine-laws">Genuine Laws:</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_model.html"
+                        title="previous chapter">Model definition</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_visibility.html"
+                        title="next chapter">Visibility table definition</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_interaction.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_visibility.html" title="Visibility table definition"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_model.html" title="Model definition"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interaction model and parameters definition</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

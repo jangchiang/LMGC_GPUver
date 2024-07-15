@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Time loop for rigid bodies &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Time loop for linear deformable bodies" href="chipy_linear.html" />
+    <link rel="prev" title="Common part of a script" href="chipy_common.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_linear.html" title="Time loop for linear deformable bodies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_common.html" title="Common part of a script"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Time loop for rigid bodies</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="time-loop-for-rigid-bodies">
+<h1>Time loop for rigid bodies<a class="headerlink" href="#time-loop-for-rigid-bodies" title="Permalink to this headline">¶</a></h1>
+<p>Here is a typical time loop for the modelling of a rigid sample (assumes <em>deformable = 0</em>)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># since constant compute elementary mass once</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE MASS&#39;</span><span class="p">)</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ComputeMass</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_steps</span><span class="p">):</span>
+  <span class="c1">#</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;INCREMENT STEP&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">IncrementStep</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Fext&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ComputeFext</span><span class="p">()</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Fint&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ComputeBulk</span><span class="p">()</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE Free Vlocy&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ComputeFreeVelocity</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;SELECT PROX TACTORS&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">SelectProxTactors</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;RESOLUTION&#39;</span> <span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">RecupRloc</span><span class="p">(</span><span class="n">Rloc_tol</span><span class="p">)</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ExSolver</span><span class="p">(</span><span class="n">solver_type</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">relax</span><span class="p">,</span> <span class="n">gs_it1</span><span class="p">,</span> <span class="n">gs_it2</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">UpdateTactBehav</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">StockRloc</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;COMPUTE DOF, FIELDS, etc.&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ComputeDof</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;UPDATE DOF, FIELDS&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">UpdateStep</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;WRITE OUT&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WriteOut</span><span class="p">(</span><span class="n">freq_write</span><span class="p">)</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;VISU &amp; POSTPRO&#39;</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">(</span><span class="n">freq_display</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WritePostproFiles</span><span class="p">()</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">checkInteractiveCommand</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_common.html"
+                        title="previous chapter">Common part of a script</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chipy_linear.html"
+                        title="next chapter">Time loop for linear deformable bodies</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chipy_rigid.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_linear.html" title="Time loop for linear deformable bodies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_common.html" title="Common part of a script"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Time loop for rigid bodies</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

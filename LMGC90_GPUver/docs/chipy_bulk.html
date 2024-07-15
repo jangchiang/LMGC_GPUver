@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Bulk models options &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interaction models options" href="chipy_tact.html" />
+    <link rel="prev" title="Time loop for non-linear deformable bodies" href="chipy_nonlinear.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_tact.html" title="Interaction models options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_nonlinear.html" title="Time loop for non-linear deformable bodies"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Bulk models options</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="bulk-models-options">
+<h1>Bulk models options<a class="headerlink" href="#bulk-models-options" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><ul>
+<li><p>RBDY2</p></li>
+<li><p>RBDY3</p>
+<p><strong>Time Loop</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ReadBodies" title="pylmgc90.chipy.lmgc90.RBDY3_ReadBodies"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ReadBodies()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_LoadBehaviours" title="pylmgc90.chipy.lmgc90.RBDY3_LoadBehaviours"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_LoadBehaviours()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ReadIniDof" title="pylmgc90.chipy.lmgc90.RBDY3_ReadIniDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ReadIniDof()</span></code></a></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_BinaryReadIniDof()</span></code></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ReadDrivenDof" title="pylmgc90.chipy.lmgc90.RBDY3_ReadDrivenDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ReadDrivenDof()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ComputeMass" title="pylmgc90.chipy.lmgc90.RBDY3_ComputeMass"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ComputeMass()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_IncrementStep" title="pylmgc90.chipy.lmgc90.RBDY3_IncrementStep"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_IncrementStep()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ComputeFext" title="pylmgc90.chipy.lmgc90.RBDY3_ComputeFext"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ComputeFext()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ComputeBulk" title="pylmgc90.chipy.lmgc90.RBDY3_ComputeBulk"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ComputeBulk()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ComputeFreeVelocity" title="pylmgc90.chipy.lmgc90.RBDY3_ComputeFreeVelocity"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ComputeFreeVelocity()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ComputeContactDetectionConfiguration" title="pylmgc90.chipy.lmgc90.RBDY3_ComputeContactDetectionConfiguration"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ComputeContactDetectionConfiguration()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ComputeDof" title="pylmgc90.chipy.lmgc90.RBDY3_ComputeDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ComputeDof()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_UpdateDof" title="pylmgc90.chipy.lmgc90.RBDY3_UpdateDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_UpdateDof()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_FatalDamping" title="pylmgc90.chipy.lmgc90.RBDY3_FatalDamping"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_FatalDamping()</span></code></a>   <em>arguments: freq</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_PartialDamping" title="pylmgc90.chipy.lmgc90.RBDY3_PartialDamping"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_PartialDamping()</span></code></a> <em>arguments: nb_steps, Vmax</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_CleanMemory" title="pylmgc90.chipy.lmgc90.RBDY3_CleanMemory"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_CleanMemory()</span></code></a></p>
+<p><strong>Setting Options</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_KeepIniDofOrder" title="pylmgc90.chipy.lmgc90.RBDY3_KeepIniDofOrder"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_KeepIniDofOrder()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_NewRotationScheme" title="pylmgc90.chipy.lmgc90.RBDY3_NewRotationScheme"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_NewRotationScheme()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_AvoidBodyRotation" title="pylmgc90.chipy.lmgc90.RBDY3_AvoidBodyRotation"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_AvoidBodyRotation()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetInvisibleSmallObjects" title="pylmgc90.chipy.lmgc90.RBDY3_SetInvisibleSmallObjects"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetInvisibleSmallObjects()</span></code></a> <em>arguments: radius</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetVisible" title="pylmgc90.chipy.lmgc90.RBDY3_SetVisible"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetVisible()</span></code></a>  <em>arguments: ibdyty</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetInvisible" title="pylmgc90.chipy.lmgc90.RBDY3_SetInvisible"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetInvisible()</span></code></a> <em>arguments: ibdyty</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetVisibleVlocyDrivenDof" title="pylmgc90.chipy.lmgc90.RBDY3_SetVisibleVlocyDrivenDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetVisibleVlocyDrivenDof()</span></code></a> <em>arguments: ibdyty,iccdof</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetInvisibleVlocyDrivenDof" title="pylmgc90.chipy.lmgc90.RBDY3_SetInvisibleVlocyDrivenDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetInvisibleVlocyDrivenDof()</span></code></a> <em>arguments: ibdyty,iccdof</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetXminBoundary" title="pylmgc90.chipy.lmgc90.RBDY3_SetXminBoundary"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetXminBoundary()</span></code></a> <em>arguments: Zmin</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetXmaxBoundary" title="pylmgc90.chipy.lmgc90.RBDY3_SetXmaxBoundary"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetXmaxBoundary()</span></code></a> <em>arguments: Xmax</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetYminBoundary" title="pylmgc90.chipy.lmgc90.RBDY3_SetYminBoundary"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetYminBoundary()</span></code></a> <em>arguments: Zmin</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetYmaxBoundary" title="pylmgc90.chipy.lmgc90.RBDY3_SetYmaxBoundary"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetYmaxBoundary()</span></code></a> <em>arguments: Ymax</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetZminBoundary" title="pylmgc90.chipy.lmgc90.RBDY3_SetZminBoundary"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetZminBoundary()</span></code></a> <em>arguments: Zmin</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetZmaxBoundary" title="pylmgc90.chipy.lmgc90.RBDY3_SetZmaxBoundary"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetZmaxBoundary()</span></code></a> <em>arguments: Zmax</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetXPeriodicCondition" title="pylmgc90.chipy.lmgc90.RBDY3_SetXPeriodicCondition"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetXPeriodicCondition()</span></code></a> <em>arguments: xperiod</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetYPeriodicCondition" title="pylmgc90.chipy.lmgc90.RBDY3_SetYPeriodicCondition"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetYPeriodicCondition()</span></code></a> <em>arguments: yperiod</em></p>
+<p><strong>Accessors</strong></p>
+<p>nb_RBDY3 = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetNbRBDY3" title="pylmgc90.chipy.lmgc90.RBDY3_GetNbRBDY3"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetNbRBDY3()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SetVlocyDrivenDof" title="pylmgc90.chipy.lmgc90.RBDY3_SetVlocyDrivenDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SetVlocyDrivenDof()</span></code></a>   <em>arguments: ibdyty, idrvdof, value</em></p>
+<p>visible = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_IsVisible" title="pylmgc90.chipy.lmgc90.RBDY3_IsVisible"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_IsVisible()</span></code></a>   <em>arguments: ibdyty</em></p>
+<p>density = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetBodyDensity" title="pylmgc90.chipy.lmgc90.RBDY3_GetBodyDensity"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetBodyDensity()</span></code></a>  <em>arguments: ibdyty</em></p>
+<p>inertia = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetBodyInertia" title="pylmgc90.chipy.lmgc90.RBDY3_GetBodyInertia"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetBodyInertia()</span></code></a>  <em>arguments: ibdyty</em></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_PutBodyVector" title="pylmgc90.chipy.lmgc90.RBDY3_PutBodyVector"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_PutBodyVector()</span></code></a>   <em>arguments: datatype, ibdyty, vector</em></p>
+<p>vector = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetBodyVector" title="pylmgc90.chipy.lmgc90.RBDY3_GetBodyVector"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetBodyVector()</span></code></a> <em>arguments: datatype, ibdyty</em></p>
+<p>vector_ptr = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetPtrBodyVector" title="pylmgc90.chipy.lmgc90.RBDY3_GetPtrBodyVector"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetPtrBodyVector()</span></code></a> <em>arguments: datatype, ibdyty</em></p>
+<p>mass = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetMass" title="pylmgc90.chipy.lmgc90.RBDY3_GetMass"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetMass()</span></code></a> <em>arguments: ibdyty</em></p>
+<p>name = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetBehavior" title="pylmgc90.chipy.lmgc90.RBDY3_GetBehavior"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetBehavior()</span></code></a> <em>arguments: ibdyty</em></p>
+<p>ibehav = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetBulkBehavNumber" title="pylmgc90.chipy.lmgc90.RBDY3_GetBulkBehavNumber"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetBulkBehavNumber()</span></code></a> <em>arguments: ibdyty</em></p>
+<p>nb = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetNbContactor" title="pylmgc90.chipy.lmgc90.RBDY3_GetNbContactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetNbContactor()</span></code></a> <em>arguments: ibdyty</em></p>
+<p>type = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetContactorType" title="pylmgc90.chipy.lmgc90.RBDY3_GetContactorType"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetContactorType()</span></code></a> <em>arguments: ibdyty,itacty</em></p>
+<p>color = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_GetContactorColor" title="pylmgc90.chipy.lmgc90.RBDY3_GetContactorColor"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_GetContactorColor()</span></code></a> <em>arguments: ibdyty,itacty</em></p>
+<p><strong>IO</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_WriteBodies" title="pylmgc90.chipy.lmgc90.RBDY3_WriteBodies"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_WriteBodies()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_WriteDrivenDof" title="pylmgc90.chipy.lmgc90.RBDY3_WriteDrivenDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_WriteDrivenDof()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_WriteLastDof" title="pylmgc90.chipy.lmgc90.RBDY3_WriteLastDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_WriteLastDof()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_WriteOutDof" title="pylmgc90.chipy.lmgc90.RBDY3_WriteOutDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_WriteOutDof()</span></code></a>  <em>arguments: ifrom=0, ito=0</em></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_BinaryWriteLastDof()</span></code></p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_BinaryWriteOutDof()</span></code></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_WriteLastRnod" title="pylmgc90.chipy.lmgc90.RBDY3_WriteLastRnod"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_WriteLastRnod()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_WriteOutRnod" title="pylmgc90.chipy.lmgc90.RBDY3_WriteOutRnod"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_WriteOutRnod()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_DisplayOutDof" title="pylmgc90.chipy.lmgc90.RBDY3_DisplayOutDof"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_DisplayOutDof()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_DisplayOutRnod" title="pylmgc90.chipy.lmgc90.RBDY3_DisplayOutRnod"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_DisplayOutRnod()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_SkipInvisible" title="pylmgc90.chipy.lmgc90.RBDY3_SkipInvisible"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_SkipInvisible()</span></code></a></p>
+<p><strong>Multiphysics</strong></p>
+<p>RBDY3_IncrementWSvsT
+<strong>Obsolete</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.RBDY3_ReadCompressedBodies" title="pylmgc90.chipy.lmgc90.RBDY3_ReadCompressedBodies"><code class="xref py py-func docutils literal notranslate"><span class="pre">RBDY3_ReadCompressedBodies()</span></code></a></p>
+</li>
+<li><p>mecaMAILx</p></li>
+<li><p>ther</p></li>
+</ul>
+</div></blockquote>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_nonlinear.html"
+                        title="previous chapter">Time loop for non-linear deformable bodies</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chipy_tact.html"
+                        title="next chapter">Interaction models options</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chipy_bulk.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_tact.html" title="Interaction models options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_nonlinear.html" title="Time loop for non-linear deformable bodies"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Bulk models options</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

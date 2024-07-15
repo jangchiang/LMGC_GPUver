@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>5. About CMake programming &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="4. How to add a contact law ?" href="dev_contact_law.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_contact_law.html" title="4. How to add a contact law ?"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" accesskey="U">Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">5. </span>About CMake programming</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="about-cmake-programming">
+<h1><span class="section-number">5. </span>About CMake programming<a class="headerlink" href="#about-cmake-programming" title="Permalink to this headline">¶</a></h1>
+<p>CMake is the chosen tool to manage/prepare the compilation and
+detection of dependencies of LMGC90. Alternatives to cmake exist, like
+<strong>waf</strong>, the development team is open to relevant propositions on this subject.</p>
+<p>Whatever the future holds, the desired behavior of the system inquiry is independent
+of the selected tool, as well as the management of the compilation flags, especially when some
+dependencies are build as contributions by LMGC90.</p>
+<section id="on-dependencies-of-lmgc90">
+<h2><span class="section-number">5.1. </span>On dependencies of LMGC90<a class="headerlink" href="#on-dependencies-of-lmgc90" title="Permalink to this headline">¶</a></h2>
+<p><strong>Generalities:</strong></p>
+<p>There are several small libraries on which LMGC90 depends, these libraries
+are included within the code and compiled at the same time than LMGC90 itself.
+These libraries are:</p>
+<ul class="simple">
+<li><p>ANN</p></li>
+<li><p>rTree</p></li>
+<li><p>robustPredicates</p></li>
+</ul>
+<p>There are two external libraries which must be found on the system:</p>
+<ul class="simple">
+<li><p>LAPACK</p></li>
+<li><p>Python</p></li>
+</ul>
+<p>There are some optional libraries, which may be ignored, looked for on the system or compiled
+within LMGC90:</p>
+<ul class="simple">
+<li><p>MUMPs</p></li>
+<li><p>MatLib</p></li>
+<li><p>Demmefi</p></li>
+<li><p>SiconosNumerics</p></li>
+</ul>
+<p>Finally there are some external libraries that can be used, and in the case
+of coupling with other software/libraries:</p>
+<ul class="simple">
+<li><p>Robotran</p></li>
+<li><p>Xper</p></li>
+</ul>
+<p><strong>Concerns:</strong></p>
+<p>The concerns coming with these dependencies are :</p>
+<ul class="simple">
+<li><p>if a library is compiled, what compilation options are desired ?</p></li>
+<li><p>if a library is looked for, where to look for it ?</p></li>
+</ul>
+<p>When building the LMGC90 project, several optimization levels can be used to compile.
+These choices are available only for LMGC90 itself and not for the contribution libraries
+because it is not intended to debug or profile others’ libraries.</p>
+<p>When using a library that may be compiled within LMGC90, the desired behavior is:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td colspan="3"><p>If the user explicitly ask for the library to be build:</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td colspan="2"><p>Compile it</p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p>Else:</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td colspan="2"><p>Look for the library:</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>First in an input path (if provided)</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Then in the default path</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td colspan="2"><p>If the library is not found:</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Compile it</p></td>
+</tr>
+</tbody>
+</table>
+<p>It is critical that, in this order:</p>
+<ul class="simple">
+<li><p>If the user demands the build of the library it is not looked for but really
+build and linked against.</p></li>
+<li><p>If the user do not want to use an optional library, it is not even looked for.</p></li>
+<li><p>If the user specify a library path, it is used to look for the library.</p></li>
+<li><p>If the library is not found in the default path, to compile it if available.</p></li>
+</ul>
+</section>
+<section id="implementation-with-cmake">
+<h2><span class="section-number">5.2. </span>Implementation with CMake<a class="headerlink" href="#implementation-with-cmake" title="Permalink to this headline">¶</a></h2>
+<p>In this section, some details are given on how the above desired mechanism
+has been implemented and in which files or directories to look for information.
+The next section will provide, for each dependency, the list of options that
+are used or needed depending on the desired behavior.</p>
+<p><strong>Options management:</strong></p>
+<p>In the main <cite>CMakeLists.txt</cite> several options allow to decide if to build
+a dependency or where to look for it. Sometimes these options are modified or
+set within a macro defined in <cite>lmgc90_dev/cmake/modules</cite>.</p>
+<p>Furthermore, before going through any subdirectory and starting to define compilation
+targets a list of compilation options is defined for several LMGC90 and its contribution.
+The choice of compilation options is defined in:</p>
+<ul class="simple">
+<li><p><cite>get_lmgc90_options</cite> function of <cite>compilerTuning.cmake</cite> for LMGC90</p></li>
+<li><p><cite>get_mumps_options</cite> function of <cite>contribs_compilerTuning.cmake</cite> for MUMPs</p></li>
+<li><p><cite>get_contribs_options</cite> function of <cite>contribs_compilerTuning.cmake</cite> for rTree, ANN and robustPredicates</p></li>
+</ul>
+<p>The results of all these functions are some variables which are cached in order to
+check within the <cite>CMakeCache.txt</cite> file what were the option used.</p>
+<p>For MatLib and Siconos the developers of these software implemented themselves the CMake.
+In this case the compilation options are decided automatically and LMGC90 tries to
+mess with them as less as possible.</p>
+<p><strong>Common dependencies:</strong></p>
+<p>When building MUMPs and/or Matlib, it is best to ensure that the same LAPACK library
+than the one detected by LMGC90 is used.</p>
+<p>When building Siconos, it is best to ensure that the same LAPACK and MUMPs libraries
+than the ones detected or compiled by LMGC90 are used.</p>
+<p>This is done within the <cite>ExternalProject</cite> CMake commands in the corresponding <cite>contribs</cite> directory.</p>
+<p><strong>Dependencies definitions:</strong></p>
+<p>The definition of the dependencies is explicitly made in the <cite>Bindings</cite> directory. In this directory
+some target library are defined in a fixe name, used in <cite>Core</cite>. But within the bindings, depending
+on the CMake variable defined by the user or the library found on the system, the way to define
+the libraries to link against may differ. The typical example is the difference between using the
+MatLib in version <em>v3</em> or in the latest version.</p>
+</section>
+<section id="dependencies-list">
+<h2><span class="section-number">5.3. </span>Dependencies list:<a class="headerlink" href="#dependencies-list" title="Permalink to this headline">¶</a></h2>
+<section id="python">
+<h3><span class="section-number">5.3.1. </span>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+<p>Python is needed to build the <cite>chipy</cite> module which is the main interface of
+the software. It also depends on the <cite>numpy</cite> package.</p>
+<p>The Python interpretor itself is used to look for the library and its headers.
+If the Python interpreter changes between two build, then the library and
+header paths are updated.</p>
+<p>If the user specify explicitly the library and its path between two build,
+even if the interpretor changed, the data provided by the user will be used
+in the first place. The two variables to set are:</p>
+<ul class="simple">
+<li><p><cite>PYTHON_LIBRARY</cite></p></li>
+<li><p><cite>PYTHON_INCLUDE_DIR</cite></p></li>
+</ul>
+</section>
+<section id="lapack">
+<h3><span class="section-number">5.3.2. </span>LAPACK<a class="headerlink" href="#lapack" title="Permalink to this headline">¶</a></h3>
+<p>LAPACK library is detected thanks to the native CMake inquiry function.
+The resulting libraries are stored in the variable <cite>LAPACK_LIBRARIES</cite>.</p>
+<p>The function works usually very well and detect particular implementation
+(MKL, Accelerate, etc). To force the location, on the system, of particular
+implementation the <cite>BLA_VENDOR</cite> variable is used.</p>
+<p>If LAPACK is not installed in a default system path, juste provide the
+desired library in the <cite>LAPACK_LIBRARIES</cite> variable.</p>
+</section>
+<section id="mumps">
+<h3><span class="section-number">5.3.3. </span>MUMPs<a class="headerlink" href="#mumps" title="Permalink to this headline">¶</a></h3>
+<p>MUMPs is an optional library allowing to do sparse system resolution
+(<a class="reference external" href="http://mumps.enseeiht.fr/index.php?page=home">http://mumps.enseeiht.fr/index.php?page=home</a>).</p>
+<p>Bindings with MUMPs library are activated only if the <cite>SPARSE_LIBRARY</cite>
+variable equals <cite>mumps</cite>.</p>
+<p>Because MUMPs is not threadsafe by default a specific version patched
+to be threadsafe is used and compiled.</p>
+<p>If the <cite>WITH_MPI</cite> variable is set to <cite>True</cite> , a parallel build of MUMPs
+is made.</p>
+<p>But if the user want to use a specific build of MUMPs either the absolute
+path to the library and associated include dir must be specified:
+* <cite>MUMPS_LIBRARY</cite>
+* <cite>MUMPS_INCLUDE_DIR</cite></p>
+<p>or the path to the directories in which to look for the <em>dmumps</em> library
+by setting the following variables:
+* <cite>MUMPS_LIBRARY_DIRECTORY</cite>
+* <cite>METIS_LIBRARY_DIRECTORY</cite>
+* <cite>MUMPS_INCLUDE_DIRECTORY</cite></p>
+<p>If the library is not found it will be build, except if the
+<cite>BUILD_MUMPS</cite> variable is set to <cite>False</cite>.</p>
+<p>In MUMPs case, it is <strong>never</strong> looked for in the default path.
+Setting the <cite>WITH_OPENMP</cite> variable to <cite>True</cite> while using an
+external build of mumps will stop the configuration step with
+an error.</p>
+</section>
+<section id="matlib">
+<h3><span class="section-number">5.3.4. </span>MatLib<a class="headerlink" href="#matlib" title="Permalink to this headline">¶</a></h3>
+<p>The MatLib is dedicated to the definition of material behavior laws.
+It is developed by Laurent Stainier at the Ecole Centrale de Nantes.
+There are several options to use the library by setting the <cite>MATLIB_VERSION</cite>:</p>
+<ul class="simple">
+<li><p><cite>none</cite>: to not use the library</p></li>
+<li><p><cite>v3</cite>: to use the version 3 which include some materials from Dominique Ambard</p></li>
+<li><p><cite>v4</cite>: to use the version 4 but not the latest</p></li>
+<li><p><cite>default</cite>: to use the latest included version (default value).</p></li>
+</ul>
+<p>To look for the library in a specific path, the user can set the
+<cite>MATLIB_PATH</cite> variable. If the library is not found it will be build,
+except if the <cite>BUILD_MATLIB</cite> variable is set to <cite>False</cite>.</p>
+</section>
+<section id="demmefi">
+<h3><span class="section-number">5.3.5. </span>Demmefi<a class="headerlink" href="#demmefi" title="Permalink to this headline">¶</a></h3>
+<p>Check: (<a class="reference external" href="https://git-xen.lmgc.univ-montp2.fr/demmefi/lmgc90">https://git-xen.lmgc.univ-montp2.fr/demmefi/lmgc90</a>).
+It is a small Fortran library implementing some of CASTEM material
+behaviour laws.
+By default the <cite>WITH_DEMMEFI</cite> options is set to <cite>False</cite>.</p>
+<p>The <cite>demmefi.mod</cite> file and the <cite>libdemmefi.so</cite> must be found.
+They will be looked for in the <cite>VENV_PATH</cite> if provided
+or in the system path. It is also possible to specify the build path
+of the demmefi procject to avoid to install it somewhere with
+the <cite>DEMMEFI_PATH</cite> variable.</p>
+</section>
+<section id="siconos">
+<h3><span class="section-number">5.3.6. </span>Siconos<a class="headerlink" href="#siconos" title="Permalink to this headline">¶</a></h3>
+<p>SiconosNumerics library is dedicated to non-smooth  solvers
+(<a class="reference external" href="http://siconos.gforge.inria.fr/">http://siconos.gforge.inria.fr/</a>). To activate the use of the
+library the option <cite>WITH_SICONOS_NUMERICS</cite> must be set to <cite>True</cite>.
+If the <cite>SiconosNumerics_LIBRARY_PATH</cite> is set the library will
+be looked for there before the default path.</p>
+<p>In this case you have to make sure that the siconos library found
+use the same mumps as LMGC90. Thus having the <cite>BUILD_MUMPS</cite> variable
+set to <cite>True</cite> and trying to use an external <em>SiconosNumerics</em> library
+will stop the configuration step with an error.</p>
+<p>To force the build of the library, the option <cite>BUILD_SICONOS_NUMERICS</cite>
+must be set to <cite>True</cite>.  This option is set by default if the <em>SiconosNumerics</em>
+library as not been found previously. In this case, the path to the <em>siconos</em>
+directory with the source must be specified with the variable <cite>SICONOS_SOURCE_DIR</cite>.</p>
+</section>
+<section id="external-fem">
+<h3><span class="section-number">5.3.7. </span>External FEM<a class="headerlink" href="#external-fem" title="Permalink to this headline">¶</a></h3>
+<p>To use an external Finite Element Modeling library, there are currently two possible
+cases to choose among thanks to the <cite>EXT_FEM_VERSION</cite>:</p>
+<ul class="simple">
+<li><p><cite>none</cite>: no external library</p></li>
+<li><p><cite>Xper</cite>: library developed by the IRSN</p></li>
+<li><p><cite>tense_dd</cite>: library developed by Dr Postek in Warsaw.</p></li>
+</ul>
+<p>Every needed files are looked in the <cite>EXT_FEM_PATH</cite> variable.</p>
+<p>For further extensions what is in fact needed:</p>
+<ul class="simple">
+<li><p>the library itself stored in <cite>EXT_FEM_LIBRARY</cite></p></li>
+<li><p>an interface module in Fortran90 in <cite>EXT_FEM_F90_MODULE</cite></p></li>
+<li><p>a wrap module in Fortran using <em>iso_c_binding</em> in <cite>EXT_FEM_WRAP_SRC</cite></p></li>
+<li><p>a wrap header in C in <cite>EXT_FEM_WRAP_HEADER</cite></p></li>
+</ul>
+</section>
+<section id="external-mbs">
+<h3><span class="section-number">5.3.8. </span>External MBS<a class="headerlink" href="#external-mbs" title="Permalink to this headline">¶</a></h3>
+<p>To use an external Multi-Body System library, there are currently two possible
+cases to choose among thanks to the <cite>EXT_MBS_VERSION</cite>:</p>
+<ul class="simple">
+<li><p><cite>none</cite>: no external library</p></li>
+<li><p><cite>Robotran</cite>: library developed by the UCL</p></li>
+<li><p><cite>FiberModel</cite>: library developed by the IRT Jules Vernes.</p></li>
+</ul>
+<p>These two libraries provide, when compiled, a configuration file
+that CMake can read with every information needed and even do some
+consistent check between compilers. This file is provided thanks
+to the <cite>EXT_MBS_FILE</cite> variable.</p>
+<p>The main variable provided by this file is the list of libraries
+to link against: <cite>MBS_EXTERNAL_LINK_LIBRARIES</cite></p>
+</section>
+</section>
+<section id="about-git-information">
+<h2><span class="section-number">5.4. </span>About git information<a class="headerlink" href="#about-git-information" title="Permalink to this headline">¶</a></h2>
+<p>CMake look for the git executable and cache a variable storing the name of the branch
+compiled. If the branch changed and make is called without a call to cmake the build
+is stopped. If any CMakeLists.txt file change, the configured step is called and
+the compilation will take place (only a warning is send).</p>
+<p>Git is also used to get the commit number and store it in pylmgc90.__git_revision__</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">5. About CMake programming</a><ul>
+<li><a class="reference internal" href="#on-dependencies-of-lmgc90">5.1. On dependencies of LMGC90</a></li>
+<li><a class="reference internal" href="#implementation-with-cmake">5.2. Implementation with CMake</a></li>
+<li><a class="reference internal" href="#dependencies-list">5.3. Dependencies list:</a><ul>
+<li><a class="reference internal" href="#python">5.3.1. Python</a></li>
+<li><a class="reference internal" href="#lapack">5.3.2. LAPACK</a></li>
+<li><a class="reference internal" href="#mumps">5.3.3. MUMPs</a></li>
+<li><a class="reference internal" href="#matlib">5.3.4. MatLib</a></li>
+<li><a class="reference internal" href="#demmefi">5.3.5. Demmefi</a></li>
+<li><a class="reference internal" href="#siconos">5.3.6. Siconos</a></li>
+<li><a class="reference internal" href="#external-fem">5.3.7. External FEM</a></li>
+<li><a class="reference internal" href="#external-mbs">5.3.8. External MBS</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#about-git-information">5.4. About git information</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dev_contact_law.html"
+                        title="previous chapter"><span class="section-number">4. </span>How to add a contact law ?</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dev_cmake.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_contact_law.html" title="4. How to add a contact law ?"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" >Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">5. </span>About CMake programming</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

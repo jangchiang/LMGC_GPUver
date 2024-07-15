@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>gmshutils module’s docstring &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Additional documentations of LMGC90" href="additional_index.html" />
+    <link rel="prev" title="Use of GMSH python module" href="gmsh_index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="additional_index.html" title="Additional documentations of LMGC90"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gmsh_index.html" title="Use of GMSH python module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="gmsh_index.html" accesskey="U">Use of GMSH python module</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">gmshutils module’s docstring</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="gmshutils-module-s-docstring">
+<h1>gmshutils module’s docstring<a class="headerlink" href="#gmshutils-module-s-docstring" title="Permalink to this headline">¶</a></h1>
+<section id="pre-processor-functions">
+<h2>Pre-processor functions<a class="headerlink" href="#pre-processor-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pylmgc90.gmshutils.getMeshAsGModel">
+<span class="sig-prename descclassname"><span class="pre">pylmgc90.gmshutils.</span></span><span class="sig-name descname"><span class="pre">getMeshAsGModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pylmgc90/gmshutils.html#getMeshAsGModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylmgc90.gmshutils.getMeshAsGModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a gmsh.model object from nodes and bulks stored in the mesh object</p>
+<p>Only element of type S2xxx, T3xxx and Q4xxx are read
+to generate a surfacic model of gmsh.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p>mesh: the pre.mesh object to read to fill gmsh.model.geo</p></li>
+<li><p>groups: the groups of element to use, use everything if None</p></li>
+</ul>
+<p>Optionnal parameters:</p>
+<ul class="simple">
+<li><p>lc: the charactheristic length to use when adding points</p></li>
+<li><p>name: the name to set when adding the geometry to gmsh model</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylmgc90.gmshutils.addVolumesToGeo">
+<span class="sig-prename descclassname"><span class="pre">pylmgc90.gmshutils.</span></span><span class="sig-name descname"><span class="pre">addVolumesToGeo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pylmgc90/gmshutils.html#addVolumesToGeo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylmgc90.gmshutils.addVolumesToGeo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add volumes to the geometry of the active gmsh.model</p>
+<p>Parameters:</p>
+<dl class="simple">
+<dt>vol: a dictionnary where keys will be the physical volume name</dt><dd><p>and the associated value must be a list of physical surfaces
+defining the named volume. If there is a closed surface in the
+list of surfaces, it substract it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pylmgc90.gmshutils.meshAndSave">
+<span class="sig-prename descclassname"><span class="pre">pylmgc90.gmshutils.</span></span><span class="sig-name descname"><span class="pre">meshAndSave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pylmgc90/gmshutils.html#meshAndSave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pylmgc90.gmshutils.meshAndSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mesh the model in the gmsh module and save it.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">gmshutils module’s docstring</a><ul>
+<li><a class="reference internal" href="#pre-processor-functions">Pre-processor functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gmsh_index.html"
+                        title="previous chapter">Use of GMSH python module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="additional_index.html"
+                        title="next chapter">Additional documentations of LMGC90</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gmsh_classes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="additional_index.html" title="Additional documentations of LMGC90"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gmsh_index.html" title="Use of GMSH python module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="gmsh_index.html" >Use of GMSH python module</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">gmshutils module’s docstring</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

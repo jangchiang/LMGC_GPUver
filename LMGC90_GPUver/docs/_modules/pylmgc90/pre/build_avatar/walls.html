@@ -1,0 +1,1001 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.walls &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.walls</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.walls</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module fournissant des macros pour la generation de parois complexes :</span>
+<span class="c1"># murs rugueux, tambours, etc...</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">..avatar.avatar</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulk.rigid2d</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># import du module qui calcule les coordonnees de points sur un reseau 2D, pour contruire des parois rugueuses 3D</span>
+<span class="kn">from</span> <span class="nn">.lattices2D</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.tools.granulometry</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># import du module permettant de savoir si on pourra importer les pre_tools</span>
+<span class="kn">from</span> <span class="nn">..utilities.check_compiled_modules</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># import des fonctions pour tirer les particules suivant une granulo donnee</span>
+
+<span class="c1"># si on peut essayer d&#39;importer le module pre_tools sans tout faire planter</span>
+<span class="k">if</span> <span class="n">import_lmgc90</span><span class="p">():</span>
+   <span class="c1"># on essaye</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="kn">from</span> <span class="nn">...chipy</span> <span class="kn">import</span> <span class="n">lmgc90</span>
+   <span class="k">except</span><span class="p">:</span>
+      <span class="k">raise</span>
+
+<span class="c1"># fonction qui cree un cluster de disques ou de polygones, pour faire un mur rugueux, en 2D</span>
+<span class="c1">#   - center : position du centre d&#39;inertie du mur</span>
+<span class="c1">#   - l : longueur minimale du mur; le mur construit sera peut-etre plus grand</span>
+<span class="c1">#         puisqu&#39;on dispose un nombre entier de disques de rayon donne</span>
+<span class="c1">#   - r : rayon d&#39;encombrement d&#39;une particule </span>
+<span class="c1">#   - model : modele rigide pour la particule</span>
+<span class="c1">#   - material : materiau dont la particule est faite</span>
+<span class="c1">#   - number : numero du corps</span>
+<span class="c1"># variables optionnelles</span>
+<span class="c1">#   - theta : rotation du mur autour de son centre d&#39;inertie</span>
+<span class="c1">#   - nb_vertex : si nb_vertex &gt;= 3 les particules sont des polygones reguliers a nb_vertex cotes, </span>
+<span class="c1">#   - color : couleur d&#39;un disque</span>
+<div class="viewcode-block" id="roughWall"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.roughWall">[docs]</a><span class="k">def</span> <span class="nf">roughWall</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">,</span> <span class="n">nb_vertex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=roughWall(center, l, r, model, material, theta=0., color=&#39;WALLx&#39;, nb_vertex=0, number=None):</span>
+
+<span class="sd">   this function builds a 2D rough wall: it returns a body made of a cluster of disks or polygons</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - center: mass center of the wall  in the global frame</span>
+<span class="sd">   - l: minimal length of the wall, i.e. since the wall is made of</span>
+<span class="sd">     disk having a given radius, it could be bigger than expected</span>
+<span class="sd">   - r: radius of a particle</span>
+<span class="sd">   - model: rigid model for the particle</span>
+<span class="sd">   - material: the particle is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - theta=0.: rotation angle in the inertial frame</span>
+<span class="sd">   - color=&#39;WALLx&#39;: color of a disk contactor</span>
+<span class="sd">   - nb_vertex=0: if nb_vertex is greater or equal to three, generated particles are</span>
+<span class="sd">     regular polygons having nb_vertex vertices</span>
+<span class="sd">   - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+   <span class="c1"># creation d&#39;un nouveau corps rigide 2D</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
+   <span class="c1"># on cree un comportement volumique de type rigide</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour le disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+   <span class="c1"># si le nombre de sommets donne est inferieur strictement a 3</span>
+   <span class="k">if</span> <span class="n">nb_vertex</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+      <span class="c1"># on place les contacteurs disques</span>
+
+      <span class="c1"># N.B. : le centre d&#39;inertie a ete place dans le repere global, les </span>
+      <span class="c1">#        contacteurs disque seront donc place par rapport au centre </span>
+      <span class="c1">#        d&#39;inertie (repere local)</span>
+      <span class="c1"># on calcul le nombre de disques necessaire</span>
+      <span class="n">nb_disk</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="c1"># on ajoute les contacteurs</span>
+      <span class="c1"># si il y a un nombre impair de disques</span>
+      <span class="k">if</span> <span class="n">nb_disk</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="c1"># on en pose un au milieu</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+         <span class="c1"># on pose les autres contacteurs autour</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_disk</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># disque de gauche</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+            <span class="c1"># disque de droite</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+      <span class="c1"># sinon</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># on pose les contacteurs de part et d&#39;autre du centre d&#39;inertie</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_disk</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># disque de gauche</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+            <span class="c1"># disque de droite</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[(</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+
+   <span class="c1"># sinon,               </span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on place des contacteurs polygones</span>
+
+      <span class="c1"># on calcule le nombre de polygones necessaire</span>
+      <span class="n">nb_polyg</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+
+      <span class="c1"># definition du contacteur pour le polygone :</span>
+      <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">i</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertex</span><span class="p">))</span> 
+         <span class="n">vertices</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">i</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertex</span><span class="p">))</span> 
+
+      <span class="c1"># on ajoute les contacteurs</span>
+      <span class="c1"># si il y a un nombre impair de polygone</span>
+      <span class="k">if</span> <span class="n">nb_polyg</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="c1"># on en pose un au milieu</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+         <span class="c1"># on pose les autres contacteurs autour</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># polygone de gauche</span>
+
+            <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+            <span class="c1"># courant</span>
+            <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+            <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+
+            <span class="c1"># polygone de droite</span>
+
+            <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+            <span class="c1"># courant</span>
+            <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+            <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+      <span class="c1"># sinon</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># on pose les contacteurs de part et d&#39;autre du centre d&#39;inertie</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># polygone de gauche</span>
+
+            <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+            <span class="c1"># courant</span>
+            <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+            <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+
+            <span class="c1"># polygone de droite</span>
+
+            <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+            <span class="c1"># courant</span>
+            <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+            <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span>
+            <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+               
+   <span class="c1"># on calcule de la surface et de l&#39;inertie du cluster</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+   
+   <span class="c1"># si on donne un angle non nul</span>
+   <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
+      <span class="c1"># on tourne le corps autour de son centre d&#39;inertie</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">psi</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span>
+
+   <span class="k">return</span> <span class="n">body</span></div>
+
+<span class="c1"># fonction qui cree un cluster de disques ou de polygones, pour faire un mur legerement rugueux, en 2D</span>
+<span class="c1">#   - center : position du centre d&#39;inertie du mur</span>
+<span class="c1">#   - l : longueur minimale du mur; le mur construit sera peut-etre plus grand</span>
+<span class="c1">#         puisqu&#39;on dispose un nombre entier de disques de rayon donne</span>
+<span class="c1">#   - r : rayon d&#39;encombrement d&#39;une particule </span>
+<span class="c1">#   - model : modele rigide pour la particule</span>
+<span class="c1">#   - material : materiau dont la particule est faite</span>
+<span class="c1">#   - number : numero du corps</span>
+<span class="c1"># variables optionnelles</span>
+<span class="c1">#   - theta : rotation du mur autour de son centre d&#39;inertie</span>
+<span class="c1">#   - nb_vertex : si nb_vertex &gt;= 3 les particules sont des polygones reguliers a nb_vertex cotes, </span>
+<span class="c1">#   - color : couleur d&#39;un disque</span>
+<div class="viewcode-block" id="fineWall"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.fineWall">[docs]</a><span class="k">def</span> <span class="nf">fineWall</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">,</span> <span class="n">nb_vertex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=fineWall(center, l, r, model, material, theta=0., color=&#39;WALLx&#39;, nb_vertex=0, number=None):</span>
+
+<span class="sd">   this function builds a 2D not too rough wall: it returns a body made of a cluster</span>
+<span class="sd">   of disks or polygons but with contactors overlapping each others to reduce the roughness</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - center: mass center of the wall  in the global frame</span>
+<span class="sd">   - l: minimal length of the wall, i.e. since the wall is made of</span>
+<span class="sd">     disk having a given radius, it could be bigger than expected</span>
+<span class="sd">   - r: radius of a particle</span>
+<span class="sd">   - model: rigid model for the particle</span>
+<span class="sd">   - material: the particle is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - theta=0.: rotation angle in the inertial frame</span>
+<span class="sd">   - color=&#39;WALLx&#39;: color of a disk contactor</span>
+<span class="sd">   - nb_vertex=0: if nb_vertex is greater or equal to three, generated particles are</span>
+<span class="sd">     regular polygons having nb_vertex vertices</span>
+<span class="sd">   - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+   <span class="c1"># creation d&#39;un nouveau corps rigide 2D</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
+   <span class="c1"># on cree un comportement volumique de type rigide</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour le disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+   <span class="c1"># si le nombre de sommets donne est inferieur strictement a 3</span>
+   <span class="k">if</span> <span class="n">nb_vertex</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+      <span class="c1"># on place les contacteurs disques</span>
+
+      <span class="c1"># N.B. : le centre d&#39;inertie a ete place dans le repere global, les </span>
+      <span class="c1">#        contacteurs disque seront donc place par rapport au centre </span>
+      <span class="c1">#        d&#39;inertie (repere local)</span>
+      <span class="c1"># on calcul le nombre de disques necessaire</span>
+      <span class="n">nb_disk</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="c1"># on ajoute les contacteurs</span>
+      <span class="c1"># on en pose un au milieu</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+      <span class="c1"># on pose les autres contacteurs autour</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_disk</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+         <span class="c1"># disque de gauche</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+        
+         <span class="c1"># disque de droite</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[(</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+      
+   <span class="c1"># sinon,               </span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on place des contacteurs polygones</span>
+
+      <span class="c1"># on calcule le nombre de polygones necessaire</span>
+      <span class="n">nb_polyg</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+
+      <span class="c1"># definition du contacteur pour le polygone :</span>
+      <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">i</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertex</span><span class="p">))</span> 
+         <span class="n">vertices</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">i</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertex</span><span class="p">))</span> 
+
+      <span class="c1"># on ajoute les contacteurs</span>
+      <span class="c1"># on en pose un au milieu</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+      <span class="c1"># on pose les autres contacteurs autour</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+         <span class="c1"># polygone de gauche</span>
+
+         <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+         <span class="c1"># courant</span>
+         <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+         <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+         <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+
+         <span class="c1"># polygone de droite</span>
+
+         <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+         <span class="c1"># courant</span>
+         <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+         <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">r</span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+         <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+
+         <span class="c1"># on pose les contacteurs de part et d&#39;autre du centre d&#39;inertie</span>
+         <span class="c1"># polygone de gauche</span>
+
+         <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+         <span class="c1"># courant</span>
+         <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+         <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+         <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+
+         <span class="c1"># polygone de droite</span>
+
+         <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+         <span class="c1"># courant</span>
+         <span class="n">shiftedvertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+         <span class="c1"># on calcule les coordonnees des sommets du polygone             </span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">r</span>
+         <span class="n">shiftedvertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+         <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">shiftedvertices</span><span class="p">)</span>
+         
+   <span class="c1"># on calcule de la surface et de l&#39;inertie du cluster</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+   
+   <span class="c1"># si on donne un angle non nul</span>
+   <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
+      <span class="c1"># on tourne le corps autour de son centre d&#39;inertie</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">psi</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span>
+
+   <span class="k">return</span> <span class="n">body</span></div>
+
+
+<span class="c1"># fonction qui cree un cluster de briques (polygones), pour faire un mur lisse, en 2D</span>
+<span class="c1">#   - center : position du centre d&#39;inertie du mur</span>
+<span class="c1">#   - l : longueur minimale du mur</span>
+<span class="c1">#   - n : nombre de briques, dans la longeur du mur </span>
+<span class="c1">#   - model : modele rigide pour la particule</span>
+<span class="c1">#   - material : materiau dont la particule est faite</span>
+<span class="c1">#   - number : numero du corps</span>
+<span class="c1"># variables optionnelles</span>
+<span class="c1">#   - theta : rotation du mur autour de son centre d&#39;inertie</span>
+<span class="c1">#   - color : couleur d&#39;un disque</span>
+<div class="viewcode-block" id="smoothWall"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.smoothWall">[docs]</a><span class="k">def</span> <span class="nf">smoothWall</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=smoothWall(center, l, h, nb_polyg, model, material, theta=0., color=&#39;WALLx&#39;, number=None):</span>
+
+<span class="sd">   this function builds a 2D smooth wall: it returns a body made of a cluster of rectangular polygons</span>
+
+<span class="sd">   parameters :  </span>
+
+<span class="sd">   - center: mass center of the wall in the global frame</span>
+<span class="sd">   - l: length of the wall</span>
+<span class="sd">   - h: height of the wall</span>
+<span class="sd">   - nb_polyg: number of bricks in the wall</span>
+<span class="sd">   - model: rigid model for the wall</span>
+<span class="sd">   - material: the wall is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - theta=0.: rotation angle in the inertial frame</span>
+<span class="sd">   - color=&#39;WALLx&#39;: color of a polygon contactor</span>
+<span class="sd">   - number=None: index of the avatar (still present to ensure compatibility)&#39;&#39;&#39;</span>
+
+   <span class="c1"># creation d&#39;un nouveau corps rigide 2D</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
+   <span class="c1"># on cree un comportement volumique de type rigide</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie au mur</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour le mur</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele au mur</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau au mur</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+   <span class="c1"># on place les contacteurs polygones</span>
+
+   <span class="c1"># on calcule la longueur d&#39;une brique</span>
+   <span class="n">l_brick</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">l</span><span class="o">/</span><span class="n">nb_polyg</span>
+
+   <span class="c1"># N.B. : le centre d&#39;inertie a ete place dans le repere global, les </span>
+   <span class="c1">#        contacteurs disque seront donc place par rapport au centre </span>
+   <span class="c1">#        d&#39;inertie (repere local)</span>
+   <span class="c1"># on ajoute les contacteurs</span>
+   <span class="c1"># si il y a un nombre impair de briques</span>
+   <span class="k">if</span> <span class="n">nb_polyg</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="c1"># on en pose une au milieu</span>
+
+      <span class="c1"># on cree une matrice a la bonne taille</span>
+      <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+      <span class="c1"># on donne les coordonnees des sommets</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+      <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+
+      <span class="c1"># on ajoute le contacteur</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+         <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+
+      <span class="c1"># on pose les autres briques autour</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+         <span class="c1"># brique de gauche</span>
+
+         <span class="c1"># on cree une matrice a la bonne taille</span>
+         <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="c1"># on donne les coordonnees des sommets</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+
+         <span class="c1"># on ajoute le contacteur</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+
+         <span class="c1"># brique de droite</span>
+
+         <span class="c1"># on cree une matrice a la bonne taille</span>
+         <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="c1"># on donne les coordonnees des sommets</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+
+         <span class="c1"># on ajoute le contacteur</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+   <span class="c1"># sinon</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on pose les contacteurs de part et d&#39;autre du centre d&#39;inertie</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+         <span class="c1"># brique de gauche</span>
+
+         <span class="c1"># on cree une matrice a la bonne taille</span>
+         <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="c1"># on donne les coordonnees des sommets</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+
+         <span class="c1"># on ajoute le contacteur</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+
+         <span class="c1"># brique de droite</span>
+
+         <span class="c1"># on cree une matrice a la bonne taille</span>
+         <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="c1"># on donne les coordonnees des sommets</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">l_brick</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l_brick</span>
+         <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">h</span>
+
+         <span class="c1"># on ajoute le contacteur</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+   
+   <span class="c1"># on calcule de la surface et de l&#39;inertie du cluster</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+   
+   <span class="c1"># si on donne un angle non nul</span>
+   <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
+      <span class="c1"># on tourne le corps autour de son centre d&#39;inertie</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">psi</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span>
+
+   <span class="c1"># on renvoie le corps ainsi defini</span>
+   <span class="k">return</span> <span class="n">body</span></div>
+
+<span class="c1"># fonction qui cree un cluster de disque, pour faire un mur rugueux, en 2D</span>
+<span class="c1"># en respectant la granulometrie de l&#39;echantillon</span>
+<span class="c1">#   - center   : position du centre d&#39;inertie du mur</span>
+<span class="c1">#   - l        : longueur minimale du mur; le mur construit sera peut-etre plus grand</span>
+<span class="c1">#                puisqu&#39;on dispose un nombre entier de disques de rayon donne</span>
+<span class="c1">#   - rmin     : rayon min, pour la granulo</span>
+<span class="c1">#   - rmax     : rayon max, pour la granulo</span>
+<span class="c1">#   - model    : modele rigide pour la particule</span>
+<span class="c1">#   - material : materiau dont la particule est faite</span>
+<span class="c1">#   - number   : numero du corps</span>
+<span class="c1"># variables optionnelles</span>
+<span class="c1">#   - theta    : rotation du mur autour de son centre d&#39;inertie</span>
+<span class="c1">#   - color    : couleur d&#39;un disque</span>
+<span class="c1">#   - nb_vertex: nombre de sommet; si inf a 3 alors disque</span>
+<span class="c1">#</span>
+<div class="viewcode-block" id="granuloRoughWall"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.granuloRoughWall">[docs]</a><span class="k">def</span> <span class="nf">granuloRoughWall</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">,</span> <span class="n">nb_vertex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=granuloRoughWall(center, l, rmin, rmax, model, material, theta=0., color=&#39;WALLx&#39;, nb_vertex=0, seed=None):</span>
+
+<span class="sd">   this function builds a 2D rough wall: it returns a body made of a cluster</span>
+<span class="sd">   of disks or polygons. The radii of the particles defining the cluster are randomly distrubuted in the</span>
+<span class="sd">   interval [rmin, rmax]</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - center: mass center of the wall  in the global frame</span>
+<span class="sd">   - l: minimal length of the wall, i.e. since the wall is made of</span>
+<span class="sd">     disk having a given radius, it could be bigger than expected</span>
+<span class="sd">   - rmin, rmax: bounds of the interval of radii defining the roughness of the wall</span>
+<span class="sd">   - model: rigid model for the particle</span>
+<span class="sd">   - material: the particle is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - theta=0.: rotation angle in the inertial frame</span>
+<span class="sd">   - color=&#39;WALLx&#39;: color of a disk contactor</span>
+<span class="sd">   - nb_vertex=0: if nb_vertex is greater or equal to three, generated particles are</span>
+<span class="sd">     regular polygons having nb_vertex vertices</span>
+<span class="sd">   - seed=None: seed to use to control the randomness</span>
+<span class="sd">   &#39;&#39;&#39;</span>
+
+   <span class="k">assert</span> <span class="n">rmin</span> <span class="o">&lt;=</span> <span class="n">rmax</span><span class="p">,</span> <span class="s2">&quot;rmin must be inferior to rmax&quot;</span>
+   <span class="k">assert</span> <span class="n">rmin</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">,</span> <span class="s2">&quot;rmin must be greater than 0.&quot;</span>
+
+   <span class="c1"># creation d&#39;un nouveau corps rigide 2D</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+   <span class="c1"># on cree un comportement volumique de type rigide</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour le disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+   <span class="c1"># on calcule le nombre de contacteurs sur la paroi</span>
+   <span class="n">nb_tactor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">rmin</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+
+   <span class="c1"># on tire aleatoirement une liste de rayons pour construire ces contacteurs</span>
+   <span class="n">radii</span><span class="o">=</span><span class="n">granulo_Random</span><span class="p">(</span><span class="n">nb_tactor</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+
+   <span class="c1"># si le nombre de sommets donne est inferieur strictement a 3</span>
+   <span class="k">if</span> <span class="n">nb_vertex</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+      <span class="c1"># on place les contacteurs disques</span>
+
+      <span class="c1"># N.B. : le centre d&#39;inertie a ete place dans le repere global, les </span>
+      <span class="c1">#        contacteurs disque seront donc place par rapport au centre </span>
+      <span class="c1">#        d&#39;inertie (repere local)</span>
+
+      <span class="c1"># on initialise le decalage pour commencer par le premier disque de la paroi</span>
+      <span class="n">xshift</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">l</span>
+      <span class="c1"># on part du premier disque</span>
+      <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="c1"># tant qu&#39;on a pas atteint la fin de la paroi</span>
+      <span class="k">while</span> <span class="n">xshift</span> <span class="o">&lt;</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">:</span>
+         <span class="c1"># on incremente le decalage du rayon de la particule courante pour que le decalage devienne</span>
+         <span class="c1"># l&#39;abscisse du centre d&#39;inertie du polyogne</span>
+         <span class="n">xshift</span> <span class="o">=</span> <span class="n">xshift</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+         <span class="c1"># on choisit l&#39;ordonnee du centre d&#39;inertie du disque de sorte que son sommet tombe sur le </span>
+         <span class="c1"># bord superieur de la paroi</span>
+         <span class="n">yshift</span> <span class="o">=</span> <span class="n">rmax</span> <span class="o">-</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="c1"># on ajoute le contacteur disque a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="n">xshift</span><span class="p">,</span> <span class="n">yshift</span><span class="p">])</span>
+         <span class="c1"># on incremente le decalage du rayon de la particule, pour qu&#39;il donne la position du bord</span>
+         <span class="c1"># gauche de la nouvelle particule</span>
+         <span class="n">xshift</span> <span class="o">=</span> <span class="n">xshift</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="c1"># on passe au rayon suivant</span>
+         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+   <span class="c1"># sinon,</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on place des contacteurs polygones</span>
+
+      <span class="c1"># on initialise le decalage pour commencer par le premier polygone de la paroi</span>
+      <span class="n">xshift</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">l</span>
+      <span class="c1"># on part du premier polygone</span>
+      <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="c1"># tant qu&#39;on a pas atteint la fin de la paroi</span>
+      <span class="k">while</span> <span class="n">xshift</span> <span class="o">&lt;</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">:</span>
+         <span class="c1"># on incremente le decalage du rayon du disque englobant de la particule courante pour que </span>
+         <span class="c1"># le decalage devienne l&#39;abscisse du centre d&#39;inertie du polygone</span>
+         <span class="n">xshift</span> <span class="o">=</span> <span class="n">xshift</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="c1"># on choisit l&#39;ordonnee du centre d&#39;inertie du disque de sorte que le sommet du disque englobant</span>
+         <span class="c1"># la particule tombe sur le bord superieur de la paroi</span>
+         <span class="n">yshift</span> <span class="o">=</span> <span class="n">rmax</span> <span class="o">-</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+         <span class="c1"># construction du contacteur polygone courant</span>
+
+         <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+         <span class="c1"># courant</span>
+         <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+         <span class="c1"># pour chaque sommet du polygone</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_vertex</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># on calcule l&#39;abscisse du sommet courant</span>
+            <span class="n">vertices</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertex</span><span class="p">))</span> <span class="o">+</span> <span class="n">xshift</span>
+            <span class="c1"># on calcule l&#39;ordonnee du sommet courant</span>
+            <span class="n">vertices</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertex</span><span class="p">))</span> <span class="o">+</span> <span class="n">yshift</span>
+       
+         <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertex</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+         <span class="c1"># on incremente le decalage du rayon de la particule, pour qu&#39;il donne la position du bord</span>
+         <span class="c1"># gauche de la nouvelle particule</span>
+         <span class="n">xshift</span> <span class="o">=</span> <span class="n">xshift</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="c1"># on passe au rayon suivant</span>
+         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+               
+   <span class="c1"># on calcule de la surface et de l&#39;inertie du cluster</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+   
+   <span class="c1"># si on donne un angle non nul</span>
+   <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
+      <span class="c1"># on tourne le corps autour de son centre d&#39;inertie</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">psi</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span>
+      
+   <span class="k">return</span> <span class="n">body</span></div>
+
+<span class="c1">#########################################################################################################</span>
+
+<span class="c1"># fonction qui contruit une paroi rugueuse 3D</span>
+<div class="viewcode-block" id="roughWall3D"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.roughWall3D">[docs]</a><span class="k">def</span> <span class="nf">roughWall3D</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=roughWall3D(center, l, r, model, material, color=&#39;WALLx&#39;):</span>
+
+<span class="sd">   this function builds a 3D rough wall: it returns a body made of a cluster</span>
+<span class="sd">   of spheres</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - center: mass center of the wall in the global frame</span>
+<span class="sd">   - lx: minimal length of the wall along x-axis, i.e. since the wall is made of</span>
+<span class="sd">     spheres having a given radius, it could be bigger than expected</span>
+<span class="sd">   - ly: minimal length of the wall along y-axis, i.e. since the wall is made of</span>
+<span class="sd">     spheres having a given radius, it could be bigger than expected</span>
+<span class="sd">   - r: radius of a particle</span>
+<span class="sd">   - model: rigid model for the particle</span>
+<span class="sd">   - material: the particle is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - color=&#39;WALLx&#39;: color of a sphere contactor</span>
+<span class="sd">   &#39;&#39;&#39;</span>
+   <span class="c1"># on choisit un reseau triangulaire, avec des triangles orientes vers le bas</span>
+   <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;down&#39;</span>
+
+   <span class="c1"># on calcule les caracteristiques du plus petit reseau capable de recouvrir le rectangle lx*ly</span>
+   <span class="c1">#   * le nombre d&#39;elements</span>
+   <span class="n">nb_ele</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">lx</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+   <span class="c1">#   * le nombre de couches</span>
+   <span class="n">nb_layer</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="p">(</span><span class="n">ly</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">2</span>
+
+   <span class="c1"># on calcule le nombre de points de ces reseau</span>
+   <span class="n">nb_points</span><span class="o">=</span><span class="n">nbPointsInTriangularLattice2D</span><span class="p">(</span><span class="n">nb_ele</span><span class="o">=</span><span class="n">nb_ele</span><span class="p">,</span> <span class="n">nb_layer</span><span class="o">=</span><span class="n">nb_layer</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+
+   <span class="c1"># on calcule la taille de la boite englobante de ce reseau</span>
+   <span class="p">[</span><span class="n">bx</span><span class="p">,</span> <span class="n">by</span><span class="p">]</span><span class="o">=</span><span class="n">sizeBoundingBoxTriangularLattice2D</span><span class="p">(</span><span class="n">nb_ele</span><span class="o">=</span><span class="n">nb_ele</span><span class="p">,</span> <span class="n">nb_layer</span><span class="o">=</span><span class="n">nb_layer</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;lx=&quot;</span><span class="p">,</span> <span class="n">lx</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ly=&quot;</span><span class="p">,</span> <span class="n">ly</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nb_ele=&quot;</span><span class="p">,</span> <span class="n">nb_ele</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nb_layer=&quot;</span><span class="p">,</span> <span class="n">nb_layer</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;bx=&quot;</span><span class="p">,</span> <span class="n">bx</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;by=&quot;</span><span class="p">,</span> <span class="n">by</span><span class="p">)</span>
+
+   <span class="c1"># on calcule les coordonnees des points du reseau 2D, en poisitionnant son centre en (0, 0)</span>
+   <span class="n">coor</span><span class="o">=</span><span class="n">triangularLattice2D</span><span class="p">(</span><span class="n">nb_ele</span><span class="o">=</span><span class="n">nb_ele</span><span class="p">,</span> <span class="n">nb_layer</span><span class="o">=</span><span class="n">nb_layer</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="n">x0</span><span class="o">=-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">bx</span><span class="p">,</span> <span class="n">y0</span><span class="o">=-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">by</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+
+   <span class="c1"># creation d&#39;un nouvel avatar rigide 3D</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+   <span class="c1"># on cree comportement volumique de type rigide</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid3d</span><span class="p">()</span> <span class="p">)</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie a la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele a la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau a la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+   <span class="c1"># pour chaque point du reseau</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_points</span><span class="p">):</span>
+      <span class="c1"># on ajoute un contacteur sphere au corps, centre sur le point courant du reseau</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;SPHER&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">],</span> <span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="mf">0.</span><span class="p">])</span>
+   <span class="c1"># on calcule du volume et de l&#39;inertie du corps</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+
+   <span class="c1"># on renvoie le corps genere</span>
+   <span class="k">return</span> <span class="n">body</span></div>
+
+<span class="c1"># fonction qui contruit une paroi rugueuse 3D</span>
+<div class="viewcode-block" id="granuloRoughWall3D"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.granuloRoughWall3D">[docs]</a><span class="k">def</span> <span class="nf">granuloRoughWall3D</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=granuloRoughWall3D(center, l, rmin, rmax, model, material, color=&#39;WALLx&#39;, seed=None):</span>
+
+<span class="sd">   this function builds a 3D rough wall using the same granulometry than the sample: </span>
+<span class="sd">   it returns a body made of a cluster of spheres of different radius</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - center: mass center of the wall in the global frame</span>
+<span class="sd">   - lx: minimal length of the wall along x-axis, i.e. since the wall is made of</span>
+<span class="sd">     spheres having a given radius, it could be bigger than expected</span>
+<span class="sd">   - ly: minimal length of the wall along y-axis, i.e. since the wall is made of</span>
+<span class="sd">     spheres having a given radius, it could be bigger than expected</span>
+<span class="sd">   - rmin: minimal radius of a particle</span>
+<span class="sd">   - rmax: maximal radius of a particle</span>
+<span class="sd">   - model: rigid model for the particle</span>
+<span class="sd">   - material: the particle is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - color=&#39;WALLx&#39;: color of a sphere contactor</span>
+<span class="sd">   - seed=None: seed to use to control the randomness</span>
+<span class="sd">   &#39;&#39;&#39;</span>
+
+   <span class="k">assert</span> <span class="n">rmin</span> <span class="o">&lt;=</span> <span class="n">rmax</span><span class="p">,</span> <span class="s2">&quot;rmin must be inferior to rmax&quot;</span>
+   <span class="k">assert</span> <span class="n">rmin</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">,</span> <span class="s2">&quot;rmin must be greater than 0.&quot;</span>
+
+   <span class="n">nb_ele</span>  <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">lx</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">rmin</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+   <span class="n">nb_layer</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">ly</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">rmin</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+
+   <span class="n">nb_points</span> <span class="o">=</span> <span class="n">nb_ele</span><span class="o">*</span><span class="n">nb_layer</span>
+
+   <span class="n">wradii</span> <span class="o">=</span> <span class="n">granulo_Random</span><span class="p">(</span><span class="n">nb_points</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+
+   <span class="c1"># on calcule les coordonnees des points du reseau 2D, en poisitionnant son centre en (0, 0)</span>
+   <span class="n">coor</span><span class="o">=</span><span class="n">squareLattice2D</span><span class="p">(</span><span class="n">nb_ele</span><span class="o">=</span><span class="n">nb_ele</span><span class="p">,</span> <span class="n">nb_layer</span><span class="o">=</span><span class="n">nb_layer</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">rmin</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="o">*</span><span class="n">lx</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="mf">0.0</span><span class="o">*</span><span class="n">ly</span><span class="p">)</span>
+
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># NEW 3D AVATAR</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid3d</span><span class="p">()</span> <span class="p">)</span>  <span class="c1"># RIGID BULK BEHAVIOUR</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie a la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele a la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau a la sphere</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+   <span class="c1"># pour chaque point du reseau</span>
+
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_points</span><span class="p">):</span>
+      <span class="c1"># on ajoute un contacteur sphere au corps, centre sur le point courant du reseau</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;SPHER&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">wradii</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">],</span> <span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">wradii</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+   <span class="c1"># on calcule du volume et de l&#39;inertie du corps</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+
+   <span class="c1"># on renvoie le corps genere</span>
+   <span class="k">return</span> <span class="n">body</span></div>
+
+<span class="c1">#########################################################################################################</span>
+<span class="c1"># The Dallas team: Rudy/jr : 27.02.2013 </span>
+<span class="c1"># Double paroi polygones/carres pour eviter que les particules ne s&#39;echapent a travers les polygones</span>
+
+<span class="k">def</span> <span class="nf">granuloDoubleRoughWall</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&#39;&#39;&#39;body=granuloDoubleRoughWall(center, l, rmin, rmax, model, material, theta=0., color=&#39;WALLx&#39;, nb_verices=0, seed=None):</span>
+
+<span class="sd">   this function builds a 2D rough wall: it returns a body made of a cluster</span>
+<span class="sd">   of disks or polygons. The radii of the particles defining the cluster are randomly distrubuted in the</span>
+<span class="sd">   interval [rmin, rmax]</span>
+
+<span class="sd">   parameters:  </span>
+
+<span class="sd">   - center: mass center of the wall  in the global frame</span>
+<span class="sd">   - l: minimal length of the wall, i.e. since the wall is made of</span>
+<span class="sd">     disk having a given radius, it could be bigger than expected</span>
+<span class="sd">   - rmin, rmax: bounds of the interval of radii defining the roughness of the wall</span>
+<span class="sd">   - model: rigid model for the particle</span>
+<span class="sd">   - material: the particle is made of this material</span>
+
+<span class="sd">   optional parameters:</span>
+
+<span class="sd">   - theta=0.: rotation angle in the inertial frame</span>
+<span class="sd">   - color=&#39;WALLx&#39;: color of a disk contactor</span>
+<span class="sd">   - nb_vertices=0: if nb_vertices is greater or equal to three, generated particles are</span>
+<span class="sd">     regular polygons having nb_vertices vertices</span>
+<span class="sd">   - seed=None: seed to use to control the randomness</span>
+<span class="sd">   &#39;&#39;&#39;</span>
+
+   <span class="k">assert</span> <span class="n">rmin</span> <span class="o">&lt;=</span> <span class="n">rmax</span><span class="p">,</span> <span class="s2">&quot;rmin must be inferior to rmax&quot;</span>
+   <span class="k">assert</span> <span class="n">rmin</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">,</span> <span class="s2">&quot;rmin must be greater than 0.&quot;</span>
+
+   <span class="c1"># creation d&#39;un nouveau corps rigide 2D</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">avatar</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+   <span class="c1"># on cree un comportement volumique de type rigide</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">rigid2d</span><span class="p">()</span> <span class="p">)</span>
+   <span class="c1"># ajout de la position du centre d&#39;inertie au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+   <span class="c1"># on definit les groupes pour le disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+   <span class="c1"># on affecte son modele au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+   <span class="c1"># on affecte son materiau au disque</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">material</span><span class="p">)</span>
+
+   <span class="c1"># on calcule le nombre de contacteurs sur la paroi</span>
+   <span class="n">nb_tactor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">rmin</span><span class="p">)))</span> <span class="o">+</span> <span class="mi">1</span>
+
+   <span class="c1"># on tire aleatoirement une liste de rayons pour construire ces contacteurs</span>
+   <span class="n">radii</span><span class="o">=</span><span class="n">granulo_Random</span><span class="p">(</span><span class="n">nb_tactor</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+
+   <span class="c1"># si le nombre de sommets donne est inferieur strictement a 3</span>
+   <span class="k">if</span> <span class="n">nb_vertices</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+      <span class="c1"># on place les contacteurs disques</span>
+
+      <span class="c1"># N.B. : le centre d&#39;inertie a ete place dans le repere global, les </span>
+      <span class="c1">#        contacteurs disque seront donc place par rapport au centre </span>
+      <span class="c1">#        d&#39;inertie (repere local)</span>
+
+      <span class="c1"># on initialise le decalage pour commencer par le premier disque de la paroi</span>
+      <span class="n">xshift</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">l</span>
+      <span class="n">xshift_2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">l</span>
+      <span class="n">nb_vertices_2</span> <span class="o">=</span> <span class="mi">4</span>
+
+      <span class="c1"># on part du premier disque</span>
+      <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="c1"># tant qu&#39;on a pas atteint la fin de la paroi</span>
+      <span class="k">while</span> <span class="n">xshift</span> <span class="o">&lt;</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">:</span>
+         <span class="c1"># on incremente le decalage du rayon de la particule courante pour que le decalage devienne</span>
+         <span class="c1"># l&#39;abscisse du centre d&#39;inertie du polyogne</span>
+         <span class="n">xlimit</span> <span class="o">=</span>  <span class="n">xshift</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="k">if</span><span class="p">(</span><span class="n">xlimit</span> <span class="o">&gt;</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">):</span>
+           <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">xlimit</span> <span class="o">-</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="mf">0.5</span>
+           
+         <span class="n">xshift</span>   <span class="o">=</span> <span class="n">xshift</span>   <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="n">xshift_2</span> <span class="o">=</span> <span class="n">xshift_2</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+         <span class="c1"># on choisit l&#39;ordonnee du centre d&#39;inertie du disque de sorte que son sommet tombe sur le </span>
+         <span class="c1"># bord superieur de la paroi</span>
+
+         <span class="n">yshift</span> <span class="o">=</span> <span class="n">rmax</span> <span class="o">-</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="n">yshift_2</span> <span class="o">=</span> <span class="n">rmax</span> <span class="o">+</span> <span class="n">rmax</span>
+
+         <span class="n">vertices_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertices_2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_vertices_2</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+           <span class="c1"># on calcule l&#39;abscisse du sommet courant</span>
+           <span class="n">vertices_2</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">rmax</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertices_2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">))</span> <span class="o">+</span> <span class="n">xshift_2</span>
+           <span class="c1"># on calcule l&#39;ordonnee du sommet courant</span>
+           <span class="n">vertices_2</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rmax</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertices_2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">))</span> <span class="o">+</span> <span class="n">yshift_2</span>
+         <span class="c1"># on ajoute le contacteur disque a la paroi</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;DISKx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">byrd</span><span class="o">=</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">shift</span><span class="o">=</span><span class="p">[</span><span class="n">xshift</span><span class="p">,</span> <span class="n">yshift</span><span class="p">])</span>
+         <span class="k">if</span><span class="p">(</span><span class="n">xshift_2</span> <span class="o">&lt;=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">l</span><span class="p">):</span>
+            <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertices_2</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertices_2</span><span class="p">)</span>
+         <span class="c1"># on incremente le decalage du rayon de la particule, pour qu&#39;il donne la position du bord</span>
+         <span class="c1"># gauche de la nouvelle particule</span>
+         <span class="n">xshift</span>   <span class="o">=</span> <span class="n">xshift</span>   <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="n">xshift_2</span> <span class="o">=</span> <span class="n">xshift_2</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+         <span class="c1"># on passe au rayon suivant</span>
+         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+   <span class="c1"># sinon,</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># on place des contacteurs polygones</span>
+
+      <span class="c1"># on initialise le decalage pour commencer par le premier polygone de la paroi</span>
+      <span class="n">xshift</span>   <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">l</span>
+      <span class="n">xshift_2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">l</span>
+
+      <span class="n">nb_vertices_2</span> <span class="o">=</span> <span class="mi">4</span>
+
+      <span class="c1"># on part du premier polygone</span>
+      <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="c1"># tant qu&#39;on a pas atteint la fin de la paroi</span>
+      <span class="k">while</span> <span class="n">xshift</span> <span class="o">&lt;</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">:</span>
+         <span class="c1"># on incremente le decalage du rayon du disque englobant de la particule courante pour que </span>
+         <span class="c1"># le decalage devienne l&#39;abscisse du centre d&#39;inertie du polygone</span>
+         <span class="n">xlimit</span> <span class="o">=</span>  <span class="n">xshift</span> <span class="o">+</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="k">if</span><span class="p">(</span><span class="n">xlimit</span> <span class="o">&gt;</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">):</span>
+           <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">xlimit</span> <span class="o">-</span> <span class="n">l</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="mf">0.5</span>
+        
+         <span class="n">xshift</span> <span class="o">=</span> <span class="n">xshift</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="n">xshift_2</span> <span class="o">=</span> <span class="n">xshift_2</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+         <span class="n">yshift</span>   <span class="o">=</span> <span class="mf">0.</span>
+         <span class="n">yshift_2</span> <span class="o">=</span> <span class="n">rmax</span>
+         
+         <span class="c1"># construction du contacteur polygone courant</span>
+            
+         <span class="c1"># on declare le tableau qui va servir a stocker les coordonnees des sommets du contacteur polygone</span>
+         <span class="c1"># courant</span>
+         <span class="n">vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertices</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="n">vertices_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nb_vertices_2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+
+         <span class="c1"># pour chaque sommet du polygone</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+           <span class="c1"># on calcule l&#39;abscisse du sommet courant</span>
+           <span class="n">vertices</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertices</span><span class="p">))</span> <span class="o">+</span> <span class="n">xshift</span>
+           <span class="c1"># on calcule l&#39;ordonnee du sommet courant</span>
+           <span class="n">vertices</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nb_vertices</span><span class="p">))</span> <span class="o">+</span> <span class="n">yshift</span>
+                  
+         <span class="n">vertices_2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">xshift_2</span> <span class="p">;</span> <span class="n">vertices_2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">rmax</span>  <span class="o">+</span> <span class="n">yshift_2</span>
+         <span class="n">vertices_2</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">xshift_2</span> <span class="p">;</span> <span class="n">vertices_2</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">rmax</span>  <span class="o">+</span> <span class="n">yshift_2</span>
+         <span class="n">vertices_2</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span>  <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">xshift_2</span> <span class="p">;</span> <span class="n">vertices_2</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="n">rmax</span>  <span class="o">+</span> <span class="n">yshift_2</span>
+         <span class="n">vertices_2</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">xshift_2</span> <span class="p">;</span> <span class="n">vertices_2</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="n">rmax</span>  <span class="o">+</span> <span class="n">yshift_2</span>
+
+         
+         <span class="c1"># on ajoute le contacteur polygone a la paroi</span>
+         
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertices</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+         <span class="n">body</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="s1">&#39;POLYG&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertices_2</span><span class="p">,</span> <span class="n">vertices</span><span class="o">=</span><span class="n">vertices_2</span><span class="p">)</span>
+         <span class="c1"># on incremente le decalage du rayon de la particule, pour qu&#39;il donne la position du bord</span>
+         <span class="c1"># gauche de la nouvelle particule</span>
+         <span class="n">xshift</span>   <span class="o">=</span> <span class="n">xshift</span>   <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="n">xshift_2</span> <span class="o">=</span> <span class="n">xshift_2</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        
+         <span class="c1"># on passe au rayon suivant</span>
+         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+               
+   <span class="c1"># on calcule de la surface et de l&#39;inertie du cluster</span>
+   <span class="n">body</span><span class="o">.</span><span class="n">computeRigidProperties</span><span class="p">()</span>
+   
+   <span class="c1"># si on donne un angle non nul</span>
+   <span class="k">if</span> <span class="n">theta</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
+      <span class="c1"># on tourne le corps autour de son centre d&#39;inertie</span>
+      <span class="n">body</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">psi</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span>
+
+   <span class="k">return</span> <span class="n">body</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.walls</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,497 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.shared.model &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.shared.model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.shared.model</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">..utilities.error</span>    <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..config.lmgc90dicts</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1">##############################################################################</span>
+<span class="c1">#</span>
+<span class="c1">#   Definition de la classe de base pour un model</span>
+<span class="c1">#</span>
+    
+<div class="viewcode-block" id="model"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.model">[docs]</a><span class="k">class</span> <span class="nc">model</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;class model():</span>
+
+<span class="sd">    associated methods:</span>
+
+<span class="sd">    - __init__</span>
+<span class="sd">    - listeOptions</span>
+<span class="sd">    - addOptions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1">## @todo &#39;nom&#39; a changer en &#39;name&#39; (en fait verifier l&#39;anglais partout)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">physics</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">external_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">external_vfields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">external_vsizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">user_model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;__init__(self, name, physics, element, dimension=None, external_fields=None, external_vfields=None, external_vsizes=None, user_model_name=None, **kargs)</span>
+
+<span class="sd">        allow to define a model</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the model itself</span>
+<span class="sd">        - name: name of the model (5 characters string)</span>
+<span class="sd">        - physics: the physical model defining which physics will be concerned</span>
+<span class="sd">        - element: type of element handled by this model</span>
+<span class="sd">        - dimension: spatial dimension (2, in 2D or 3, in 3D)</span>
+
+<span class="sd">        optional parameters:</span>
+
+<span class="sd">        - external_fields: list of strings defining external fields (i.e. extra fields</span>
+<span class="sd">          which are not needed a priori) also stored by the model</span>
+<span class="sd">        - external_vfields: list of strings defining external vector fields (i.e. extra fields</span>
+<span class="sd">          which are not needed a priori) also stored by the model</span>
+<span class="sd">        - external_vsizes: list of size of each vector field</span>
+<span class="sd">        - user_model_name: name of a user model not understood by the external models lib, and </span>
+<span class="sd">          ignored by LMGC90</span>
+<span class="sd">        - **kargs: a dictionnary used to assigne options to the model (pair &#39;option&#39;=value)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># gestion de l&#39;absence de la donnee de la variable &quot;dimension&quot;, en vue de garantir la compatibilite</span>
+        <span class="c1"># ascendante</span>
+        
+        <span class="c1"># si l&#39;utilisateur n&#39;a pas donne la dimension du modele</span>
+        <span class="k">if</span> <span class="n">dimension</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;you must choose the spatial dimension, by setting the variable </span><span class="se">\&quot;</span><span class="s2">dimension</span><span class="se">\&quot;</span><span class="s2">!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># POSSIBILITE DE FAIRE UN TEST SUPPLEMENTAIRE POUR LES DIMENSIONS</span>
+
+        <span class="c1"># si le nom du modele n&#39;est pas une chaine de caracteres</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">shoWError</span><span class="p">(</span><span class="s2">&quot;name of the model must be a 5 characters string!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># si la chaine ne fait pas cinq caracteres </span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;name of the model must be a 5 characters string!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># si le nom du modele est correct, on le stocke</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nom</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># si la dimension du modele est impossible</span>
+        <span class="k">if</span> <span class="n">dimension</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">dimension</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;spatial dimension must be 2 (in 2D) or 3 (in 3D)!&quot;</span><span class="p">)</span>
+        <span class="c1"># sinon, </span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on la stocke</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span> <span class="o">=</span> <span class="n">dimension</span>
+
+        <span class="c1"># si on reconnait le type de modele</span>
+        <span class="k">if</span> <span class="n">physics</span> <span class="ow">in</span> <span class="n">listeModel</span><span class="p">:</span>
+            <span class="c1"># on le stocke</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">physics</span> <span class="o">=</span> <span class="n">physics</span>
+        <span class="c1"># sinon</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Unknown model type</span><span class="se">\n</span><span class="s1"> the elements available for a &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;D model are:</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeModel</span><span class="p">:</span>
+                <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="c1"># on l&#39;affiche</span>
+            <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># si on reconnait le type d&#39;element fini</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">listeElement</span><span class="p">:</span>
+            <span class="c1"># on le stocke</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="n">element</span>
+            <span class="c1"># si le type de l&#39;element n&#39;est pas compatible avec la dimension consideree</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="ow">in</span> <span class="n">dimension2element</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">]:</span>
+               <span class="c1"># on construit un message d&#39;erreur rappelant les types compatibles</span>
+               <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Element type incompatible with a &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;D model</span><span class="se">\n</span><span class="s2"> the type must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+               <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dimension2element</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">]:</span>
+                   <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+               <span class="c1"># on l&#39;affiche</span>
+               <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="c1"># si le nombre de ddl par noeud est defini pour</span>
+            <span class="c1"># le type de modele et le type d&#39;element considere</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">physics</span> <span class="ow">in</span> <span class="n">element2ddl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">]:</span>
+               <span class="c1"># on le recupere</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">nbdof</span> <span class="o">=</span> <span class="n">element2ddl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">]</span>
+            <span class="c1"># sinon</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="c1"># on indique que le type d&#39;element considere ne gere pas le type de</span>
+               <span class="c1"># modele considere</span>
+               <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the elements of type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot; are not usable by a physical model of type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">)</span>
+        <span class="c1"># sinon, s&#39;il s&#39;agit d&#39;un element externe (i.e. non calcule par LMGC90)</span>
+        <span class="k">elif</span> <span class="n">element</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;EXT&#39;</span><span class="p">):</span>
+            <span class="c1"># on verifie la coherence du nom</span>
+
+            <span class="c1"># * chaine de 5 caracteres</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+               <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;An external element name must be a 5 characters string! (&quot;</span> <span class="o">+</span> <span class="n">element</span> <span class="o">+</span> <span class="s2">&quot; is invalid)&quot;</span><span class="p">)</span>
+
+            <span class="c1"># * la fin de la chaine donne le nombre de noeuds</span>
+
+            <span class="c1"># on recupere la chaine correspondant au nombre de ddl</span>
+            <span class="n">str_nb_nodes</span> <span class="o">=</span> <span class="n">element</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+            <span class="c1"># on tente de convertir la chaine en entier</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">nbdof</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">str_nb_nodes</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+               <span class="c1"># si la conversion e choue, le nom de l&#39;element est caduc</span>
+               <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;The end of an external element name must give the number dof! (&quot;</span> <span class="o">+</span> <span class="n">str_nb_nodes</span> <span class="o">+</span> <span class="s2">&quot; is invalid)&quot;</span><span class="p">)</span> 
+
+            <span class="c1"># ici, on est sur que l&#39;element est bien defini</span>
+
+            <span class="c1"># on stocke son nom et le nombre de ddl associe</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="n">element</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nbdof</span> <span class="o">=</span> <span class="n">nbdof</span>
+        <span class="c1"># sinon</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># on construit un message d&#39;erreur rappelant les types disponibles</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Unknown finite element type</span><span class="se">\n</span><span class="s2"> it must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listeElement</span><span class="p">:</span>
+                <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="c1"># on l&#39;affiche</span>
+            <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># si on a donne une liste de champs externes</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="n">external_fields</span> <span class="p">):</span>
+           <span class="c1"># on verifie son integrite</span>
+
+           <span class="c1"># si l&#39;objet n&#39;est pas une liste</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">external_fields</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external_fields must be a list of strings!&quot;</span><span class="p">)</span>
+ 
+           <span class="c1"># pour chaque champ de la liste</span>
+           <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">external_fields</span><span class="p">):</span>
+              <span class="c1"># si le champ courant n&#39;est pas une chaine</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                 <span class="c1"># on affiche un message d&#39;erreur</span>
+                 <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external field: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; is not a string!&quot;</span><span class="p">)</span>
+
+              <span class="c1"># si le champ est une chaine de plus de 30 caracteres</span>
+              <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span> 
+                 <span class="c1"># on affiche un message d&#39;erreur</span>
+                 <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external field: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; contains more than 30 caracters!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># si tout est bon, on stocke la liste de champs externes</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">external_fields</span><span class="o">=</span><span class="n">external_fields</span>
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on inidque qu&#39;il n&#39;y aura pas de champs externes</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">external_fields</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="c1"># si on a donne une liste de champs externes vectoriels</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="n">external_vfields</span> <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span> <span class="n">external_vsizes</span> <span class="p">):</span>
+
+          <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">external_vfields</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external_vfields must be a list of strings!&quot;</span><span class="p">)</span>
+ 
+          <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">external_vsizes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external_vsizes must be a list of integers!&quot;</span><span class="p">)</span>
+
+          <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">external_vsizes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">external_vfields</span><span class="p">)</span> <span class="p">:</span>
+            <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external_vsizes must be a list of same size than external_vfields!&quot;</span><span class="p">)</span>
+
+          <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">external_vfields</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external vfield: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; is not a string!&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span> 
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external vfield: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; contains more than 30 caracters!&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">external_vsizes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;external vsize: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; is not an integer!&quot;</span><span class="p">)</span>
+
+          <span class="bp">self</span><span class="o">.</span><span class="n">external_vfields</span> <span class="o">=</span> <span class="n">external_vfields</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">external_vsizes</span>  <span class="o">=</span> <span class="n">external_vsizes</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">external_vfields</span> <span class="o">=</span> <span class="p">[]</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">external_vsizes</span>  <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># si on a donne un nom de modele utilisateur</span>
+        <span class="k">if</span> <span class="n">user_model_name</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="c1"># on verifie son integrite</span>
+
+           <span class="c1"># si le champ le nom de modele utilisateur n&#39;est pas une chaine</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user_model_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;user_model_name is not a string!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># si le nom de modele utilisateur est une chaine de plus de 50 caracteres</span>
+           <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">user_model_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span> 
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;user_model_name contains more than 50 caracters!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># si tout est bon, on stocke le nom de modele utilisateur</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">user_model_name</span><span class="o">=</span><span class="n">user_model_name</span>
+
+        <span class="c1"># on recupere la liste des options</span>
+        <span class="n">cles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="c1"># on ajoute les options au modele</span>
+
+        <span class="c1"># pour chaque option</span>
+        <span class="k">for</span> <span class="n">cle</span> <span class="ow">in</span> <span class="n">cles</span><span class="p">:</span>
+           <span class="c1"># si l&#39;option courante n&#39;est pas prevue par le modele</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="n">cle</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">modelOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+              <span class="c1"># on affiche un warning</span>
+              <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;the option </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">cle</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> is not compatible with a model of type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">physics</span>
+              <span class="n">showWarning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+              <span class="c1"># on passe a la suivante</span>
+              <span class="k">continue</span>
+           <span class="c1"># test de la valeur de l&#39;option</span>
+
+           <span class="c1"># si la valeur donnee est admissible</span>
+           <span class="k">if</span> <span class="n">kargs</span><span class="p">[</span><span class="n">cle</span><span class="p">]</span> <span class="ow">in</span> <span class="n">modelOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">][</span><span class="n">cle</span><span class="p">]:</span>
+              <span class="c1"># on ajoute l&#39;option au modele</span>
+              <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cle</span><span class="p">,</span> <span class="n">kargs</span><span class="p">[</span><span class="n">cle</span><span class="p">])</span>
+           <span class="c1"># sinon,</span>
+           <span class="k">else</span><span class="p">:</span>
+              <span class="c1"># on construit un message d&#39;erreur rappelant les valeurs disponibles</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Non valid value for the option </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">cle</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;\n</span><span class="s2"> it must be among:</span><span class="se">\n</span><span class="s2">&quot;</span>
+              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">modelOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">][</span><span class="n">cle</span><span class="p">]:</span>
+                 <span class="n">msg</span><span class="o">+=</span><span class="n">i</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+              <span class="c1"># on l&#39;affiche</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># si le modele s&#39;appuie sur un element rigide ou si le modele s&#39;appuie sur un element externe</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="ow">in</span> <span class="n">rigidElements</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;EXT&#39;</span><span class="p">):</span>
+           <span class="c1"># on n&#39;a pas de test de coherence a faire et on quitte la fonction</span>
+           <span class="k">return</span>
+
+        <span class="c1"># verification des tests de coherence, pour les modeles deformables geres par LMGC90</span>
+
+        <span class="c1"># si le modele s&#39;appuie sur un element discret</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="ow">in</span> <span class="n">discreteElements</span><span class="p">:</span>
+           <span class="c1"># si le modele n&#39;est pas decrit comme discret</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;discrete&#39;</span> <span class="ow">in</span> <span class="n">cles</span> <span class="ow">or</span> <span class="n">kargs</span><span class="p">[</span><span class="s1">&#39;discrete&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;yes__&#39;</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;A model based on a discrete element must define the option : discrete=&#39;yes__&#39;!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># on verifie simplement que le modele n&#39;utilise pas un materiau externe</span>
+           
+           <span class="c1"># si le modele n&#39;indique pas s&#39;il utilise un materiau externe ou non</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;external_model&#39;</span> <span class="ow">in</span> <span class="n">cles</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the option : </span><span class="se">\&quot;</span><span class="s2">external_model</span><span class="se">\&quot;</span><span class="s2"> has not been added to this model.&quot;</span><span class="p">)</span>
+           <span class="c1"># si le modele utilise un materiau externe</span>
+           <span class="k">if</span> <span class="n">kargs</span><span class="p">[</span><span class="s1">&#39;external_model&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;no___&#39;</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;in case of a discrete model, there must be: external_model=</span><span class="se">\&quot;</span><span class="s2">no___</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="ow">in</span> <span class="n">jointElements</span><span class="p">:</span>
+          <span class="c1"># si le modele n&#39;indique pas s&#39;il utilise un materiau externe ou non</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;external_model&#39;</span> <span class="ow">in</span> <span class="n">cles</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the option : </span><span class="se">\&quot;</span><span class="s2">external_model</span><span class="se">\&quot;</span><span class="s2"> has not been added to this model.&quot;</span><span class="p">)</span>
+           <span class="c1"># si le modele utilise un materiau externe</span>
+           <span class="k">if</span> <span class="n">kargs</span><span class="p">[</span><span class="s1">&#39;external_model&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;no___&#39;</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;in case of a joint model, there must be: external_model=</span><span class="se">\&quot;</span><span class="s2">no___</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># si le modele est decrit come discret</span>
+           <span class="k">if</span> <span class="s1">&#39;discrete&#39;</span> <span class="ow">in</span> <span class="n">cles</span> <span class="ow">and</span> <span class="n">kargs</span><span class="p">[</span><span class="s1">&#39;discrete&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;yes__&#39;</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;A model base on a discrete element must not define the option &#39;discrete&#39; or verify: discrete=&#39;no___&#39;!&quot;</span><span class="p">)</span>
+
+           <span class="c1"># si le modele est un modele utilsateur</span>
+           <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;user_model_name&#39;</span><span class="p">):</span>
+              <span class="c1"># on verifie simplement que le modele n&#39;utilise pas un materiau externe</span>
+
+              <span class="c1"># si le modele n&#39;indique pas s&#39;il utilise un materiau externe ou non</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;external_model&#39;</span><span class="p">):</span>
+                 <span class="c1"># on affiche un message d&#39;erreur</span>
+                 <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the option : </span><span class="se">\&quot;</span><span class="s2">external_model</span><span class="se">\&quot;</span><span class="s2"> has not been added to this model.&quot;</span><span class="p">)</span>
+              <span class="c1"># si le modele n&#39;utilise pas un materiau externe</span>
+              <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_model</span> <span class="o">!=</span> <span class="s1">&#39;MatL_&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_model</span> <span class="o">!=</span> <span class="s1">&#39;Demfi&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_model</span> <span class="o">!=</span> <span class="s1">&#39;Umat_&#39;</span><span class="p">:</span>
+                 <span class="c1"># on affiche un message d&#39;erreur</span>
+                 <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;in case of a user modele, there must be: external_model=</span><span class="se">\&quot;</span><span class="s2">MatL_</span><span class="se">\&quot;</span><span class="s2"> or </span><span class="se">\&quot;</span><span class="s2">Demfi</span><span class="se">\&quot;</span><span class="s2"> or </span><span class="se">\&quot;</span><span class="s2">Umat_</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+              <span class="c1"># on verifie la presence des autres options indispensables (les options elementaires)</span>
+
+              <span class="c1"># pour chaque option indispensable</span>
+              <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;kinematic&#39;</span><span class="p">,</span> <span class="s1">&#39;mass_storage&#39;</span><span class="p">]:</span>
+                 <span class="c1"># si l&#39;option n&#39;a pas ete donnee</span>
+                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+                    <span class="c1"># on affiche un message d&#39;erreur</span>
+                    <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;in case of a user model, the option : </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">option</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> must be defined&quot;</span><span class="p">)</span>
+           <span class="c1"># sinon,</span>
+           <span class="k">else</span><span class="p">:</span> 
+              <span class="c1"># on verifie que toutes les options necessaires ont ete affectees au modele</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+        
+    <span class="c1"># fonction qui verifie que toutes les options obligatoires pour le modele ont bien ete affectees</span>
+<div class="viewcode-block" id="model.check"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.model.check">[docs]</a>    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;check(self)</span>
+
+<span class="sd">           checks if mandatory options are present </span>
+
+<span class="sd">        &quot;&quot;&quot;</span> 
+        <span class="c1"># on commence la verification a partir des fils de l&#39;arbre associe au type du modele, qui sont</span>
+        <span class="c1"># tous des options</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">checkModelOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">]</span><span class="o">.</span><span class="n">childs</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">_check</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">&quot;option&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># fonction qui verifie la presence d&#39;options obligatoires pour le modele, prises dans un sous-ensemble </span>
+    <span class="c1"># donne</span>
+    <span class="k">def</span> <span class="nf">_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">root_type</span><span class="p">):</span>
+        <span class="c1"># si la racine de l&#39;arbre est une option</span>
+        <span class="k">if</span> <span class="n">root_type</span> <span class="o">==</span> <span class="s2">&quot;option&quot;</span><span class="p">:</span>
+           <span class="c1"># on recupere l&#39;option dans a la racine de l&#39;arbre</span>
+           <span class="n">option</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">root</span>
+           <span class="c1"># si cette option n&#39;a pas ete definie pour le modele</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;the option : </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">option</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2"> has not been affected to this model.&quot;</span><span class="p">)</span>
+           <span class="c1"># sinon, on recupere la valeur de l&#39;option, pour le modele</span>
+           <span class="n">value</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">)</span>
+
+           <span class="c1"># si l&#39;arbre n&#39;a pas de fils</span>
+           <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">childs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+              <span class="c1"># on a fini la verification</span>
+              <span class="k">return</span>
+
+           <span class="c1"># sinon, on cherche l&#39;arbre fils qui contient cette valeur dans sa racine</span>
+
+           <span class="c1"># on indique qu&#39;on ne l&#39;a pas encore trouve</span>
+           <span class="n">found_child</span> <span class="o">=</span> <span class="kc">None</span>
+           <span class="c1"># pour chaque arbre fils de l&#39;arbre</span>
+           <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">childs</span><span class="p">:</span>
+              <span class="c1"># si le fils courant contient la valeur cherchee</span>
+              <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">root</span> <span class="o">==</span> <span class="n">value</span><span class="p">:</span>
+                 <span class="c1"># on stocke l&#39;arbre fils</span>
+                 <span class="n">found_child</span> <span class="o">=</span> <span class="n">child</span>
+                 <span class="c1"># on quitte la boucle</span>
+                 <span class="k">break</span>
+           <span class="c1"># si on a trouve l&#39;arbre qui contient la valeur</span>
+           <span class="k">if</span> <span class="n">found_child</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+              <span class="c1"># on continue la verification en descendant dans par cet arbre</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">_check</span><span class="p">(</span><span class="n">found_child</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+           <span class="c1"># sinon,</span>
+           <span class="k">else</span><span class="p">:</span>
+              <span class="c1"># on est tombe sur une valeur innatendue de l&#39;option!</span>
+              <span class="c1"># on contruit un message d&#39;erreur pour afficher la liste des valeurs attendues</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Unexpected value for the option </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">option</span> <span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+                       <span class="s2">&quot;the possible values are:</span><span class="se">\n</span><span class="s2">&quot;</span>
+              <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">childs</span><span class="p">:</span>
+                 <span class="n">msg</span> <span class="o">+=</span> <span class="n">child</span><span class="o">.</span><span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+              <span class="c1"># on l&#39;affiche</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># sinon, si la racine de l&#39;arbre est une valeur</span>
+        <span class="k">elif</span> <span class="n">root_type</span> <span class="o">==</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span>
+           <span class="c1"># pour chaque fils de l&#39;arbre</span>
+           <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">tree</span><span class="o">.</span><span class="n">childs</span><span class="p">:</span>
+              <span class="c1"># on poursuit la verification avec les options suivantes</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">_check</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">&quot;option&quot;</span><span class="p">)</span> 
+        <span class="c1"># sinon,</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;unknow root type!&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">listeOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="n">listeOptions</span>  <span class="o">=</span>  <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;dimension&#39;</span><span class="p">,</span> <span class="s1">&#39;nom&#39;</span><span class="p">,</span> <span class="s1">&#39;physics&#39;</span><span class="p">,</span> <span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="s1">&#39;nbdof&#39;</span><span class="p">,</span> <span class="s1">&#39;external_fields&#39;</span><span class="p">,</span> <span class="s1">&#39;external_vfields&#39;</span><span class="p">,</span> <span class="s1">&#39;external_vsizes&#39;</span><span class="p">,</span> <span class="s1">&#39;user_model_name&#39;</span><span class="p">]:</span>
+                <span class="n">listeOptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                
+        <span class="k">return</span> <span class="n">listeOptions</span>
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">impr</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Model :</span><span class="se">\t</span><span class="si">%s</span><span class="se">\n\t</span><span class="s1">Type of model</span><span class="se">\t</span><span class="s1">:</span><span class="si">%s</span><span class="se">\t</span><span class="s1"> for the elements:</span><span class="se">\t</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nom</span><span class="p">,</span>
+                                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">physics</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">)</span>
+        <span class="n">impr</span><span class="o">+=</span><span class="s1">&#39;</span><span class="se">\t\t</span><span class="s1">Defined options:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        
+        <span class="k">for</span> <span class="n">cle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listeOptions</span><span class="p">():</span>
+            <span class="n">impr</span><span class="o">+=</span><span class="s1">&#39;</span><span class="se">\t\t\t</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">cle</span><span class="o">+</span><span class="s1">&#39; : &#39;</span><span class="o">+</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cle</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">impr</span></div>
+
+ 
+<span class="c1">#######################################################################</span>
+<span class="c1">#</span>
+<span class="c1">#  Test pour le fichier &#39;models.py&#39;</span>
+<span class="c1">#</span>
+    
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">momo</span><span class="o">=</span><span class="n">models</span><span class="p">()</span>
+    <span class="n">mt</span><span class="o">=</span><span class="n">model</span><span class="p">(</span><span class="s1">&#39;T3DNX&#39;</span><span class="p">,</span><span class="s1">&#39;THERx&#39;</span><span class="p">,</span><span class="s1">&#39;T3xxx&#39;</span><span class="p">,</span><span class="n">capaStorage</span><span class="o">=</span><span class="s1">&#39;lump_&#39;</span><span class="p">)</span>
+    <span class="n">mm</span><span class="o">=</span><span class="n">model</span><span class="p">(</span><span class="s1">&#39;M3DNL&#39;</span><span class="p">,</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span><span class="s1">&#39;T3xxx&#39;</span><span class="p">,</span><span class="n">kinematic</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span><span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;iso__&#39;</span><span class="p">)</span>
+
+    <span class="n">momo</span><span class="o">.</span><span class="n">addModel</span><span class="p">(</span><span class="n">mt</span><span class="p">,</span><span class="n">mm</span><span class="p">)</span>
+
+    <span class="n">mm</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.shared.model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Kernel options &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Displaying and postprocessing results of LMGC90" href="vizpost_index.html" />
+    <link rel="prev" title="Interactions options" href="chipy_interaction.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vizpost_index.html" title="Displaying and postprocessing results of LMGC90"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_interaction.html" title="Interactions options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Kernel options</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="kernel-options">
+<h1>Kernel options<a class="headerlink" href="#kernel-options" title="Permalink to this headline">¶</a></h1>
+<ul>
+<li><p>2D</p>
+<p>** Options**</p>
+</li>
+<li><p>3D</p>
+<p>Two ways are possible to call the contact solver : flat or macro.</p>
+<p>Be careful to not mixing functions dedicated to a given solver.</p>
+<ul>
+<li><p>flat solver</p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ScrambleContactOrder" title="pylmgc90.chipy.lmgc90.nlgs_3D_ScrambleContactOrder"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ScrambleContactOrder()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_QuickScrambleContactOrder" title="pylmgc90.chipy.lmgc90.nlgs_3D_QuickScrambleContactOrder"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_QuickScrambleContactOrder()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ReverseContactOrder" title="pylmgc90.chipy.lmgc90.nlgs_3D_ReverseContactOrder"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ReverseContactOrder()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_SetCheckType" title="pylmgc90.chipy.lmgc90.nlgs_SetCheckType"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_SetCheckType()</span></code></a> (check_type, tolerance, relaxation)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_ExPrep" title="pylmgc90.chipy.lmgc90.nlgs_ExPrep"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_ExPrep()</span></code></a> (storage)</p>
+<blockquote>
+<div><p><strong>NLGS</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ExIter" title="pylmgc90.chipy.lmgc90.nlgs_3D_ExIter"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ExIter()</span></code></a> (nb_iter)</p>
+<p>convergence = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_AfterIterCheck" title="pylmgc90.chipy.lmgc90.nlgs_3D_AfterIterCheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_AfterIterCheck()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ExPost" title="pylmgc90.chipy.lmgc90.nlgs_3D_ExPost"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ExPost()</span></code></a></p>
+<p><strong>Jacobi</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ExIterJacobi" title="pylmgc90.chipy.lmgc90.nlgs_3D_ExIterJacobi"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ExIterJacobi()</span></code></a> (nb_iter)</p>
+<p>convergence = <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_AfterIterCheckJacobi" title="pylmgc90.chipy.lmgc90.nlgs_3D_AfterIterCheckJacobi"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_AfterIterCheckJacobi()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ExPostJacobi" title="pylmgc90.chipy.lmgc90.nlgs_3D_ExPostJacobi"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ExPostJacobi()</span></code></a></p>
+</div></blockquote>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_DisplayAfterIterCheck" title="pylmgc90.chipy.lmgc90.nlgs_3D_DisplayAfterIterCheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_DisplayAfterIterCheck()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ScaleRloc" title="pylmgc90.chipy.lmgc90.nlgs_3D_ScaleRloc"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ScaleRloc()</span></code></a></p>
+</div></blockquote>
+</li>
+<li><p>macro solver</p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_SetWithQuickScramble" title="pylmgc90.chipy.lmgc90.nlgs_3D_SetWithQuickScramble"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_SetWithQuickScramble()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_UseJacobiSolver" title="pylmgc90.chipy.lmgc90.nlgs_3D_UseJacobiSolver"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_UseJacobiSolver()</span></code></a> (True|False)</p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ExSolver" title="pylmgc90.chipy.lmgc90.nlgs_3D_ExSolver"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ExSolver()</span></code></a> (storage, checktype, tol, relax, nb_iter_check, nb_block_iter)</p>
+</div></blockquote>
+</li>
+<li><p>Common functions</p>
+<blockquote>
+<div><p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_ComputeRnod" title="pylmgc90.chipy.lmgc90.nlgs_3D_ComputeRnod"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_ComputeRnod()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_DisplayTacInfo" title="pylmgc90.chipy.lmgc90.nlgs_3D_DisplayTacInfo"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_DisplayTacInfo()</span></code></a> (itac)</p>
+</div></blockquote>
+</li>
+</ul>
+<blockquote>
+<div><p><strong>Options</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_DiagonalResolution" title="pylmgc90.chipy.lmgc90.nlgs_3D_DiagonalResolution"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_DiagonalResolution()</span></code></a></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_IsInitialized" title="pylmgc90.chipy.lmgc90.nlgs_3D_IsInitialized"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_IsInitialized()</span></code></a></p>
+<p><strong>Output</strong></p>
+<p><a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.nlgs_3D_WriteNormCheck" title="pylmgc90.chipy.lmgc90.nlgs_3D_WriteNormCheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">nlgs_3D_WriteNormCheck()</span></code></a></p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_interaction.html"
+                        title="previous chapter">Interactions options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vizpost_index.html"
+                        title="next chapter">Displaying and postprocessing results of LMGC90</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chipy_kernel.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vizpost_index.html" title="Displaying and postprocessing results of LMGC90"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_interaction.html" title="Interactions options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Kernel options</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>3. Programming rules &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4. How to add a contact law ?" href="dev_contact_law.html" />
+    <link rel="prev" title="2. Some theory around DEM (Discrete Element Methods)" href="dev_theory.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_contact_law.html" title="4. How to add a contact law ?"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dev_theory.html" title="2. Some theory around DEM (Discrete Element Methods)"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" accesskey="U">Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">3. </span>Programming rules</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="programming-rules">
+<h1><span class="section-number">3. </span>Programming rules<a class="headerlink" href="#programming-rules" title="Permalink to this headline">¶</a></h1>
+<section id="general-informations-on-software-development">
+<h2><span class="section-number">3.1. </span>General informations on Software development<a class="headerlink" href="#general-informations-on-software-development" title="Permalink to this headline">¶</a></h2>
+<p>Know the language! This implies to know:</p>
+<ul class="simple">
+<li><p>the syntax of the language</p></li>
+<li><p>what you can do with what feature of the language (OOP with C++ and Python, not with Fortra9x and C)</p></li>
+<li><p>understand what you want to do and how</p></li>
+</ul>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">function </span><span class="n">f</span><span class="w"></span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="w"></span>
+<span class="w">  </span><span class="kt">logical </span><span class="n">is_first</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">is_first</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    </span><span class="n">is_first</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span><span class="w"></span>
+<span class="w">    </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span>
+<span class="k">  end if</span>
+
+<span class="k">  </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="k">end function</span>
+
+<span class="k">print</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">(),</span><span class="w"> </span><span class="n">f</span><span class="p">()</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Having good coding practice! They generally are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>commenting the code</p></li>
+<li><p>write tests</p></li>
+<li><p>choosing naming convention</p></li>
+</ul>
+</div></blockquote>
+<p>Some general tools to use:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A good text editor or IDE : geany, eclipse</p></li>
+<li><p>Automatic documentation : doxygen, docstrings</p></li>
+<li><p>Debugger   : gdb (&gt;=7.2?), ddt</p></li>
+<li><p>Profiling  : valgrind, gprof</p></li>
+</ul>
+</div></blockquote>
+<section id="short-example">
+<h3><span class="section-number">3.1.1. </span>Short example<a class="headerlink" href="#short-example" title="Permalink to this headline">¶</a></h3>
+<p>Check the influence of implementation and compilation options on restitution time.
+Try the following code</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="o">=</span><span class="mi">10000</span><span class="w"></span>
+<span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="w"></span>
+<span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tab</span><span class="w"></span>
+
+<span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"></span>
+<span class="w">  </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="w"></span>
+<span class="w">    </span><span class="n">tab</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">tab</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">end do</span>
+<span class="k">end do</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Then try this version</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="o">=</span><span class="mi">10000</span><span class="w"></span>
+<span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="w"></span>
+<span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tab</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="w"></span>
+<span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"></span>
+<span class="w">    </span><span class="n">tab</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">tab</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="k">end do</span>
+<span class="k">end do</span><span class="w"></span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td colspan="2" rowspan="2"><p>compil option</p></td>
+<td rowspan="2"><p>-O0</p></td>
+<td rowspan="2"><p>-O3</p></td>
+</tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"><td rowspan="2"><p>time</p></td>
+<td><p>i,j</p></td>
+<td><p>1.92</p></td>
+<td><p>1.52</p></td>
+</tr>
+<tr class="row-even"><td><p>j,i</p></td>
+<td><p>0.82</p></td>
+<td><p>0.3</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="reminder-on-fortran-9x">
+<h2><span class="section-number">3.2. </span>Reminder on Fortran 9x<a class="headerlink" href="#reminder-on-fortran-9x" title="Permalink to this headline">¶</a></h2>
+<section id="module">
+<h3><span class="section-number">3.2.1. </span>Module<a class="headerlink" href="#module" title="Permalink to this headline">¶</a></h3>
+<p>A module is a code block gathering type definition, variables declarations and functions.
+By default everything in a module is public to other modules/porgram.
+It is possible to hide parts of module using the <cite>private</cite> option, or
+to use only a part of a module using the <cite>only</cite> option.</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">module </span><span class="n">test</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">implicit none</span>
+
+<span class="k">  private</span>
+
+<span class="k">  </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fact</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">public </span><span class="n">f</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">contains</span>
+
+<span class="k">  subroutine </span><span class="n">f</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">v</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">r</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fact</span><span class="w"></span>
+<span class="w">  </span><span class="k">end subroutine</span>
+
+<span class="k">end module</span>
+
+
+<span class="k">program </span><span class="n">p</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">use </span><span class="n">test</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">f</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">implicit none</span>
+
+<span class="k">  </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">val</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">call </span><span class="n">f</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="mf">3.d0</span><span class="p">)</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">!fact = 3 ! not possible</span>
+<span class="w">  </span><span class="k">print</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="n">val</span><span class="w"></span>
+
+<span class="k">end program</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="derived-type">
+<h3><span class="section-number">3.2.2. </span>Derived type<a class="headerlink" href="#derived-type" title="Permalink to this headline">¶</a></h3>
+<p>A derived type is a user defined type allowing to gather
+data in a single structure. The content of a derived type
+is subject to <cite>public</cite>/<cite>private</cite> options.</p>
+<p>The two ways to modify the content of a derived type variable are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>acces to the field directly if the content is public</p></li>
+<li><p>write accesor functions if the content is private</p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">module </span><span class="n">testing</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">private</span>
+
+<span class="k"> public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="w"></span>
+
+<span class="w"> </span><span class="k">type </span><span class="n">T_test</span><span class="w"></span>
+<span class="w">    </span><span class="k">private</span>
+<span class="k">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="k">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
+<span class="w">  </span><span class="k">end type</span>
+
+<span class="k">  type</span><span class="p">(</span><span class="n">T_test</span><span class="p">),</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">toto</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">contains</span>
+
+<span class="k">  subroutine </span><span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">v</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    type</span><span class="p">(</span><span class="n">T_test</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">t</span><span class="w"></span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">v</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">t</span><span class="p">%</span><span class="k">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">t</span><span class="p">%</span><span class="n">id</span><span class="w"></span>
+<span class="w">  </span><span class="k">end subroutine</span>
+
+<span class="k">end module</span>
+
+<span class="k">program </span><span class="n">p</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">use </span><span class="n">testing</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">implicit none</span><span class="w"></span>
+
+<span class="w">  </span><span class="c">!toto%ID = 3 !not possible</span>
+
+<span class="w">  </span><span class="k">call </span><span class="n">f</span><span class="p">(</span><span class="n">toto</span><span class="p">,</span><span class="mf">5.d0</span><span class="p">)</span><span class="w"></span>
+
+<span class="k">end program</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
+<section id="coding-rules-within-lmgc90">
+<h3><span class="section-number">3.2.3. </span>Coding rules within LMGC90<a class="headerlink" href="#coding-rules-within-lmgc90" title="Permalink to this headline">¶</a></h3>
+<p>The general structure of a module in the core of LMGC90 is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a derived type</p></li>
+<li><p>subroutines related to the data of this derived type</p></li>
+<li><p>all data of the derived type, usually on the form of an array</p></li>
+</ul>
+</div></blockquote>
+<p>Thus the derived types and variables of a module are private and
+only subroutines are made public. This subroutines are getter/setter
+which works with the indices of the data to modify. Sometimes there
+is a getter on the pointer itself.</p>
+<p>Each module is responsible for the memory allocation of its data. There
+may be a function sizing the array, but it is never possible to give in
+input an array allocated outside LMGC90. Thus there are getter on pointer
+but <strong>never</strong> setter on pointer.</p>
+<p>A derived type starts with <cite>T_</cite>. If a derived type is named
+<cite>T_xxx</cite>, then there is an array of this type (usually allocatable)
+named <cite>xxx</cite> in the module. In the module there is function which
+allocate the array. All methods should, when possible, work only
+on one element of the array; in that case the index (id) of the
+array is the first input data. In that case the loop parameter is
+often named <cite>ixxx</cite> or <cite>i_xxx</cite>.</p>
+<p>Having method working only on one object at a time in the Core allows
+to have different wrapper functions to work on all of them or just a
+subset in the ChiPy wrapper part. Thus all openMP directives for
+parallelization should be in the ChiPy part. The only exception is
+the contact solver module where there is no choice but to put these
+directives within the Core module.</p>
+<p>Here are general fake example on module implementation and naming habit:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">module </span><span class="n">RBDY2</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">private</span>
+
+<span class="k">  type </span><span class="n">T_body</span><span class="w"></span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">id</span><span class="w"></span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">val</span><span class="w"></span>
+<span class="w">  </span><span class="k">end type</span>
+
+<span class="k">  type</span><span class="p">(</span><span class="n">T_body</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">bdyty</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">public </span><span class="n">set_value</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">contains</span>
+
+<span class="k">  subroutine </span><span class="n">set_value</span><span class="p">(</span><span class="n">ibdyty</span><span class="p">,</span><span class="w"> </span><span class="n">i4</span><span class="p">,</span><span class="w"> </span><span class="n">r8</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">integer</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibdyty</span><span class="p">,</span><span class="w"> </span><span class="n">i4</span><span class="w"></span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span><span class="w">   </span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">r8</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">bdyty</span><span class="p">(</span><span class="n">ibdyty</span><span class="p">)%</span><span class="n">id</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">i4</span><span class="w"></span>
+<span class="w">    </span><span class="n">bdyty</span><span class="p">(</span><span class="n">ibdyty</span><span class="p">)%</span><span class="n">val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r8</span><span class="w"></span>
+<span class="w">  </span><span class="k">end subroutine</span>
+
+<span class="k">end module</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Whenever possible a module always has this structure. There are some cases when
+it is not possible. In the <cite>shared</cite> directory, there is a set of modules which
+are accessible to every other modules. In these are defined some data structure
+(like the general entity index list <cite>G_i_list</cite>), or global variables (like <cite>H</cite>
+the time step).</p>
+<p>Naming habits:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>bdyty  : BoDY TYpe array</p></li>
+<li><p>blmty  : Bulk eLeMent TYpe array</p></li>
+<li><p>tacty  : conTACtor TYpe array</p></li>
+<li><p>nodty  : NODe TYpe array</p></li>
+<li><p>gpv    : Gauss Point Value</p></li>
+<li><p>dof    : Degrees Of Freedom</p></li>
+<li><p>drvdof : Driven Degrees Of Freedom</p></li>
+<li><p>vlocy  : Velocity</p></li>
+<li><p>i4     : integer on 4 bytes</p></li>
+<li><p>r8     : real on 8 bytes</p></li>
+<li><p>cx     : string of size ‘x’</p></li>
+<li><p>clin   : character line</p></li>
+<li><p>G_clin : global character line</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="parameters-management-within-lmgc90">
+<h3><span class="section-number">3.2.4. </span>Parameters management within LMGC90<a class="headerlink" href="#parameters-management-within-lmgc90" title="Permalink to this headline">¶</a></h3>
+<p>There are many external parameters coming either from Python or the DATBOX files reading.
+These parameters are sometimes strings, and the Core should choose actions depending on
+the value of the string. This is done with the <cite>select case</cite> statement in Fortran. But
+doing a selection using is costly in terms of operation. It is best to do the selection
+on an integer id. The <cite>parameters</cite> module is in charge of this task.</p>
+<p>This module holds a list of id and through two functions, maps the integer id and the
+string. These functions do not throw an error if an unknown id or name is given in input.
+It is up to the calling function to check the results and manage the result if the need
+arise.</p>
+</section>
+<section id="general-ideas">
+<h3><span class="section-number">3.2.5. </span>General ideas<a class="headerlink" href="#general-ideas" title="Permalink to this headline">¶</a></h3>
+<p>Never ever use tabulation !</p>
+<p>Check if a function exists before wanting to coding it, or if a combination of
+existing one would help.</p>
+<p>At the very least doxygen comment any new function and its inputs/outputs.
+In doing so, there are some rules to respect in order to obtain a “nice”
+output (at least with sphinx):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Parameters definition must be the last block</p></li>
+<li><p>Do not use the <cite>‘</cite> character, but the <cite>“</cite> instead</p></li>
+<li><p>Try to avoid the <cite>_</cite> charcter at the end of a word</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3. Programming rules</a><ul>
+<li><a class="reference internal" href="#general-informations-on-software-development">3.1. General informations on Software development</a><ul>
+<li><a class="reference internal" href="#short-example">3.1.1. Short example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reminder-on-fortran-9x">3.2. Reminder on Fortran 9x</a><ul>
+<li><a class="reference internal" href="#module">3.2.1. Module</a></li>
+<li><a class="reference internal" href="#derived-type">3.2.2. Derived type</a></li>
+<li><a class="reference internal" href="#coding-rules-within-lmgc90">3.2.3. Coding rules within LMGC90</a></li>
+<li><a class="reference internal" href="#parameters-management-within-lmgc90">3.2.4. Parameters management within LMGC90</a></li>
+<li><a class="reference internal" href="#general-ideas">3.2.5. General ideas</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dev_theory.html"
+                        title="previous chapter"><span class="section-number">2. </span>Some theory around DEM (Discrete Element Methods)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dev_contact_law.html"
+                        title="next chapter"><span class="section-number">4. </span>How to add a contact law ?</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dev_development.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_contact_law.html" title="4. How to add a contact law ?"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dev_theory.html" title="2. Some theory around DEM (Discrete Element Methods)"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" >Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">3. </span>Programming rules</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

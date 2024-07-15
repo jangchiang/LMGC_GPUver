@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Model definition &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interaction model and parameters definition" href="pre_interaction.html" />
+    <link rel="prev" title="Material definition" href="pre_material.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_interaction.html" title="Interaction model and parameters definition"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_material.html" title="Material definition"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Model definition</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="model-definition">
+<h1>Model definition<a class="headerlink" href="#model-definition" title="Permalink to this headline">¶</a></h1>
+<p>Mainly with the <a class="reference internal" href="pre_classes.html#pylmgc90.pre.model" title="pylmgc90.pre.model"><code class="xref py py-class docutils literal notranslate"><span class="pre">model</span></code></a></p>
+<section id="rigid">
+<h2>Rigid:<a class="headerlink" href="#rigid" title="Permalink to this headline">¶</a></h2>
+<p>Available elements:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Point : Rxx2D</p></li>
+<li><p>Point : Rxx3D</p></li>
+</ul>
+</div></blockquote>
+<p>Available options: <strong>None</strong></p>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mod</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rigid&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Rxx2D&#39;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="mechanical-mecax">
+<h2>Mechanical (MECAx) :<a class="headerlink" href="#mechanical-mecax" title="Permalink to this headline">¶</a></h2>
+<p>Available elements (I: isoparametric, B: bar, D: discrete, S: SHB) :</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>S2xxx : SPRNG (D), BARxx (B)</p></li>
+<li><p>T3xxx : T3xxx (I), DKTxx</p></li>
+<li><p>T6xxx : T6xxx (I)</p></li>
+<li><p>Q4xxx : Q4xxx (I), Q4P0x (I)</p></li>
+<li><p>Q8xxx : Q8xxx (I), Q8Rxx (I)</p></li>
+<li><p>TE4xx : TE4xx (I), TE4lx (I)</p></li>
+<li><p>TE10x : TE10x (I)</p></li>
+<li><p>H8xxx : H8xxx (I)</p></li>
+<li><p>H20xx : H20xx (I), H20Rx (I)</p></li>
+<li><p>PRI6x : PRI6x (I), SHB6x (S)</p></li>
+<li><p>PRI15 : PRI15 (I)</p></li>
+</ul>
+</div></blockquote>
+<p>Available options:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>kinematic : <cite>small</cite>, <cite>large</cite></p></li>
+<li><p>formulation : <cite>UpdtL</cite>, <cite>TotaL</cite></p></li>
+<li><p>mass_storage : <cite>lump_</cite>, <cite>coher</cite></p></li>
+<li><p>material :  <cite>elas_</cite> , <cite>elasd</cite>, <cite>neoh_</cite>, <cite>hyper</cite>, <cite>hyp_d</cite>, <cite>J2iso</cite>, <cite>J2mix</cite>, <cite>kvisc</cite></p></li>
+<li><p>anisotropy : <cite>iso__</cite>, <cite>ortho</cite></p></li>
+<li><p>external_model : <cite>MatL_</cite>, <cite>Demfi</cite>, <cite>Umat_</cite>, <cite>no___</cite></p></li>
+<li><p>discrete : <cite>yes__</cite>, <cite>no___</cite></p></li>
+<li><p>external_fields : list of string</p></li>
+<li><p>external_vfields : list of string</p></li>
+</ul>
+</div></blockquote>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mod</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Q4MLx&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Q4xxx&#39;</span><span class="p">,</span>
+                <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">external_model</span><span class="o">=</span><span class="s1">&#39;yes__&#39;</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="s1">&#39;elas_&#39;</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;iso__&#39;</span><span class="p">,</span> <span class="n">mass_storage</span><span class="o">=</span><span class="s1">&#39;lump_&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="thermal-therx">
+<h2>Thermal (THERx) :<a class="headerlink" href="#thermal-therx" title="Permalink to this headline">¶</a></h2>
+<p>Available elements (I: isoparametric, B: bar):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>S2xxx : S2xth (B)</p></li>
+<li><p>T3xxx : T3xxx (I)</p></li>
+<li><p>T6xxx : T6xxx (I)</p></li>
+<li><p>Q4xxx : Q4xxx (I)</p></li>
+<li><p>Q8xxx : Q8xxx (I), Q8Rxx (I)</p></li>
+<li><p>TE4xx : TE4xx (I)</p></li>
+<li><p>TE10x : TE10x (I)</p></li>
+<li><p>H8xxx : H8xxx (I)</p></li>
+<li><p>H20xx : H20xx (I), H20Rx (I)</p></li>
+</ul>
+</div></blockquote>
+<p>Available options:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>capacity_storage : <cite>lump_</cite>, <cite>coher</cite></p></li>
+<li><p>formulation : <cite>class</cite>, <cite>stdvf</cite>, <cite>linvf</cite></p></li>
+<li><p>external_model : <cite>yes__</cite>, <cite>no___</cite></p></li>
+<li><p>convection_type : <cite>supg_</cite>, <cite>cente</cite></p></li>
+<li><p>external_fields : list of string</p></li>
+<li><p>external_vfields : list of string</p></li>
+</ul>
+</div></blockquote>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Model_Thermique</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;DIFFU&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;THERx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;T3xxx&#39;</span><span class="p">,</span>
+                            <span class="n">dimension</span> <span class="o">=</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">external_model</span><span class="o">=</span><span class="s1">&#39;no___&#39;</span><span class="p">,</span> <span class="n">capacity_storage</span><span class="o">=</span><span class="s1">&#39;lump_&#39;</span><span class="p">,</span>
+                            <span class="n">formulation</span> <span class="o">=</span> <span class="s1">&#39;class&#39;</span><span class="p">,</span> <span class="n">external_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;COCO&#39;</span><span class="p">,</span><span class="s1">&#39;SPHV&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="porous-porox">
+<h2>Porous (POROx) :<a class="headerlink" href="#porous-porox" title="Permalink to this headline">¶</a></h2>
+<p>Available elements:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>T3xxx : T33xx</p></li>
+<li><p>T6xxx : T63xx</p></li>
+<li><p>Q4xxx : Q44xx</p></li>
+<li><p>Q8xxx : Q84xx</p></li>
+<li><p>TE4xx : TE44x</p></li>
+<li><p>TE10x : TE104</p></li>
+<li><p>H8xxx :H88xx</p></li>
+<li><p>H20xx :H208x</p></li>
+</ul>
+</div></blockquote>
+<p>Available options:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>kinematic : <cite>small</cite>, <cite>large</cite></p></li>
+<li><p>formulation : <cite>UpdtL</cite>, <cite>TotaL</cite></p></li>
+<li><p>mass_storage : <cite>lump_</cite>, <cite>coher</cite></p></li>
+<li><p>material : <cite>elas_</cite>, <cite>elasd</cite>, <cite>neoh_</cite>, <cite>hyper</cite>, <cite>hyp_d</cite>, <cite>J2iso</cite>, <cite>J2mix</cite>, <cite>kvisc</cite></p></li>
+<li><p>anisotropy : <cite>iso__</cite>, <cite>ortho</cite></p></li>
+<li><p>external_model : <cite>yes__</cite>, <cite>no___</cite></p></li>
+<li><p>capacity_storage : <cite>lump_</cite>, <cite>coher</cite></p></li>
+<li><p>convection_type  : <cite>supg_</cite>, <cite>char_</cite>, <cite>cente</cite></p></li>
+<li><p>physical_type: <cite>fluid</cite>, <cite>solid</cite></p></li>
+<li><p>external_fields : list of string</p></li>
+<li><p>external_vfields : list of string</p></li>
+</ul>
+</div></blockquote>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Porous_model</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;toto_&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;POROx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Q84xx&#39;</span><span class="p">,</span> <span class="n">dimension</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                         <span class="n">external_model</span><span class="o">=</span><span class="s1">&#39;no___&#39;</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;elas_&#39;</span><span class="p">,</span><span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;iso__&#39;</span><span class="p">,</span>
+                         <span class="n">mass_storage</span><span class="o">=</span><span class="s1">&#39;coher&#39;</span><span class="p">,</span>  <span class="n">physical_type</span> <span class="o">=</span> <span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="n">capacity_storage</span><span class="o">=</span><span class="s1">&#39;lump_&#39;</span><span class="p">,</span>
+                         <span class="n">convection_type</span> <span class="o">=</span> <span class="s1">&#39;supg_&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Model definition</a><ul>
+<li><a class="reference internal" href="#rigid">Rigid:</a></li>
+<li><a class="reference internal" href="#mechanical-mecax">Mechanical (MECAx) :</a></li>
+<li><a class="reference internal" href="#thermal-therx">Thermal (THERx) :</a></li>
+<li><a class="reference internal" href="#porous-porox">Porous (POROx) :</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_material.html"
+                        title="previous chapter">Material definition</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_interaction.html"
+                        title="next chapter">Interaction model and parameters definition</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_model.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_interaction.html" title="Interaction model and parameters definition"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_material.html" title="Material definition"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Model definition</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

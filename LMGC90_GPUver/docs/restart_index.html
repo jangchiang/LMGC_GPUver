@@ -1,0 +1,401 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Input and Output files in LMGC90 &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="List of functions available in pylmgc90.chipy.macro python module:" href="chipy_macro.html" />
+    <link rel="prev" title="Displaying and postprocessing results of LMGC90" href="vizpost_index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_macro.html" title="List of functions available in pylmgc90.chipy.macro python module:"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vizpost_index.html" title="Displaying and postprocessing results of LMGC90"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Input and Output files in LMGC90</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="input-and-output-files-in-lmgc90">
+<h1>Input and Output files in LMGC90<a class="headerlink" href="#input-and-output-files-in-lmgc90" title="Permalink to this headline">¶</a></h1>
+<p>There are four types of files involved with LMGC90 software :</p>
+<ul class="simple">
+<li><p>The input files stored within the <em>DATBOX</em> directory,</p></li>
+<li><p>The outputs stored in a single output HDF5 file (only one file remain in <em>OUTBOX</em>).
+If the HDF5 library has not been used during compilation the handling of output uses the historical files.
+This <a class="reference internal" href="#old-file-management"><span class="std std-ref">section</span></a> details the changes to bring to the next explanation.</p></li>
+<li><p>The paraview visualization files stored within the <em>DISPLAY</em> directory.</p></li>
+<li><p>The post-processing files stored within the <em>POSTPRO</em> directory.</p></li>
+</ul>
+<p>Usually these three directories are created next to the command and/or generation
+python script(s). But it can be usefull to have these directories somewhere
+else in the filetree, thus the <em>working directory</em> can be changed in the
+command script thanks to the command: <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.overall_SetWorkingDirectory" title="pylmgc90.chipy.lmgc90.overall_SetWorkingDirectory"><code class="xref py py-func docutils literal notranslate"><span class="pre">overall_SetWorkingDirectory()</span></code></a>.</p>
+<section id="input-files">
+<h2>Input files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h2>
+<p>The files inside the <em>DATBOX</em> directory are usually automatically
+generated with LMGC90’s preprocessor and contains:</p>
+<ul class="simple">
+<li><p><strong>*.DAT</strong> files : which describe the simulation,</p></li>
+<li><p><strong>*.INI</strong> files : which describe the state at
+the initial time step of the simulation.</p></li>
+</ul>
+<p>They are ASCII files in text format and their names cannot be changed.
+All the files within this directory come has a bundle and must not be
+changed <strong>by hand</strong> under the risk of breaking the consistency of the
+database when reading them again.</p>
+<p>All these files are read in one go with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">ReadDatbox</span><span class="p">(</span><span class="n">deformable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which in fact read all these <strong>*.DAT</strong> files using the functions</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">ReadBehaviours</span><span class="p">()</span> <span class="c1"># read BULK_BEHAV.DAT and TACT_BEHAV.DAT</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ReadModels</span><span class="p">()</span>     <span class="c1"># read MODELS.DAT (only if meshed bodies)</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ReadBodies</span><span class="p">()</span>     <span class="c1"># read BODIES.DAT</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ReadIniDof</span><span class="p">()</span>     <span class="c1"># read DOF.INI (necessary to avoid errors with polyr.vtu)</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">LoadBehaviours</span><span class="p">()</span> <span class="c1"># load read data into database</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">LoadModels</span><span class="p">()</span>     <span class="c1"># load read data into database</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">ReadDrivenDof</span><span class="p">()</span>  <span class="c1"># read DRV_DOF.DAT</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">LoadTactors</span><span class="p">()</span>    <span class="c1"># load read data into database</span>
+</pre></div>
+</div>
+<p>then the initial state is read from the <strong>*.INI</strong> files using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="output-files">
+<h2>Output files<a class="headerlink" href="#output-files" title="Permalink to this headline">¶</a></h2>
+<p>The output file is an HDF5 portable binary file, which name is
+chosen by the user in the computation script. It stores for
+each desired time step the state of the degrees of freedom,
+the Gauss point values if there exist meshed bodies in the simulation
+and the interactions informations.</p>
+<p>To set the file in which to save the output, before the time loop,
+there must be a call to the function</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">InitHDF5</span><span class="p">(</span> <span class="s1">&#39;lmgc90.h5&#39;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>This allows to set any file in which to save the database, the name
+of the file provided is relative to the working directory (i.e. where
+the <em>DATBOX</em> directory is).</p>
+<p>For the moment this file is not self sufficient since it goes as a pair
+with the <em>DATBOX</em> directory which has been read beforehand.</p>
+<p>Inside the time loop, there must be a call to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">WriteOut</span><span class="p">(</span> <span class="n">freq</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>which will write the state of the database inside it
+(<em>Vloc_Rloc</em>, <em>DOF</em>  and <em>GPV</em> in a single group every
+<cite>freq</cite> time step). Each time the function
+writes inside the file, an internal index is increased and used
+to reference the state.</p>
+<p>To know what is inside the HDF5 file, the <em>h5dump</em> command can be used
+to generate an ASCII text file. Otherwise the <em>h5py</em> python module can
+be used to generate a dictionnary-like object allowing to get the
+stored values. For example to get the number of records in the file one can do</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="n">hf</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;lmgc90.h5&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span> <span class="n">hf</span><span class="p">[</span><span class="s1">&#39;Simulation/nb_record&#39;</span><span class="p">][()]</span> <span class="p">)</span> <span class="p">)</span>
+<span class="o">...</span>
+<span class="n">hf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To get some information on what is available inside the file,
+explore the content of the <strong>Help</strong> group.</p>
+</section>
+<section id="display-files">
+<h2>Display files<a class="headerlink" href="#display-files" title="Permalink to this headline">¶</a></h2>
+<p>Display files management has already been described <a class="reference internal" href="vizpost_index.html"><span class="doc">here</span></a>.</p>
+</section>
+<section id="restart">
+<h2>Restart<a class="headerlink" href="#restart" title="Permalink to this headline">¶</a></h2>
+<p>In some cases, it is wanted to put the database state at a
+particular time step; for example when wanting to restart a computation
+which as been interrupted or using the final state of a previous simulation
+which has prepared your sample (a packing for example) before changing
+the boundary conditions for example.</p>
+<p>Once the  <strong>DATBOX</strong> directory has been read, an initial state can be read
+from the <strong>lmgc90.h5</strong> to overwrite the one read from the <strong>*.INI</strong> files.
+This is done simply by providing the output index to use and the name of the
+file in which to read the new state.</p>
+<p>Thus if you want to read the i-th record of your <strong>lmgc90.h5</strong> HDF5 file you must
+use</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">(</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;lmgc90.h5&#39;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>It must be pointed out here that contrary to the call to <strong>chipy.InitHDF5</strong> which define the filename relatively to the working directory, when reading you must provide the path relatively to the python script.</p>
+<p>Then, when wanting to write the output, you can either provide a new file name
+to create a second one, or append into an existing file by providing the name
+of an existing one.</p>
+<p>When appending to a file, all records after the current time step will be deleted.
+If no initial state is read, everything is deleted.</p>
+<p>It must be emphasized that when reading from the <strong>DATBOX</strong> directory,
+everything must be read from it especially the <strong>*.INI</strong> files. And only
+once everything is read (after the <strong>LoadTactor</strong> command is run - see below), can the new state be overwritten
+by reading a new state.</p>
+</section>
+<section id="a-posteriori-visualization">
+<h2>A posteriori visualization<a class="headerlink" href="#a-posteriori-visualization" title="Permalink to this headline">¶</a></h2>
+<p>Since any time step saved can be read again, it is very simple to
+generate the visualisation files a posteriori.</p>
+<p>One needs to read the DATBOX, initialize the writing of the display
+files, then looping on the number of records read the HDF5 file and
+write the display files</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="n">h5_file</span> <span class="o">=</span> <span class="s1">&#39;lmgc90.h5&#39;</span>
+<span class="n">hf</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">h5_file</span><span class="p">)</span>
+<span class="n">nb_record</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">hf</span><span class="p">[</span><span class="s1">&#39;Simulation/nb_record&#39;</span><span class="p">][()]</span> <span class="p">)</span>
+<span class="n">dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">hf</span><span class="p">[</span><span class="s1">&#39;Simulation/dimension&#39;</span><span class="p">][()]</span> <span class="p">)</span>
+<span class="n">hf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="kn">from</span> <span class="nn">pylmgc90</span> <span class="kn">import</span> <span class="n">chipy</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">checkDirectories</span><span class="p">()</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">SetDimension</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">ReadDatbox</span><span class="p">()</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">OpenDisplayFiles</span><span class="p">()</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">ComputeMass</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">nb_record</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">):</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">h5_file</span><span class="p">)</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ComputeFext</span><span class="p">()</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ComputeRnod</span><span class="p">()</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">(</span><span class="n">freq_display</span><span class="p">)</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">CloseDisplayFiles</span><span class="p">()</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="from-input-file-to-pre">
+<h2>From input file to pre<a class="headerlink" href="#from-input-file-to-pre" title="Permalink to this headline">¶</a></h2>
+<p>It is sometimes desired to read the <strong>DATBOX</strong> directory
+to obtain the <em>avatar</em> objects and to load a particular
+state from the output files. It is possible to do so
+with the <cite>pre.readDatbox</cite> and <cite>pre.readState</cite> functions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pylmgc90</span> <span class="kn">import</span> <span class="n">pre</span>
+
+<span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">nstep</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">mats</span><span class="p">,</span> <span class="n">mods</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">sees</span><span class="p">,</span> <span class="n">inters</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">readDatbox</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;OUTBOX&#39;</span><span class="p">)</span>
+<span class="n">pre</span><span class="o">.</span><span class="n">readState</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="s1">&#39;OUTBOX&#39;</span><span class="p">,</span> <span class="n">nstep</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For technical reasons, when reading output state from an HDF5 file, not only the <em>avatar</em>
+container must be provided in input, but also the <em>tacts</em>
+container if you want to recover the interactions in a numpy array (<em>inters</em>)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">inters</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">readState</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="s1">&#39;OUTBOX&#39;</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="s1">&#39;lmgc90.h5&#39;</span><span class="p">,</span> <span class="n">tacts</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="smart-restart">
+<h2>Smart restart<a class="headerlink" href="#smart-restart" title="Permalink to this headline">¶</a></h2>
+<p><em>Notice: the following instructions were written before
+the `pre.readDatbox` and `pre.readState` functions were
+available. Thus the example files were modified to use
+these functions instead, but the following instructions
+were kept as is because they show an interesting way
+to use python and pickle module.</em></p>
+<p>By combining some python modules allowing to save very
+efficiently the database from the pre-processing and
+by using the <a class="reference internal" href="chipy_lmgc90.html#pylmgc90.chipy.lmgc90.overall_SetWorkingDirectory" title="pylmgc90.chipy.lmgc90.overall_SetWorkingDirectory"><code class="xref py py-func docutils literal notranslate"><span class="pre">overall_SetWorkingDirectory()</span></code></a> and
+the <code class="xref py py-func docutils literal notranslate"><span class="pre">chipy.ReadIni()</span></code>, it is possible to do a
+first computation, then change the boundary condition
+and run a second computation using the final state of
+the previous computation as the initial state of the
+new one.</p>
+<p>In the directory <strong>examples/Tutorial/advanced/smart_restart</strong>, you
+will find all the scripts used to run the example described
+in this section. The <strong>2Ddeposit.py</strong> script is an
+example of pre-processing doing a periodic deposit of a
+2D sample of disk in a channel. Since the computation must
+manage the periodicity, the walls are clusters of disks.</p>
+<p>The main changes compared to a standard generation script
+is that the <strong>DATBOX</strong> directory is writen within a <strong>Press</strong>
+directory. The second one is that since there will be a
+second computation but with some slight modifications to
+the <strong>DATBOX</strong> directory the <cite>pickle</cite> Python module is used
+to save some data from the pre-processing script in a file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;pre_data.pickle&#39;</span><span class="p">,</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+  <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="p">[</span><span class="n">down</span><span class="p">,</span><span class="n">up</span><span class="p">],</span> <span class="n">mats</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">svs</span><span class="p">,</span> <span class="n">post</span><span class="p">),</span> <span class="n">f</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then you can run the <strong>comp_press.py</strong> file which
+will run the compression of the sample in the <strong>Press</strong>
+directory thanks to the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">overall_SetWorkingDirectory</span><span class="p">(</span><span class="s1">&#39;Press&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The rest is a classic command script.</p>
+<p>Once this first computation is done the <strong>Press2Shear.py</strong>
+script will read the <strong>pre_data.pickle</strong> file generated during
+the pre-processing step, change the boundary condition from
+a vertical force to a horizontal velocity on the upper wall,
+change the friction coefficient value and then add
+a thermo-rigid model to the grains. Finally the corresponding
+<strong>DATBOX</strong> directory is written in the <strong>Shear</strong> directory.
+Since the pre-processing of the thermo-rigid model is currently
+not very well supported, you need to have the scripts:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>MP_mat.py</strong></p></li>
+<li><p><strong>MP_mod.py</strong></p></li>
+</ul>
+</div></blockquote>
+<p>Before being able to use the <cite>Press2Shear.py</cite> script.</p>
+<p>The last step is to run this shear computation. To this
+end use the <strong>comp_shear.py</strong> script which will
+use <strong>Shear</strong> as the working directory thanks to the
+command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chipy</span><span class="o">.</span><span class="n">overall_SetWorkingDirectory</span><span class="p">(</span><span class="s1">&#39;Shear&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then the last step of the <strong>Press</strong> computation
+is used as an initial step of the current computation.
+First, one has to look for the last written record, a generic
+way to do this independtly of using HDF5 or not is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;Press&#39;</span><span class="p">,</span><span class="n">h5_file</span><span class="p">)</span> <span class="p">):</span>
+  <span class="kn">import</span> <span class="nn">h5py</span>
+  <span class="n">hf</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;Press/lmgc90.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+  <span class="n">reading_step</span><span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">hf</span><span class="p">[</span><span class="s1">&#39;Simulation/nb_record&#39;</span><span class="p">][()]</span> <span class="p">)</span>
+  <span class="n">hf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+  <span class="n">reading_step</span>      <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s1">&#39;../Press/OUTBOX/&#39;</span><span class="p">),</span> <span class="s1">&#39;DOF.OUT.*&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Then to read the following record thanks to the following block:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;Press&#39;</span><span class="p">,</span><span class="n">h5_file</span><span class="p">)</span> <span class="p">):</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">(</span><span class="n">reading_step</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;../Press&#39;</span><span class="p">,</span><span class="n">h5_file</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+  <span class="n">chipy</span><span class="o">.</span><span class="n">ReadIni</span><span class="p">(</span><span class="n">reading_step</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="old-file-management">
+<span id="id1"></span><h2>Old file management<a class="headerlink" href="#old-file-management" title="Permalink to this headline">¶</a></h2>
+<p>In fact to use old <strong>*.OUT</strong> files of <em>OUTBOX</em> directory,
+just never give a filename in the input of the <cite>chipy.ReadIni</cite>
+and <cite>chipy.WriteOut</cite> functions, and they will automatically read
+from, or write to, the correct ASCII files.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Input and Output files in LMGC90</a><ul>
+<li><a class="reference internal" href="#input-files">Input files</a></li>
+<li><a class="reference internal" href="#output-files">Output files</a></li>
+<li><a class="reference internal" href="#display-files">Display files</a></li>
+<li><a class="reference internal" href="#restart">Restart</a></li>
+<li><a class="reference internal" href="#a-posteriori-visualization">A posteriori visualization</a></li>
+<li><a class="reference internal" href="#from-input-file-to-pre">From input file to pre</a></li>
+<li><a class="reference internal" href="#smart-restart">Smart restart</a></li>
+<li><a class="reference internal" href="#old-file-management">Old file management</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vizpost_index.html"
+                        title="previous chapter">Displaying and postprocessing results of LMGC90</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chipy_macro.html"
+                        title="next chapter">List of functions available in pylmgc90.chipy.macro python module:</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/restart_index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_macro.html" title="List of functions available in pylmgc90.chipy.macro python module:"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vizpost_index.html" title="Displaying and postprocessing results of LMGC90"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Input and Output files in LMGC90</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

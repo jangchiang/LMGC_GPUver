@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Material definition &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Model definition" href="pre_model.html" />
+    <link rel="prev" title="Philosophy" href="pre_philosophie.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_model.html" title="Model definition"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_philosophie.html" title="Philosophy"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Material definition</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="material-definition">
+<h1>Material definition<a class="headerlink" href="#material-definition" title="Permalink to this headline">¶</a></h1>
+<p>A material is defined using <a class="reference internal" href="pre_classes.html#pylmgc90.pre.material" title="pylmgc90.pre.material"><code class="xref py py-class docutils literal notranslate"><span class="pre">material</span></code></a>. It consists in a
+name ( 5 characters), a type and a list of parameters which depends on
+the type.</p>
+<section id="rigid-type">
+<h2>RIGID type:<a class="headerlink" href="#rigid-type" title="Permalink to this headline">¶</a></h2>
+<p>only density is necessary</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tdur</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TDURx&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1000.</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="elas-type">
+<h2>ELAS type:<a class="headerlink" href="#elas-type" title="Permalink to this headline">¶</a></h2>
+<p>elastic material</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ma1</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;ELAS&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">0.25e+4</span><span class="p">,</span>
+                   <span class="n">elas</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">young</span><span class="o">=</span><span class="mf">0.1e+15</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;isotropic&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="elas-dila-type">
+<h2>ELAS_DILA type:<a class="headerlink" href="#elas-dila-type" title="Permalink to this headline">¶</a></h2>
+<p>elastic material</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ma1</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;ELAS_DILA&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">0.25e+4</span><span class="p">,</span>
+                   <span class="n">elas</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">young</span><span class="o">=</span><span class="mf">0.1e+15</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;isotropic&#39;</span><span class="p">,</span>
+                   <span class="n">dilatation</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">T_ref_meca</span><span class="o">=</span><span class="mf">20.</span> <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="visco-elas-type">
+<h2>VISCO_ELAS type:<a class="headerlink" href="#visco-elas-type" title="Permalink to this headline">¶</a></h2>
+<p>visco elastic material</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">steel</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;VISCO_ELAS&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">8.93e3</span><span class="p">,</span>
+                     <span class="n">elas</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;isotropic&#39;</span><span class="p">,</span> <span class="n">young</span><span class="o">=</span><span class="mf">1.17e11</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>
+                     <span class="n">viscous_model</span><span class="o">=</span><span class="s1">&#39;KelvinVoigt&#39;</span><span class="p">,</span> <span class="n">viscous_young</span><span class="o">=</span><span class="mf">1.17e9</span><span class="p">,</span> <span class="n">viscous_nu</span><span class="o">=</span><span class="mf">0.35</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="elas-plas-type">
+<h2>ELAS_PLAS type:<a class="headerlink" href="#elas-plas-type" title="Permalink to this headline">¶</a></h2>
+<p>visco elasto plastic material</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">steel</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;ELAS_PLAS&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">8.93e3</span><span class="p">,</span>
+                     <span class="n">elas</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;isotropic&#39;</span><span class="p">,</span> <span class="n">young</span><span class="o">=</span><span class="mf">1.17e11</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>
+                     <span class="n">critere</span><span class="o">=</span><span class="s1">&#39;Von-Mises&#39;</span><span class="p">,</span> <span class="n">isoh</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">iso_hard</span><span class="o">=</span><span class="mf">4.e8</span><span class="p">,</span> <span class="n">isoh_coeff</span><span class="o">=</span><span class="mf">1e8</span><span class="p">,</span> <span class="n">cinh</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">visc</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="thermo-elas-type">
+<h2>THERMO_ELAS type:<a class="headerlink" href="#thermo-elas-type" title="Permalink to this headline">¶</a></h2>
+<p>thermo elastic material</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;THERMO_ELAS&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                   <span class="n">elas</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">young</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;isotropic&#39;</span><span class="p">,</span> <span class="n">dilatation</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                   <span class="n">T_ref_meca</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="s1">&#39;field&#39;</span><span class="p">,</span> <span class="n">specific_capacity</span><span class="o">=</span><span class="s1">&#39;field&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="poro-elas-type">
+<h2>PORO_ELAS type:<a class="headerlink" href="#poro-elas-type" title="Permalink to this headline">¶</a></h2>
+<p>poro elastic material</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;PORO_ELAS&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                   <span class="n">elas</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span> <span class="n">young</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="s1">&#39;isotropic&#39;</span><span class="p">,</span>
+                   <span class="n">hydro_cpl</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="s1">&#39;field&#39;</span><span class="p">,</span> <span class="n">specific_capacity</span><span class="o">=</span><span class="s1">&#39;field&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="discrete-type">
+<h2>DISCRETE type:<a class="headerlink" href="#discrete-type" title="Permalink to this headline">¶</a></h2>
+<p>give explicitely the matrices of a 1D element</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;DISCRETE&#39;</span><span class="p">,</span> <span class="n">masses</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+                   <span class="n">stiffnesses</span><span class="o">=</span><span class="p">[</span><span class="n">kx</span><span class="p">,</span> <span class="n">ky</span><span class="p">,</span> <span class="n">kz</span><span class="p">],</span> <span class="n">viscosities</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="user-mat-type">
+<h2>USER_MAT type:<a class="headerlink" href="#user-mat-type" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to give a MatLib material file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">acier</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;steel&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;USER_MAT&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">file_mat</span><span class="o">=</span><span class="s1">&#39;elas.mat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Material definition</a><ul>
+<li><a class="reference internal" href="#rigid-type">RIGID type:</a></li>
+<li><a class="reference internal" href="#elas-type">ELAS type:</a></li>
+<li><a class="reference internal" href="#elas-dila-type">ELAS_DILA type:</a></li>
+<li><a class="reference internal" href="#visco-elas-type">VISCO_ELAS type:</a></li>
+<li><a class="reference internal" href="#elas-plas-type">ELAS_PLAS type:</a></li>
+<li><a class="reference internal" href="#thermo-elas-type">THERMO_ELAS type:</a></li>
+<li><a class="reference internal" href="#poro-elas-type">PORO_ELAS type:</a></li>
+<li><a class="reference internal" href="#discrete-type">DISCRETE type:</a></li>
+<li><a class="reference internal" href="#user-mat-type">USER_MAT type:</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_philosophie.html"
+                        title="previous chapter">Philosophy</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_model.html"
+                        title="next chapter">Model definition</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_material.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_model.html" title="Model definition"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_philosophie.html" title="Philosophy"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Material definition</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

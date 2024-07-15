@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Granular material &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Masonry" href="pre_masonry.html" />
+    <link rel="prev" title="Managing POSTPRO" href="pre_post.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_masonry.html" title="Masonry"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_post.html" title="Managing POSTPRO"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Granular material</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="granular-material">
+<h1>Granular material<a class="headerlink" href="#granular-material" title="Permalink to this headline">¶</a></h1>
+<p><a href="#id1"><span class="problematic" id="id2">|</span></a>This part is dedicated to the generation of granular material samples.
+<a href="#id3"><span class="problematic" id="id4">|</span></a>On the whole the definition of a granular sample is separeted in three steps:</p>
+<ol class="arabic simple">
+<li><p>generation of a list of boundary radii according to a known granulometry</p></li>
+<li><p>positioning of grains with the generated boundary radii according to a deposit method</p></li>
+<li><p>creation of the real sample of particles</p></li>
+</ol>
+<p>In the following sections are presented what functions are available within the current version of LMGC90’s preprocessor
+for each of these steps. Many examples using these functions are
+available in the examples of <strong>LMGC90</strong>.</p>
+<section id="list-of-radii">
+<h2>List of radii<a class="headerlink" href="#list-of-radii" title="Permalink to this headline">¶</a></h2>
+<p>A list of radii following a given granulometry is generated.
+The available functions are:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granulo_Monodisperse" title="pylmgc90.pre.granulo_Monodisperse"><code class="xref py py-func docutils literal notranslate"><span class="pre">granulo_Monodisperse()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granulo_Random" title="pylmgc90.pre.granulo_Random"><code class="xref py py-func docutils literal notranslate"><span class="pre">granulo_Random()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granulo_Uniform" title="pylmgc90.pre.granulo_Uniform"><code class="xref py py-func docutils literal notranslate"><span class="pre">granulo_Uniform()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granulo_TwoSizesNumber" title="pylmgc90.pre.granulo_TwoSizesNumber"><code class="xref py py-func docutils literal notranslate"><span class="pre">granulo_TwoSizesNumber()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granulo_TwoSizesVolume" title="pylmgc90.pre.granulo_TwoSizesVolume"><code class="xref py py-func docutils literal notranslate"><span class="pre">granulo_TwoSizesVolume()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granulo_ReadFromFile" title="pylmgc90.pre.granulo_ReadFromFile"><code class="xref py py-func docutils literal notranslate"><span class="pre">granulo_ReadFromFile()</span></code></a></p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<p>Let’s say we want to generate a sample of particules which each radius is randomly chosen between two radii.
+This is done thanks to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nb_particles</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">radius_min</span>   <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">radius_max</span>   <span class="o">=</span> <span class="mf">2.5</span>
+<span class="n">radii</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">granulo_Random</span><span class="p">(</span><span class="n">nb_particles</span><span class="p">,</span> <span class="n">radius_min</span><span class="p">,</span> <span class="n">radius_max</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="deposit">
+<h2>Deposit<a class="headerlink" href="#deposit" title="Permalink to this headline">¶</a></h2>
+<p>Once the list of bounded radii is obtained, the next step is to determine
+where to put grains in space. This is the role of the deposit functions
+which takes the list of radii as input and give a list of coordinates
+as output.
+There are two kinds of deposit function available: loose deposit on a
+lattice or dense deposit:</p>
+<ul>
+<li><p>2D</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.squareLattice2D" title="pylmgc90.pre.squareLattice2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">squareLattice2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.triangularLattice2D" title="pylmgc90.pre.triangularLattice2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">triangularLattice2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInBox2D" title="pylmgc90.pre.depositInBox2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInBox2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInDisk2D" title="pylmgc90.pre.depositInDisk2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInDisk2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInCouette2D" title="pylmgc90.pre.depositInCouette2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInCouette2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInDrum2D" title="pylmgc90.pre.depositInDrum2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInDrum2D()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>3D</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.cubicLattice3D" title="pylmgc90.pre.cubicLattice3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">cubicLattice3D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInBox3D" title="pylmgc90.pre.depositInBox3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInBox3D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInCylinder3D" title="pylmgc90.pre.depositInCylinder3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInCylinder3D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.depositInSphere3D" title="pylmgc90.pre.depositInSphere3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">depositInSphere3D()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>Dense deposit of particles are performed minimizing a potential. In
+our case it is the gravity potential which is minimized.</p>
+<p><strong>Warning:</strong> if the number of particles laid is inferior to the number of input radii, the
+granulometry may be changed on the output.</p>
+<p><strong>Warning:</strong> to avoid interpenetration between particles, a shrink based on the size of particles is used.</p>
+<p><strong>Example:</strong></p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">radii</span></code> variable generated in previous example, let us deposit it in 2-dimensionnal box:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lx</span> <span class="o">=</span> <span class="mf">150.</span>
+<span class="n">ly</span> <span class="o">=</span> <span class="mf">100.</span>
+<span class="p">[</span><span class="n">nb_laid_particles</span><span class="p">,</span> <span class="n">coors</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">depositInBox2D</span><span class="p">(</span><span class="n">radii</span><span class="p">,</span><span class="n">lx</span><span class="p">,</span><span class="n">ly</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="particle-generation">
+<h2>Particle generation<a class="headerlink" href="#particle-generation" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">Last step is to generate the <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar" title="pylmgc90.pre.avatar"><code class="xref py py-class docutils literal notranslate"><span class="pre">avatar</span></code></a> corresponding to each particle.</div>
+<div class="line">Several simple particle types can be automatically generated:</div>
+</div>
+<ul class="simple">
+<li><p>2D:</p>
+<ul>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidDisk" title="pylmgc90.pre.rigidDisk"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidDisk()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidCluster" title="pylmgc90.pre.rigidCluster"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidCluster()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidDiscreteDisk" title="pylmgc90.pre.rigidDiscreteDisk"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidDiscreteDisk()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidJonc" title="pylmgc90.pre.rigidJonc"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidJonc()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidPolygon" title="pylmgc90.pre.rigidPolygon"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidPolygon()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidOvoidPolygon" title="pylmgc90.pre.rigidOvoidPolygon"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidOvoidPolygon()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.deformableParticle2D" title="pylmgc90.pre.deformableParticle2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">deformableParticle2D()</span></code></a></p></li>
+</ul>
+</li>
+<li><p>3D</p>
+<ul>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidSphere" title="pylmgc90.pre.rigidSphere"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidSphere()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidPlan" title="pylmgc90.pre.rigidPlan"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidPlan()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidCylinder" title="pylmgc90.pre.rigidCylinder"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidCylinder()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidPolyhedron" title="pylmgc90.pre.rigidPolyhedron"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidPolyhedron()</span></code></a></p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Example:</strong></p>
+<a class="reference internal image-reference" href="_images/deposit.png"><img alt="deposit of triangles" class="align-right" src="_images/deposit.png" style="height: 150px;" /></a>
+<p>Finally the container of avatar must be filled:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mat</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TDURx&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">100.</span><span class="p">)</span>
+<span class="n">mod</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rigid&#39;</span><span class="p">,</span> <span class="n">physics</span><span class="o">=</span><span class="s1">&#39;MECAx&#39;</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="s1">&#39;Rxx2D&#39;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">bodies</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatars</span><span class="p">()</span>
+<span class="n">nb_vertices</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_laid_particles</span><span class="p">):</span>
+  <span class="n">body</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">rigidPolygon</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="n">radii</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">center</span><span class="o">=</span><span class="n">coors</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span> <span class="n">nb_vertices</span><span class="o">=</span><span class="n">nb_vertices</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+  <span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="wall-generation">
+<h2>Wall generation<a class="headerlink" href="#wall-generation" title="Permalink to this headline">¶</a></h2>
+<p>Even if in most cases straight plans are used to define the wall of a box,
+it is sometimes desired to have a rough wall like a cluster of disks/spheres.
+Here are the functions to create such a wall in a single line:</p>
+<ul class="simple">
+<li><p>2D</p>
+<ul>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.roughWall" title="pylmgc90.pre.roughWall"><code class="xref py py-func docutils literal notranslate"><span class="pre">roughWall()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.fineWall" title="pylmgc90.pre.fineWall"><code class="xref py py-func docutils literal notranslate"><span class="pre">fineWall()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.smoothWall" title="pylmgc90.pre.smoothWall"><code class="xref py py-func docutils literal notranslate"><span class="pre">smoothWall()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granuloRoughWall" title="pylmgc90.pre.granuloRoughWall"><code class="xref py py-func docutils literal notranslate"><span class="pre">granuloRoughWall()</span></code></a></p></li>
+</ul>
+</li>
+<li><p>3D</p>
+<ul>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.roughWall3D" title="pylmgc90.pre.roughWall3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">roughWall3D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.granuloRoughWall3D" title="pylmgc90.pre.granuloRoughWall3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">granuloRoughWall3D()</span></code></a></p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Example:</strong></p>
+<a class="reference internal image-reference" href="_images/deposit_with_l.png"><img alt="deposit of triangles with left wall" class="align-right" src="_images/deposit_with_l.png" style="height: 150px;" /></a>
+<p>To complete our example let’s create three walls for the box using the three first functions
+just to illustrate the differences between them. First the left wall:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">max_radius</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">radii</span><span class="p">)</span>
+<span class="n">mut</span>    <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">material</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;TDURx&#39;</span><span class="p">,</span> <span class="n">materialType</span><span class="o">=</span><span class="s1">&#39;RIGID&#39;</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1000.</span><span class="p">)</span>
+<span class="n">left</span>   <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">roughWall</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="n">radius_max</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ly</span><span class="p">],</span> <span class="n">theta</span><span class="o">=-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">ly</span> <span class="o">+</span> <span class="mf">2.</span><span class="o">*</span><span class="n">radius_max</span><span class="p">,</span>
+                       <span class="n">r</span><span class="o">=</span><span class="n">radius_max</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mut</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">)</span>
+<span class="n">left</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+<span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/deposit_with_lr.png"><img alt="deposit of triangles with left and right walls" class="align-right" src="_images/deposit_with_lr.png" style="height: 150px;" /></a>
+<p>Then the right wall:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">right</span>  <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">fineWall</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="n">lx</span><span class="o">+</span><span class="n">radius_max</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ly</span><span class="p">],</span> <span class="n">theta</span><span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">ly</span> <span class="o">+</span> <span class="mf">2.</span><span class="o">*</span><span class="n">radius_max</span><span class="p">,</span>
+                      <span class="n">r</span><span class="o">=</span><span class="n">radius_max</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mut</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">)</span>
+<span class="n">right</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+<span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/deposit_with_lrb.png"><img alt="deposit of triangles with left, right and bottom walls" class="align-right" src="_images/deposit_with_lrb.png" style="height: 150px;" /></a>
+<p>And finally the bottom of the box:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bottom</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">smoothWall</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="o">*</span><span class="n">lx</span><span class="p">,</span> <span class="o">-</span><span class="n">radius_max</span><span class="p">],</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">lx</span> <span class="o">+</span> <span class="mf">2.</span><span class="o">*</span><span class="n">radius_max</span><span class="p">,</span>
+                        <span class="n">h</span><span class="o">=</span><span class="n">radius_max</span><span class="p">,</span> <span class="n">nb_polyg</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">mut</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;WALLx&#39;</span><span class="p">)</span>
+<span class="n">bottom</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+<span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">bottom</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference download internal" download="" href="_downloads/87a4023b01874fcf169edd7e09bb7125/granular.py"><code class="xref download docutils literal notranslate"><span class="pre">this</span> <span class="pre">file</span></code></a> for the complete generation script.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Granular material</a><ul>
+<li><a class="reference internal" href="#list-of-radii">List of radii</a></li>
+<li><a class="reference internal" href="#deposit">Deposit</a></li>
+<li><a class="reference internal" href="#particle-generation">Particle generation</a></li>
+<li><a class="reference internal" href="#wall-generation">Wall generation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_post.html"
+                        title="previous chapter">Managing POSTPRO</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_masonry.html"
+                        title="next chapter">Masonry</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_granular.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_masonry.html" title="Masonry"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_post.html" title="Managing POSTPRO"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Granular material</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

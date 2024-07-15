@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>LMGC90 post-processor documentation &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Use of GMSH python module" href="gmsh_index.html" />
+    <link rel="prev" title="List of functions available in pylmgc90.chipy.lmgc90 python module:" href="chipy_lmgc90.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gmsh_index.html" title="Use of GMSH python module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_lmgc90.html" title="List of functions available in pylmgc90.chipy.lmgc90 python module:"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">LMGC90 post-processor documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="lmgc90-post-processor-documentation">
+<h1>LMGC90 post-processor documentation<a class="headerlink" href="#lmgc90-post-processor-documentation" title="Permalink to this headline">¶</a></h1>
+<p>As of late, most information provided
+by the historic postprocessing routines
+available with <code class="xref py py-func docutils literal notranslate"><span class="pre">chipy.WritePostproFiles()</span></code>
+(and associated functions) are also
+available with the python accessors
+(or with the HDF5 file).</p>
+<p>In this way there are some dedicated postprocessing
+function written purely in Python and provided
+in the <cite>post</cite> submodule.</p>
+<p>Currently there is only one functionality
+which allow to generate some paraview files
+for the <strong>central kernel</strong> of masonry
+structures [ref necessary].</p>
+<section id="data-generation">
+<h2>Data generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
+<p>To use this the following excerpt is to be included
+in a relevant command script</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pylmgc90</span> <span class="kn">import</span> <span class="n">post</span>
+
+<span class="n">post</span><span class="o">.</span><span class="n">OpenCentralKernelFiles</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># simulation part ...</span>
+<span class="c1">#</span>
+
+<span class="c1"># ... calls a simulation time loop</span>
+
+  <span class="n">chipy</span><span class="o">.</span><span class="n">WriteDisplayFiles</span><span class="p">(</span><span class="n">freq_display</span><span class="p">)</span>
+  <span class="n">time</span>   <span class="o">=</span> <span class="n">chipy</span><span class="o">.</span><span class="n">TimeEvolution_GetTime</span><span class="p">()</span>
+  <span class="n">f2f</span>    <span class="o">=</span> <span class="n">chipy</span><span class="o">.</span><span class="n">PRPRx_GetF2f2Inters</span><span class="p">()</span>
+  <span class="n">inters</span> <span class="o">=</span> <span class="n">chipy</span><span class="o">.</span><span class="n">getInteractions</span><span class="p">()</span>
+  <span class="n">post</span><span class="o">.</span><span class="n">WriteCentralKernelFiles</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">f2f</span><span class="p">,</span> <span class="n">inters</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<p>This will generate some <strong>ck_*.vtp</strong> files in the
+<strong>DISPLAY</strong> directory. The content of these files
+must be sorted (i.e. threshold in paraview) on
+their type to extract relevant data:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>type = 0 : the pressure center point with the reaction</p></li>
+<li><p>type = 1 : the face to face structured defined as a polygon, each vertex being an point of application of a force.
+The equivalent normal stress can be displayed in it.</p></li>
+<li><p>type = 2 : the central kernel polygon, a status can be display in it (1 if the pressure point is outside it, 0 if inside).</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="accessing-data">
+<h2>Accessing data<a class="headerlink" href="#accessing-data" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to access the raw data of
+the central kernel structure allowing to
+write those display files  with the function
+<code class="xref py py-func docutils literal notranslate"><span class="pre">post.central_kernel.get()</span></code> .</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">LMGC90 post-processor documentation</a><ul>
+<li><a class="reference internal" href="#data-generation">Data generation</a></li>
+<li><a class="reference internal" href="#visualization">Visualization</a></li>
+<li><a class="reference internal" href="#accessing-data">Accessing data</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_lmgc90.html"
+                        title="previous chapter">List of functions available in pylmgc90.chipy.lmgc90 python module:</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gmsh_index.html"
+                        title="next chapter">Use of GMSH python module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/post_index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gmsh_index.html" title="Use of GMSH python module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_lmgc90.html" title="List of functions available in pylmgc90.chipy.lmgc90 python module:"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">LMGC90 post-processor documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

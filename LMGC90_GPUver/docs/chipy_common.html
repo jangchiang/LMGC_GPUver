@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Common part of a script &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Time loop for rigid bodies" href="chipy_rigid.html" />
+    <link rel="prev" title="LMGC90 computation documentation" href="chipy_index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_rigid.html" title="Time loop for rigid bodies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chipy_index.html" title="LMGC90 computation documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" accesskey="U">LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Common part of a script</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="common-part-of-a-script">
+<h1>Common part of a script<a class="headerlink" href="#common-part-of-a-script" title="Permalink to this headline">¶</a></h1>
+<p>Here is a typical script using <em>chipy</em> functions.</p>
+<p>Almost every things may be driven by initializing parameters of this
+script.</p>
+<p>Specific tunings can be performed setting some additional options.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># importing chipy module</span>
+<span class="kn">from</span> <span class="nn">pylmgc90</span> <span class="kn">import</span> <span class="n">chipy</span>
+
+<span class="c1"># Initializing</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+
+<span class="c1"># checking/creating mandatory subfolders</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">checkDirectories</span><span class="p">()</span>
+
+<span class="c1"># logMes</span>
+<span class="c1"># chipy.utilities_DisableLogMes()</span>
+
+<span class="c1">#</span>
+<span class="c1"># defining some variables</span>
+<span class="c1">#</span>
+
+<span class="c1"># space dimension</span>
+<span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># modeling hypothesis ( 1 = plain strain, 2 = plain stress, 3 = axi-symmetry)</span>
+<span class="n">mhyp</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># time evolution parameters</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">nb_steps</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="c1"># theta integrator parameter</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1"># deformable True or False</span>
+<span class="n">deformable</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># interaction parameters</span>
+<span class="n">Rloc_tol</span> <span class="o">=</span> <span class="mf">5.e-2</span>
+
+<span class="c1"># nlgs parameters</span>
+<span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-4</span>
+<span class="n">relax</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">norm</span> <span class="o">=</span> <span class="s1">&#39;Quad &#39;</span>
+<span class="n">gs_it1</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">gs_it2</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">solver_type</span><span class="o">=</span><span class="s1">&#39;Stored_Delassus_Loops         &#39;</span>
+
+<span class="c1"># write parameter</span>
+<span class="n">freq_write</span>   <span class="o">=</span> <span class="mi">10</span>
+
+<span class="c1"># display parameters</span>
+<span class="n">freq_display</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="c1">#</span>
+<span class="c1"># read and load</span>
+<span class="c1">#</span>
+
+<span class="c1"># Set space dimension</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">SetDimension</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span><span class="n">mhyp</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;INIT TIME STEPPING&#39;</span><span class="p">)</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">TimeEvolution_SetTimeStep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">Integrator_InitTheta</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;READ DATBOX&#39;</span><span class="p">)</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ReadDatbox</span><span class="p">(</span><span class="n">deformable</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># open display &amp; postpro</span>
+<span class="c1">#</span>
+
+<span class="n">chipy</span><span class="o">.</span><span class="n">utilities_logMes</span><span class="p">(</span><span class="s1">&#39;DISPLAY &amp; WRITE&#39;</span><span class="p">)</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">OpenDisplayFiles</span><span class="p">()</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">OpenPostproFiles</span><span class="p">()</span>
+
+<span class="c1"># if HDF5 is available</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">InitHDF5</span><span class="p">(</span><span class="s1">&#39;lmgc90.h5&#39;</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># simulation part ...</span>
+<span class="c1">#</span>
+
+<span class="c1"># ... calls a simulation time loop</span>
+
+<span class="c1">#</span>
+<span class="c1"># close display &amp; postpro</span>
+<span class="c1">#</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">CloseDisplayFiles</span><span class="p">()</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">ClosePostproFiles</span><span class="p">()</span>
+
+<span class="c1"># this is the end</span>
+<span class="n">chipy</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chipy_index.html"
+                        title="previous chapter">LMGC90 computation documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chipy_rigid.html"
+                        title="next chapter">Time loop for rigid bodies</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chipy_common.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="chipy_rigid.html" title="Time loop for rigid bodies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chipy_index.html" title="LMGC90 computation documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="chipy_index.html" >LMGC90 computation documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Common part of a script</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.avatar.contactor.contactor &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.avatar.contactor.contactor</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.avatar.contactor.contactor</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">...config.lmgc90dicts</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">...avatar.bulks</span>       <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">...avatar.bulk.bulk</span>   <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1">## @class contactor</span>
+<span class="c1">#</span>
+<div class="viewcode-block" id="contactor"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.contactor">[docs]</a><span class="k">class</span> <span class="nc">contactor</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; class contactor()</span>
+
+<span class="sd">    attributs:</span>
+
+<span class="sd">    - number  : an identifier</span>
+<span class="sd">    - shape   : lmgc90 tact type (char[5])</span>
+<span class="sd">    - elements: a bulk list</span>
+<span class="sd">    - color   : lmgc90 color for tact_behav (char[5])</span>
+<span class="sd">    - connectivity: nodes&#39; indices defining the contactor </span>
+
+<span class="sd">    methods:</span>
+
+<span class="sd">    - addOptions</span>
+<span class="sd">    - addOption</span>
+<span class="sd">    - modifie</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">## @brief default constructor</span>
+    <span class="c1">#</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;__init__(self, elements, shape, color, number=None)</span>
+
+<span class="sd">        allow to define a contactor</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the contactor itself</span>
+<span class="sd">        - elements: a list of connex elements, which is the base of the contactor</span>
+<span class="sd">          WARNING: elements must be of the same type!</span>
+<span class="sd">        - shape: type of the contactor</span>
+<span class="sd">        - color: color of the contactor</span>
+
+<span class="sd">        optional parameters:</span>
+
+<span class="sd">        - number=None: index of the contactor (still present to ensure compatibility)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># on teste la liste d&#39;elements</span>
+
+        <span class="c1"># la liste d&#39;elements n&#39;est pas une liste </span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>        
+           <span class="c1"># on affiche un message d&#39;)erreur</span>
+           <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;the given elements list is not a list!&#39;</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># on teste le premier</span>
+        <span class="n">first_element</span><span class="o">=</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># si ce n&#39;est pas un element</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first_element</span><span class="p">,</span> <span class="n">bulk</span><span class="p">):</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;all elements of the given elements list must be bulk objects!&#39;</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># on conserve le type de l&#39;element</span>
+        <span class="n">element_type</span><span class="o">=</span><span class="n">first_element</span><span class="o">.</span><span class="n">etype</span>
+
+        <span class="c1"># pour chaque autre element de la liste</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
+           <span class="n">ele</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+           <span class="c1"># si ce n&#39;est pas un element</span>
+           <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ele</span><span class="p">,</span> <span class="n">bulk</span><span class="p">):</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;all elements of the given elements list must be bulk objects!&#39;</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+           <span class="c1"># si l&#39;element n&#39;est pas du bon type</span>
+           <span class="k">if</span> <span class="n">ele</span><span class="o">.</span><span class="n">etype</span> <span class="o">!=</span> <span class="n">element_type</span><span class="p">:</span>
+              <span class="c1"># on affiche un message d&#39;erreur</span>
+              <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;all elements of the given elements list must have the same type!&#39;</span>
+              <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># ici, on est sur que la liste elements ne contient que des elements du meme type</span>
+
+        <span class="c1"># si le type de contacteur n&#39;est compatible avec le type d&#39;element</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">geo2contactor</span><span class="p">[</span><span class="n">element_type</span><span class="p">]:</span>
+           <span class="c1"># on construit un message d&#39;erreur</span>
+           <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;Incompatible element (</span><span class="si">%s</span><span class="s1">) and contactor type (</span><span class="si">%s</span><span class="s1">)</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">element_type</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+           <span class="k">if</span> <span class="n">number</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+              <span class="n">msg</span><span class="o">+=</span><span class="s1">&#39;for contactor :</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+           <span class="c1"># on l&#39;affiche</span>
+           <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># on verifie la couleur du contacteur</span>
+        
+        <span class="c1"># si la couleur du contacteur n&#39;est pas une chaine</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+           <span class="c1"># on affiche un message d&#39;erreur</span>
+           <span class="n">showError</span><span class="p">(</span><span class="s2">&quot;color of a contactor must be a 5 characters string!&quot;</span><span class="p">)</span>
+          
+        <span class="c1"># si tout est bon, on cree le contacteur</span>
+
+        <span class="c1"># si l&#39;utilisateur attribue un numero au contacteur</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="c1"># on lui indique qu&#39;il ne sera pas utilise</span>
+           <span class="n">showWarning</span><span class="p">(</span><span class="s1">&#39;assigning an index to a contactor is useless&#39;</span><span class="p">)</span>
+
+        <span class="c1"># le numero du contacteur est inconnu pour l&#39;instant et sera defini lors de son</span>
+        <span class="c1"># ajout a un avatar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># on stocke la liste d&#39;elements sur laquelle repose le contacteur</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="c1"># on stocke la couleur du contacteur</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span>    <span class="o">=</span> <span class="n">color</span>
+ 
+    <span class="c1">## @brief get the value of an option</span>
+    <span class="c1"># @param attribut : name of the attribut to get the value </span>
+    <span class="c1"># @return : value of attribut</span>
+    <span class="c1"># @todo : to put in contactor class ?</span>
+<div class="viewcode-block" id="contactor.getOption"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.contactor.getOption">[docs]</a>    <span class="k">def</span> <span class="nf">getOption</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attribut</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; getOption(self,attribut)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="k">if</span> <span class="n">attribut</span> <span class="ow">in</span> <span class="n">contactorOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">]:</span>
+            <span class="n">value</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribut</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+    <span class="c1">## @brief write the options along with their values in a string</span>
+    <span class="c1"># @return : string with all options&#39; name and value</span>
+    <span class="c1"># @todo : to put in contactor class ?</span>
+    <span class="k">def</span> <span class="nf">writeOpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ligne</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">contactorOptions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">]:</span>
+            <span class="n">ligne</span><span class="o">+=</span><span class="s1">&#39; </span><span class="si">%5s</span><span class="s1">=</span><span class="si">%14.7E</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ligne</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;method allowing to print informations concerning the contactor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">impr</span><span class="o">=</span><span class="s1">&#39;Contactor number :</span><span class="se">\t</span><span class="si">%5s</span><span class="s1"> </span><span class="se">\t</span><span class="s1"> of type :</span><span class="se">\t</span><span class="si">%5s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">impr</span>
+    
+<div class="viewcode-block" id="contactor.strInBodiesFile"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.contactor.strInBodiesFile">[docs]</a>    <span class="k">def</span> <span class="nf">strInBodiesFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+       <span class="sd">&quot;&quot;&quot;strInBodiesFile(self, number):</span>
+
+<span class="sd">       this function returns a string used to represent the contactor in the BODIES.DAT file.</span>
+
+<span class="sd">       parameters:</span>
+
+<span class="sd">       - self: the contactor itself</span>
+<span class="sd">       - number: index oh the contactor</span>
+
+<span class="sd">       returned value: a string used to represent the contactor in the BODIES.DAT file.</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+       <span class="c1"># N.B.: il s&#39;agit d&#39;une fonction virtuelle pure, qui n&#39;a donc pas d&#39;implementation generique.</span>
+       <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.avatar.contactor.contactor</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

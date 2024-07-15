@@ -1,0 +1,580 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.build_avatar.mesh &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.mesh</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.build_avatar.mesh</h1><div class="highlight"><pre>
+<span></span><span class="c1"># module definissant une classe permettant de manipuler un maillage 2D ou 3D</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulks</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.nodes</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..avatar.bulk.element</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">..utilities.error</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># classe maillage</span>
+<div class="viewcode-block" id="mesh"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh">[docs]</a><span class="k">class</span> <span class="nc">mesh</span><span class="p">():</span>
+   <span class="sd">&quot;&quot;&quot;class mesh():</span>
+
+<span class="sd">   this class defines a mesh object, as a couple of a nodes set and a bulk set.</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># constructeur</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimension</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;__init__(self, dimension):</span>
+
+<span class="sd">      this function initializes a new mesh</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - dimension: spatial dimension (2, in 2D, 3 in 3D); used to know the number of coordinates for a node</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="c1"># on stocke la dimension consideree</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span> <span class="o">=</span> <span class="n">dimension</span>
+      <span class="c1"># on initialise l&#39;ensemble de noeuds du maillage</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">()</span> 
+      <span class="c1"># on initialise l&#39;ensemble d&#39;elements du maillage</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span> <span class="o">=</span> <span class="n">bulks</span><span class="p">()</span> 
+
+   <span class="c1"># fonction qui ajoute un noeud au maillage</span>
+<div class="viewcode-block" id="mesh.addNode"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.addNode">[docs]</a>   <span class="k">def</span> <span class="nf">addNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noeud</span><span class="p">):</span>
+       <span class="sd">&quot;&quot;&quot;addNode(noeud):</span>
+
+<span class="sd">       this function add a node to the mesh</span>
+
+<span class="sd">       parameters:</span>
+
+<span class="sd">       - self: the mesh itself</span>
+<span class="sd">       - noeud: a given node</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+       <span class="c1"># test paranoiaque de la dimension </span>
+       <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">noeud</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">noeud</span><span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+          <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;incompatible size between coor array and dimension&#39;</span><span class="p">)</span></div>
+
+   <span class="c1"># fonction qui ajoute un element au maillage</span>
+<div class="viewcode-block" id="mesh.addBulk"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.addBulk">[docs]</a>   <span class="k">def</span> <span class="nf">addBulk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ele</span><span class="p">):</span>
+       <span class="sd">&quot;&quot;&quot;addBulk(ele):</span>
+
+<span class="sd">       this function add an element to the mesh</span>
+
+<span class="sd">       parameters:</span>
+
+<span class="sd">       - self: the mesh itself</span>
+<span class="sd">       - ele: a given element</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+       <span class="c1"># on ajoute dans l&#39;element le container de bulks du maillage</span>
+ 
+       <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span></div>
+
+   <span class="c1"># remove nodes not attached to elements</span>
+<div class="viewcode-block" id="mesh.removeFreeNodes"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.removeFreeNodes">[docs]</a>   <span class="k">def</span> <span class="nf">removeFreeNodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot; removeFreeNodes(self)</span>
+<span class="sd">        removes nodes not attached to an element</span>
+<span class="sd">      &quot;&quot;&quot;</span> 
+      
+      <span class="n">busynodes</span> <span class="o">=</span> <span class="p">{}</span>
+
+      <span class="c1"># pour chaque element</span>
+      <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+         <span class="c1"># pour chaque noeud de la table de connectivite on cree une entree</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)):</span>
+           <span class="k">if</span> <span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">busynodes</span><span class="p">:</span>
+             <span class="n">busynodes</span><span class="p">[</span><span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="mi">1</span>
+      
+      <span class="c1"># # pour chaque noeud</span>
+      <span class="c1"># for nod in self.nodes:</span>
+      <span class="c1">#    # on vire ceux non attaches a un element</span>
+      <span class="c1">#    if nod.number not in busynodes:</span>
+      <span class="c1">#      del self.nodes[nod.number]</span>
+
+      <span class="n">burk</span><span class="o">=</span><span class="p">[]</span>
+      <span class="c1"># pour chaque noeud</span>
+      <span class="k">for</span> <span class="n">nod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+         <span class="c1"># on fait une liste des noeuds a virer</span>
+         <span class="k">if</span> <span class="n">nod</span><span class="o">.</span><span class="n">number</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">busynodes</span><span class="p">:</span>
+           <span class="n">burk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nod</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>  
+
+      <span class="k">for</span> <span class="n">idn</span> <span class="ow">in</span> <span class="n">burk</span><span class="p">:</span>
+         <span class="c1"># on vire ceux non attaches a un element</span>
+         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">idn</span><span class="p">]</span>  </div>
+      
+
+   <span class="c1"># methode qui renumerote les noeuds du maillage, pour que les numeros utilises soient [1, ..., nbNodes]</span>
+   <span class="c1"># rq de fd: l&#39;objectif du renumbering est double: </span>
+   <span class="c1">#  - il se peut que tous les noeuds charges soient necessaires donc faut juste tasser les num dans les ele</span>
+   <span class="c1">#  - il se peut aussi que certains noeuds soient inutiles (car on a lu un maillage lineaire </span>
+   <span class="c1">#    dans un maillage quadratique par exemple) dans ce cas il faut virer les noeuds inutiles et tasser la numerotation </span>
+
+<div class="viewcode-block" id="mesh.rankRenumbering"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.rankRenumbering">[docs]</a>   <span class="k">def</span> <span class="nf">rankRenumbering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;rankRenumbering(self):</span>
+
+<span class="sd">      this function renumbers the nodes of the mesh, in order to avoid holes in the numbering, i.e.</span>
+<span class="sd">      nodes number are in [1, nbNodes]</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: the mesh itself</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">removeFreeNodes</span><span class="p">()</span>
+
+      <span class="c1"># on construit le dictionnaire des rangs, attribuant a chaque numero de noeud, son rang dans l&#39;ensemble des </span>
+      <span class="c1"># noeuds</span>
+      
+      <span class="c1"># on declare le dictionnaire des rangs</span>
+      <span class="n">ranks</span><span class="o">=</span><span class="p">{}</span>
+      <span class="c1"># on recupere la liste ordonnee des numeros de noeuds</span>
+      <span class="n">sorted_node_numbers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">sortedKeys</span><span class="p">()</span>
+      <span class="c1"># on enumere les noeuds</span>
+      <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_node_numbers</span><span class="p">):</span>
+         <span class="c1"># on affecte l&#39;indice courant, incremente de 1 (pour commencer la </span>
+         <span class="c1"># numerotaion a 1), au noeud courant</span>
+
+         <span class="c1"># print(rank,num)         </span>
+         
+         <span class="n">ranks</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">=</span><span class="n">rank</span> <span class="o">+</span> <span class="mi">1</span>
+   
+      <span class="c1"># on renumerote les noeuds, dans l&#39;ensemble des noeuds</span>
+      <span class="c1"># N.B.: on recree un nouveau container de noeud pour assurer que la clef du container</span>
+      <span class="c1">#       de noeuds du maillage reste le numero du noeud, apres la renumerotation      </span>
+ 
+      <span class="c1"># on cree un nouveau container de noeuds</span>
+      <span class="n">new_nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">()</span>
+      <span class="c1"># pour chaque noeud</span>
+      <span class="k">for</span> <span class="n">nod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+         <span class="c1"># le numero du noeud courant devient son rang</span>
+         <span class="n">nod</span><span class="o">.</span><span class="n">number</span><span class="o">=</span><span class="n">ranks</span><span class="p">[</span><span class="n">nod</span><span class="o">.</span><span class="n">number</span><span class="p">]</span>
+         <span class="c1"># on ajoute le noeud courant dans le nouveau container de noeuds</span>
+         <span class="n">new_nodes</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">nod</span><span class="p">)</span>  
+      <span class="c1"># on attache le nouveau container de noeuds a l&#39;objet maillage</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">=</span><span class="n">new_nodes</span>
+
+      <span class="c1"># on renumerote les noeuds, dans l&#39;ensemble des elements</span>
+   
+      <span class="c1"># pour chaque element</span>
+      <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+         <span class="c1"># pour chaque noeud de la table de connectivite</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)):</span>
+            <span class="c1"># le numero du noeud devient son rang</span>
+            <span class="c1"># print(i,bulk.connectivity[i])</span>
+            <span class="c1"># print(len(ranks))</span>
+            <span class="c1"># print(ranks)</span>
+            <span class="c1"># print(ranks[bulk.connectivity[i]])</span>
+            <span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">ranks</span><span class="p">[</span><span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span></div>
+
+
+   <span class="c1"># fonction qui donne acces a des sous-maillage d&#39;un maillage, suivant la valeur d&#39;une entite</span>
+<div class="viewcode-block" id="mesh.getSubMeshes"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.getSubMeshes">[docs]</a>   <span class="k">def</span> <span class="nf">getSubMeshes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;geometricalEntity&quot;</span><span class="p">):</span> 
+      <span class="sd">&quot;&quot;&quot;getSubMeshes(self, entity_type=&quot;geometricalEntity&quot;):</span>
+
+<span class="sd">      this function computes handles to sub-meshes of the given mesh and returns the </span>
+<span class="sd">      computed meshes. Elements of a mesh share a same physical or geometrical entity.</span>
+<span class="sd">      N.B.: nodes and elements of the generated meshes are references of nodes and elements</span>
+<span class="sd">      of the original mesh and not deep copies!</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: a given mesh</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - entity_type=&quot;geometricalEntity&quot;: give the entity type to consider to separate meshes, i.e.</span>
+<span class="sd">        entity_type=&quot;geometricalEntity&quot;, if geometrical entities have to be used and </span>
+<span class="sd">        entity_type=&quot;physicalEntity&quot;, if physical entities have to be used</span>
+
+<span class="sd">      returned values: a dictionnary mapping enities value on separated meshes.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="c1"># on delcare le dictionnaire utilise pour associer un maillage a chaque entite</span>
+      <span class="n">entity2subMesh</span><span class="o">=</span><span class="p">{}</span>
+
+      <span class="c1"># tri des elements suivant le type d&#39;entite choisi (geometrique ou physique)</span>
+   
+      <span class="c1"># on declare la liste utilisee pour stocker les clefs du dictionnaire precedent</span>
+      <span class="n">known_entities</span><span class="o">=</span><span class="p">[]</span>
+      <span class="c1"># pour chaque element</span>
+      <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+         <span class="c1"># on recupere l&#39;entite consideree (physique ou geometrique) de l&#39;element courant</span>
+         <span class="n">entity</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">bulk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">)</span>
+         <span class="c1"># si l&#39;entite n&#39;a pas encore ete rencontree</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">known_entities</span><span class="p">:</span>
+            <span class="c1"># on cree un nouveau maillage associe a l&#39;entite courante</span>
+            <span class="n">entity2subMesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">=</span><span class="n">mesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+            <span class="c1"># on ajoute l&#39;entite courante a la la liste des entites deja rencontrees</span>
+            <span class="n">known_entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+         <span class="c1"># on ajoute une reference a l&#39;element courant au maillage associe a l&#39;entite courante</span>
+         <span class="n">entity2subMesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">bulk</span><span class="p">)</span>
+      <span class="c1"># on trie la liste des entites</span>
+      <span class="n">known_entities</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+   
+      <span class="c1"># tri des noeuds, a partir des elements tries</span>
+   
+      <span class="c1"># on declare le dictionnaire utilise pour associer l&#39;ensemble des numeros de noeuds a une entite</span>
+      <span class="n">entity2node_numbers</span><span class="o">=</span><span class="p">{}</span>
+      <span class="c1"># pour chaque entite</span>
+      <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">known_entities</span><span class="p">:</span>
+         <span class="c1"># on cree une liste de numeros de noeuds a associer a l&#39;entite courante</span>
+         <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+         <span class="c1"># pour chaque element associe a l&#39;entite courante</span>
+         <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="n">entity2subMesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+            <span class="c1"># pour chaque noeud de la table de connectivite de l&#39;element</span>
+            <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">:</span>
+               <span class="c1"># si le noeud n&#39;a pas deja ete associe a l&#39;entite courante</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]:</span>
+                  <span class="c1"># on ajoute le numero du noeud courant a la liste des numeors de noeuds associes a l&#39;entite</span>
+                  <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+                  <span class="c1"># on ajoute une reference au noeud du maillage associe a l&#39;entite courante</span>
+                  <span class="n">entity2subMesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">number</span><span class="p">])</span>
+   
+      <span class="c1"># on renvoie le dictionnaire associant un maillage a chaque entite</span>
+      <span class="k">return</span> <span class="n">entity2subMesh</span></div>
+
+   <span class="c1"># fonction qui separe les differents maillages lus dans un meme fichier</span>
+<div class="viewcode-block" id="mesh.separateMeshes"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.separateMeshes">[docs]</a>   <span class="k">def</span> <span class="nf">separateMeshes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;geometricalEntity&quot;</span><span class="p">,</span> <span class="n">keep_all_elements</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span> 
+      <span class="sd">&quot;&quot;&quot;separateMeshes(self, dim, entity_type=&quot;geometricalEntity&quot;):</span>
+
+<span class="sd">      this function separates several meshes, stored in a single one (read from a mesh),</span>
+<span class="sd">      and returns the extracted meshes, as meshes. Elements of a mesh share a same </span>
+<span class="sd">      physical or geometrical entity.</span>
+
+<span class="sd">      parameters:</span>
+
+<span class="sd">      - self: a given mesh</span>
+<span class="sd">      - dim: dim=1 for linear mesh; dim=2 for surfacic meshes; dim=3 for volumic meshes</span>
+
+<span class="sd">      optional parameters:</span>
+
+<span class="sd">      - entity_type=&quot;geometricalEntity&quot;: give the entity type to consider to separate meshes, i.e.</span>
+<span class="sd">        entity_type=&quot;geometricalEntity&quot;, if geometrical entities have to be used and </span>
+<span class="sd">        entity_type=&quot;physicalEntity&quot;, if physical entities have to be used</span>
+<span class="sd">      - keep_all_elements=True: if keep_all_elements=True, all elements have to be sorted and returned,</span>
+<span class="sd">        else only the considered elements (i.e. surfacic if dim=2 or volumic if dim=3) have to be sorted</span>
+<span class="sd">        and returned.</span>
+<span class="sd">        N.B.: elements of greater dimension than the considered one are ignored, e.g. if dim=2, volumic elements</span>
+<span class="sd">        are neither sorted nor returned</span>
+
+<span class="sd">      returned values: a dictionnary mapping entities value on separated meshes.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="c1"># on delcare le dictionnaire utilise pour associer un maillage a chaque entite</span>
+      <span class="n">entity2mesh</span><span class="o">=</span><span class="p">{}</span>
+
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Meshes separating:&quot;</span><span class="p">)</span>
+   
+      <span class="c1"># tri des elements de la dimension choisie (surfacique ou volumique) suivant le type d&#39;entite</span>
+      <span class="c1"># choisi (geometrique ou physique)</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   * Elements sorting&quot;</span><span class="p">)</span>
+   
+      <span class="c1"># on declare la liste utilisee pour stocker les clefs du dictionnaire precedent</span>
+      <span class="n">known_entities</span><span class="o">=</span><span class="p">[]</span>
+      <span class="c1"># pour chaque element</span>
+      <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+         <span class="c1"># si l&#39;element est de la dimension condideree</span>
+         <span class="k">if</span> <span class="n">bulk</span><span class="o">.</span><span class="n">etype</span> <span class="ow">in</span> <span class="n">dimension2geoElement</span><span class="p">[</span><span class="n">dim</span><span class="p">]:</span>
+            <span class="c1"># on recupere l&#39;entite consideree (physique ou geometrique) de l&#39;element courant</span>
+            <span class="n">entity</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">bulk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">)</span>
+            <span class="c1"># si l&#39;entite n&#39;a pas encore ete rencontree</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">known_entities</span><span class="p">:</span>
+               <span class="c1"># on cree un nouveau maillage associe a l&#39;entite courante</span>
+               <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">=</span><span class="n">mesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+               <span class="c1"># on ajoute l&#39;entite courante a la la liste des entites deja rencontrees</span>
+               <span class="n">known_entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+            <span class="c1"># on ajoute une copie de l&#39;element courant au maillage associe a l&#39;entite courante</span>
+            <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">bulk</span><span class="p">))</span>
+      <span class="c1"># on trie la liste des entites</span>
+      <span class="n">known_entities</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+   
+      <span class="c1"># tri des noeuds, a partir des elements tries</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   * Nodes sorting&quot;</span><span class="p">)</span>
+   
+      <span class="c1"># on declare le dictionnaire utilise pour associer l&#39;ensemble des numeros de noeuds a une entite</span>
+      <span class="n">entity2node_numbers</span><span class="o">=</span><span class="p">{}</span>
+      <span class="c1"># pour chaque entite</span>
+      <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">known_entities</span><span class="p">:</span>
+         <span class="c1"># on cree une liste de numeros de noeuds a associer a l&#39;entite courante</span>
+         <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+         <span class="c1"># pour chaque element associe a l&#39;entite courante</span>
+         <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+            <span class="c1"># pour chaque noeud de la table de connectivite de l&#39;element</span>
+            <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span><span class="p">:</span>
+               <span class="c1"># si le noeud n&#39;a pas deja ete associe a l&#39;entite courante</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]:</span>
+                  <span class="c1"># on ajoute le numero du noeud courant a la liste des numeors de noeuds associes a l&#39;entite</span>
+                  <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+                  <span class="c1"># on ajoute une copie du noeud au maillage associe a l&#39;entite courante</span>
+                  <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">number</span><span class="p">]))</span>
+
+         <span class="c1"># now sorting nodes by keys</span>
+         <span class="n">tmp_nodes</span> <span class="o">=</span> <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">nodes</span>
+         <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">()</span>
+         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tmp_nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">tmp_nodes</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+   
+      <span class="c1"># tri des elements restants a partir des noeuds tries</span>
+   
+      <span class="c1"># si tous les elements doivent etre tries</span>
+      <span class="k">if</span> <span class="n">keep_all_elements</span><span class="p">:</span>
+         <span class="c1"># on trie des elements restants a partir des noeuds tries</span>
+         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   * Remaining elements sorting&quot;</span><span class="p">)</span>
+         
+         <span class="c1"># construction d&#39;une map donnant la liste des entites associees a un noeud</span>
+         
+         <span class="c1"># on delcare le dictionnaire utilise pour associer a un numero de noeud la liste des entites auxquelles il appartient</span>
+         <span class="n">node_number2entities</span><span class="o">=</span><span class="p">{}</span>
+         <span class="c1"># on delcare la liste des numeros de noeuds deja parcourus</span>
+         <span class="n">known_node_numbers</span><span class="o">=</span><span class="p">[]</span>
+         <span class="c1"># pour chaque entite</span>
+         <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">known_entities</span><span class="p">:</span>
+            <span class="c1"># pour chaque numero de noeud associe a l&#39;entite</span>
+            <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">entity2node_numbers</span><span class="p">[</span><span class="n">entity</span><span class="p">]:</span>
+               <span class="c1"># si on a pas encore associe une entite au numero de noeud courant</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">known_node_numbers</span><span class="p">:</span>
+                  <span class="c1"># on associe une dictionnaire vide au numero de noeud courant</span>
+                  <span class="n">node_number2entities</span><span class="p">[</span><span class="n">number</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+                  <span class="c1"># on indique que le numero de noeud courant a ete parcouru</span>
+                  <span class="n">known_node_numbers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+               <span class="c1"># on associe l&#39;entite courante au numero de de noeud courant</span>
+               <span class="n">node_number2entities</span><span class="p">[</span><span class="n">number</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+   
+         <span class="c1"># tri des elements restants</span>
+   
+         <span class="c1"># pour chaque element</span>
+         <span class="k">for</span> <span class="n">bulk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">:</span>
+            <span class="c1"># si l&#39;element courant est de dimension inferieure a celle consideree</span>
+            <span class="k">if</span> <span class="n">geoElement2dimension</span><span class="p">[</span><span class="n">bulk</span><span class="o">.</span><span class="n">etype</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dim</span><span class="p">:</span>
+               <span class="c1"># on recupere la connectivite de l&#39;element courant</span>
+               <span class="n">connectivity</span><span class="o">=</span><span class="n">bulk</span><span class="o">.</span><span class="n">connectivity</span>
+               <span class="c1"># on recupere le numero du premier noeud</span>
+               <span class="n">first_num</span><span class="o">=</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+               <span class="c1"># si le premier noeud de l&#39;element n&#39;est associe a aucune entite</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">first_num</span> <span class="ow">in</span> <span class="n">known_node_numbers</span><span class="p">:</span>
+                  <span class="c1"># l&#39;element ne pourra etre associe a aucune entite</span>
+                  <span class="c1"># on affiche un warning et on passe au suivant</span>
+                  <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;current element cannot be associated to any entity!&quot;</span><span class="p">)</span>
+                  <span class="c1"># et on passe au suivant</span>
+                  <span class="k">continue</span>
+               <span class="c1"># pour chaque entite associee au premier noeud de l&#39;element</span>
+               <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">node_number2entities</span><span class="p">[</span><span class="n">first_num</span><span class="p">]:</span>
+                  <span class="c1"># on suppose que l&#39;element est associe a l&#39;entite courante</span>
+                  <span class="n">is_associated</span><span class="o">=</span><span class="kc">True</span>
+                  <span class="c1"># pour chaque noeud de la connectivite de l&#39;element courant, autre que le premier</span>
+                  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">connectivity</span><span class="p">)):</span>
+                     <span class="c1"># on recupere le numero du noeud courant</span>
+                     <span class="n">num</span><span class="o">=</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                     <span class="c1"># si le noeud courant n&#39;est associe a aucune entite</span>
+                     <span class="k">if</span> <span class="ow">not</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">known_node_numbers</span><span class="p">:</span>
+                        <span class="c1"># l&#39;element ne pourra etre associe a aucune entite</span>
+                        <span class="n">is_associated</span><span class="o">=</span><span class="kc">False</span>
+                        <span class="c1"># on affiche un warning et on passe au suivant</span>
+                        <span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;current element cannot be associated to any entity!&quot;</span><span class="p">)</span>
+                        <span class="c1"># on sort de la boucle</span>
+                        <span class="k">break</span>
+                     <span class="c1"># si l&#39;entite courante n&#39;est pas dans la liste des entites associees au numero de noeud courant</span>
+                     <span class="k">if</span> <span class="ow">not</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">node_number2entities</span><span class="p">[</span><span class="n">num</span><span class="p">]:</span>
+                        <span class="c1"># l&#39;element courant ne peut etre associe a l&#39;entite courante</span>
+                        <span class="n">is_associated</span><span class="o">=</span><span class="kc">False</span>
+                        <span class="c1"># on sort de la boucle</span>
+                        <span class="k">break</span>
+                  <span class="c1"># si l&#39;element courant est associe a l&#39;entite courante</span>
+                  <span class="k">if</span> <span class="n">is_associated</span><span class="p">:</span>
+                     <span class="c1"># on ajoute une copie de l&#39;element courant au maillage associe a l&#39;entite courante</span>
+                     <span class="n">entity2mesh</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">bulk</span><span class="p">))</span> 
+   
+      <span class="c1"># on renvoie le dictionnaire associant un maillage a chaque entite</span>
+      <span class="k">return</span> <span class="n">entity2mesh</span></div>
+
+
+<div class="viewcode-block" id="mesh.computeNormal"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.computeNormal">[docs]</a>   <span class="k">def</span> <span class="nf">computeNormal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">reverse</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">     Compute normal of a node of an element</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;S2xxx&#39;</span><span class="p">:</span>
+       <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">])</span>
+       <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+         <span class="n">normal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">normal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+       <span class="k">else</span><span class="p">:</span>
+         <span class="n">normal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">normal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">etype</span> <span class="o">==</span> <span class="s1">&#39;T3xxx&#39;</span><span class="p">:</span>
+       <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+         <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                          <span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+         <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                          <span class="p">)</span>
+     <span class="k">else</span><span class="p">:</span>
+       <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+       <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)</span>
+       <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+         <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">k</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                          <span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+         <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">k</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">coor</span>
+                          <span class="p">)</span>
+
+     <span class="k">return</span> <span class="n">normal</span></div>
+
+<div class="viewcode-block" id="mesh.extrudePhysicalEntity"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.mesh.extrudePhysicalEntity">[docs]</a>   <span class="k">def</span> <span class="nf">extrudePhysicalEntity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pE</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Extrude a layer of elements.</span>
+
+<span class="sd">      This function uses the nodes of a physical entity (line in 2D, surface en 3D)</span>
+<span class="sd">      to create by extrusion the corresponding nodes and elements of the mesh. </span>
+<span class="sd">      Extrusion is performed along the normal to the initial mesh.</span>
+<span class="sd">      Only linear elements are supported. </span>
+<span class="sd">      New physical entities are created with prefix &#39;E&#39; for the extruded new elements and &#39;P&#39;</span>
+<span class="sd">      for the extruded new nodes.</span>
+
+<span class="sd">      To work, the rankRenumbering function must have been called beforehand,</span>
+<span class="sd">      and the elements correctly oriented. At this time only &#39;S2xxx&#39;,&#39;T3xxx&#39; and &#39;Q4xxx&#39;</span>
+<span class="sd">      elements are supported.</span>
+
+<span class="sd">      parameters:</span>
+<span class="sd">      - pE : physical entity name to extrude from</span>
+<span class="sd">      - length : size of extrusion along the computed normals</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+
+      <span class="n">extr_map</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;S2xxx&#39;</span><span class="p">:</span><span class="s1">&#39;Q4xxx&#39;</span><span class="p">,</span><span class="c1"># &#39;S3xxx&#39;, &#39;Q8xxx&#39;,</span>
+                   <span class="s1">&#39;T3xxx&#39;</span><span class="p">:</span><span class="s1">&#39;PRI6x&#39;</span><span class="p">,</span><span class="c1"># &#39;T6xxx&#39;, &#39;PRI15&#39;,</span>
+                   <span class="s1">&#39;Q4xxx&#39;</span><span class="p">:</span><span class="s1">&#39;H8xxx&#39;</span><span class="p">,</span><span class="c1"># &#39;Q8xxx&#39;, &#39;H20xx&#39;</span>
+                 <span class="p">}</span>
+
+      <span class="c1"># list nodes and elements of the desired physical entity</span>
+      <span class="n">el_list</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">no_list</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pE</span> <span class="o">==</span> <span class="n">el</span><span class="o">.</span><span class="n">physicalEntity</span> <span class="ow">and</span> <span class="n">el</span><span class="o">.</span><span class="n">etype</span> <span class="ow">in</span> <span class="n">dimension2geoElement</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+          <span class="n">el_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+          <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">connectivity</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">no_list</span><span class="p">:</span>
+              <span class="n">no_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+      <span class="c1"># store node to elements maps</span>
+      <span class="n">n2b</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">nod</span> <span class="ow">in</span> <span class="n">no_list</span><span class="p">:</span>
+         <span class="n">n2b</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+         <span class="k">for</span> <span class="n">bul</span> <span class="ow">in</span> <span class="n">el_list</span><span class="p">:</span>
+           <span class="k">if</span> <span class="n">nod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">bul</span><span class="p">]</span><span class="o">.</span><span class="n">connectivity</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">bul</span><span class="p">]</span><span class="o">.</span><span class="n">etype</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">extr_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="p">:</span>
+             <span class="n">n2b</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bul</span><span class="p">)</span>
+
+      <span class="c1"># keeps the last node number to be able to create elements</span>
+      <span class="c1"># connectivity... assumes rankRenumbering has been used</span>
+      <span class="n">node_shift</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+
+      <span class="c1"># extrude each node</span>
+      <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">no</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">no_list</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">n2b</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+          <span class="n">normal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">computeNormal</span><span class="p">(</span> <span class="n">no</span><span class="p">,</span> <span class="n">e</span> <span class="p">,</span> <span class="n">reverse</span><span class="p">)</span>
+          <span class="n">n</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">[:]</span>
+          <span class="n">s</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">/=</span> <span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">node</span><span class="p">(</span><span class="n">coor</span><span class="o">=</span><span class="n">length</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">no</span><span class="p">]</span><span class="o">.</span><span class="n">coor</span><span class="p">,</span>
+                           <span class="n">number</span><span class="o">=</span><span class="n">node_shift</span><span class="o">+</span><span class="n">no</span><span class="p">)</span> <span class="p">)</span>
+
+      <span class="c1"># create new elements:</span>
+      <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">el_list</span><span class="p">:</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bulks</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+        <span class="n">new_c</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)</span>
+        <span class="c1">#perm top layer when extruding S2-&gt;Q4</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_c</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+          <span class="n">new_c</span> <span class="o">=</span> <span class="n">new_c</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">node_shift</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_c</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">new_c</span> <span class="o">=</span> <span class="n">new_c</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">node_shift</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_c</span><span class="p">]</span>
+
+        <span class="c1"># new extruded element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">element</span><span class="p">(</span> <span class="n">geoElement2dimension</span><span class="p">[</span><span class="n">extr_map</span><span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">etype</span><span class="p">]],</span> <span class="n">new_c</span><span class="p">,</span>
+                               <span class="s1">&#39;E&#39;</span><span class="o">+</span><span class="n">elem</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">,</span>
+                               <span class="n">elem</span><span class="o">.</span><span class="n">geometricalEntity</span><span class="p">)</span>
+                    <span class="p">)</span>
+        <span class="c1"># the projection of the original element along the normals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">element</span><span class="p">(</span> <span class="n">geoElement2dimension</span><span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">etype</span><span class="p">],</span>
+                               <span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">node_shift</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elem</span><span class="o">.</span><span class="n">connectivity</span><span class="p">],</span>
+                               <span class="s1">&#39;P&#39;</span><span class="o">+</span><span class="n">elem</span><span class="o">.</span><span class="n">physicalEntity</span><span class="p">,</span>
+                               <span class="n">elem</span><span class="o">.</span><span class="n">geometricalEntity</span> <span class="p">)</span>
+                    <span class="p">)</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">rankRenumbering</span><span class="p">()</span></div></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.build_avatar.mesh</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

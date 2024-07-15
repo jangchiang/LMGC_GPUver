@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>1. Structure of LMGC90 &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2. Some theory around DEM (Discrete Element Methods)" href="dev_theory.html" />
+    <link rel="prev" title="Developping in LMGC90" href="dev_index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_theory.html" title="2. Some theory around DEM (Discrete Element Methods)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dev_index.html" title="Developping in LMGC90"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" accesskey="U">Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">1. </span>Structure of LMGC90</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="structure-of-lmgc90">
+<h1><span class="section-number">1. </span>Structure of LMGC90<a class="headerlink" href="#structure-of-lmgc90" title="Permalink to this headline">¶</a></h1>
+<section id="generalities">
+<h2><span class="section-number">1.1. </span>Generalities<a class="headerlink" href="#generalities" title="Permalink to this headline">¶</a></h2>
+<p>LMGC90 is an open platform dedicated to the modeling of large collection of interacting objects (2D/3D) with complex mechanical behavior.</p>
+<p>There are two levels in LMGC90: Core fortran functions and C/Python wrap functions.
+The low level functions are implemented in Core modules while the high level functions are implemented in Chipy modules (wrapping Core functions).</p>
+<p>LMGC90 Core library provides:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a modeling framework based on a set of:</p>
+<ul>
+<li><p>object shapes (disk/sphere, polygon/polyhedra, etc.);</p></li>
+<li><p>interaction laws (contact, friction, cohesion, etc.);</p></li>
+<li><p>bulk behaviors (rigid, elastic, etc.);</p></li>
+<li><p>multi-physics and couplings;</p></li>
+</ul>
+</li>
+<li><p>an analysis framework with various strategies (Molecular Dynamics, Contact Dynamics, etc.)</p></li>
+</ul>
+</div></blockquote>
+<p>LMGC90 Chipy is a user interface. It provides a large set of functions, but it is up to you to call them in the right order.</p>
+</section>
+<section id="lmgc90-core">
+<h2><span class="section-number">1.2. </span>LMGC90 Core<a class="headerlink" href="#lmgc90-core" title="Permalink to this headline">¶</a></h2>
+<p>The modeling framework decouples the various parts of the model.</p>
+<a class="reference internal image-reference" href="_images/modelingframework.png"><img alt="_images/modelingframework.png" class="align-center" src="_images/modelingframework.png" style="width: 600px;" /></a>
+<section id="contactors">
+<h3><span class="section-number">1.2.1. </span>Contactors<a class="headerlink" href="#contactors" title="Permalink to this headline">¶</a></h3>
+<p>A contactor refers to a potential contact zone (in a geometric term).</p>
+<a class="reference internal image-reference" href="_images/contactors.png"><img alt="_images/contactors.png" class="align-center" src="_images/contactors.png" style="width: 600px;" /></a>
+<p>Practicaly a contactor manage the mapping between bulk unknowns and contact unknowns.
+Several contactors can be assigned to a body. Thus, it is possible to describe non convex shapes with convex primitives.</p>
+<p>The number of contactors does not change during a simulation process.
+Contactors disappear when they are asigned to a body which becomes invisible.</p>
+<p>One object may contain an assembly of contactors =&gt; Clusters</p>
+</section>
+<section id="interactions">
+<h3><span class="section-number">1.2.2. </span>Interactions<a class="headerlink" href="#interactions" title="Permalink to this headline">¶</a></h3>
+<p>An <em>interaction</em> refers to the description of a contact element.</p>
+<a class="reference internal image-reference" href="_images/interactions.png"><img alt="_images/interactions.png" class="align-center" src="_images/interactions.png" style="width: 600px;" /></a>
+<p>Contact detection generates interactions.</p>
+<p>Interactions are used to manage informations useful to formulate and solve the contact problem: contact locus, local frame, gap, relative velocities, local impulses, mappings, etc.</p>
+<p>The number of contact elements changes from one step to another. Thus, a special attention is paid to map information from one step to another.</p>
+</section>
+<section id="solvers">
+<h3><span class="section-number">1.2.3. </span>Solvers<a class="headerlink" href="#solvers" title="Permalink to this headline">¶</a></h3>
+<p><em>Solver</em> refers to the numerical method used to solve the global contact problem.
+Different solvers are available in <strong>LMGC90</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>NLGS</strong> for Non Linear Gauss Seidel <a class="reference internal" href="#jean1999" id="id1"><span>[Jean1999]</span></a>, available in 2D and 3D, parallized using OpenMP directives or MPI ones. All interactions could be used with a such algorithm.</p></li>
+<li><p><strong>Jacobi</strong> available in 2D and 3D. All interactions could be used with a such algorithm.</p></li>
+<li><p><strong>PCPG</strong> for Preconditionned Conjugate Projected Gradient  <a class="reference internal" href="dev_theory.html#renouf-alart2004" id="id2"><span>[Renouf.Alart2004]</span></a>, available in 2D and 3D, parallized using OpenMP directives and dedicated to frictional contact problems (i.e. IQS_CLB, IQS_DS_CLB, RST_CLB, RST_DS_CLB).</p></li>
+<li><p><strong>Bipotential</strong> A variant of the NLGS where the local frictional contact problem is solved using the bipotential approach <a class="reference internal" href="#desaxce-feng1998" id="id3"><span>[DeSaxce.Feng1998]</span></a>.</p></li>
+<li><p><strong>Numerics</strong> A pack of solvers available with the <a class="reference external" href="https://gforge.inria.fr/projects/siconos/">SiCoNoS Project</a></p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="lmgc90-chipy">
+<h2><span class="section-number">1.3. </span>LMGC90 ChiPy<a class="headerlink" href="#lmgc90-chipy" title="Permalink to this headline">¶</a></h2>
+<p>All python functions provided by LMGC90 are prefixed :
+RBDY2_ReadBodies, POLYG_LoadTactors, DKDKx_SelectProxTactors, nlgs_ExSolver…</p>
+<p>The prefix is a chosen name which gives information on what module defines the functions.
+A module is an informatic component allowing to represent a element of the physical problem.
+For example:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>dofs management and computation -&gt; RBDY2/3 xxxxMAILx</p></li>
+<li><p>geometry -&gt; DISKx, POLYR, ASpxx, etc</p></li>
+<li><p>local to global mapping -&gt; DKDKx, CSASp, etc</p></li>
+<li><p>contact solver algorithm -&gt; nlgs, nlgs_3D, etc</p></li>
+</ul>
+</div></blockquote>
+<p>A general contact mecanics problem is usually express in terms of different components.
+Informatic components are mapped on this physical cutting. The filetree of the Core directory
+groups in a consistent manner this informatics components.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Solver : Algorithms on a list of Interactions</p></li>
+<li><p>Interactions : Computed values from two geometries (known in LMG90 as Contactors)</p></li>
+<li><p>Contactors : Geometrical description attached to a mechanical body</p></li>
+<li><p>Body : The physical behavior of a mechanical (or thermal) body</p></li>
+</ul>
+</div></blockquote>
+<p class="rubric">Bibliography</p>
+<dl class="citation">
+<dt class="label" id="jean1999"><span class="brackets"><a class="fn-backref" href="#id1">Jean1999</a></span></dt>
+<dd><p>M.Jean, “The Non Smooth Contact Dynamics Methods”, Comput. Method. Appl. Mech. Engrg, Vol. 144, pp.</p>
+</dd>
+<dt class="label" id="desaxce-feng1998"><span class="brackets"><a class="fn-backref" href="#id3">DeSaxce.Feng1998</a></span></dt>
+<dd><p>G.de Saxcé, Z.Q. Feng, The bi-potential method: a constructive approach to design the complete contact law with friction and improved numerical algorithms, Mathematical and Computer Modelling, 28 (4–8) (1998), pp. 225–245</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">1. Structure of LMGC90</a><ul>
+<li><a class="reference internal" href="#generalities">1.1. Generalities</a></li>
+<li><a class="reference internal" href="#lmgc90-core">1.2. LMGC90 Core</a><ul>
+<li><a class="reference internal" href="#contactors">1.2.1. Contactors</a></li>
+<li><a class="reference internal" href="#interactions">1.2.2. Interactions</a></li>
+<li><a class="reference internal" href="#solvers">1.2.3. Solvers</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lmgc90-chipy">1.3. LMGC90 ChiPy</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dev_index.html"
+                        title="previous chapter">Developping in LMGC90</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dev_theory.html"
+                        title="next chapter"><span class="section-number">2. </span>Some theory around DEM (Discrete Element Methods)</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dev_presentation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dev_theory.html" title="2. Some theory around DEM (Discrete Element Methods)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dev_index.html" title="Developping in LMGC90"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="dev_index.html" >Developping in LMGC90</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">1. </span>Structure of LMGC90</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

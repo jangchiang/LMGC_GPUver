@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>LMGC90 pre-processor documentation &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Philosophy" href="pre_philosophie.html" />
+    <link rel="prev" title="LMGC90 documentation" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_philosophie.html" title="Philosophy"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="LMGC90 documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">LMGC90 pre-processor documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="lmgc90-pre-processor-documentation">
+<h1>LMGC90 pre-processor documentation<a class="headerlink" href="#lmgc90-pre-processor-documentation" title="Permalink to this headline">¶</a></h1>
+<p><em>pylmgc90.pre</em> is a <strong>python</strong> module dedicated to the generation of LMGC90’s input files. This module provides
+basic functionnalities allowing to define body, material, model, visibility table and contact laws
+in a self-content way. Furthermore it provides a framework to design ones own pre-processing functions
+according to ones needs if they are not provided yet.</p>
+<p>The high level pre-processing functions are categorized in three domains: granular, masonry and mesh manipulation.
+Of course any functionnality filed under any category can be used or combined in any other context.</p>
+<p>First section is a simple example of use with some explanation on how
+the preprocessor has been build.
+Granular section is dedicated on how to generate collection of
+particles with a given granulometry and deposit container. The second
+part is dedicated to 2D/3D masonry. The third part details how to read
+meshes from file and manipulate them. Miscellaneous part gathers
+information on utilities available in so many different cases that
+they do not belong to any category.</p>
+<section id="fundamentals">
+<h2>Fundamentals:<a class="headerlink" href="#fundamentals" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pre_philosophie.html">Philosophy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_material.html">Material definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_model.html">Model definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_interaction.html">Interaction model and parameters definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_visibility.html">Visibility table definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_post.html">Managing POSTPRO</a></li>
+</ul>
+</div>
+</section>
+<section id="dedicated-tools">
+<h2>Dedicated tools:<a class="headerlink" href="#dedicated-tools" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pre_granular.html">Granular material</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_masonry.html">Masonry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_mesh.html">Mesh</a></li>
+</ul>
+</div>
+</section>
+<section id="miscellaneous">
+<h2>Miscellaneous:<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pre_miscellaneous.html">Miscellaneous</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pre_classes.html">pre module’s docstrings</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">LMGC90 pre-processor documentation</a><ul>
+<li><a class="reference internal" href="#fundamentals">Fundamentals:</a></li>
+<li><a class="reference internal" href="#dedicated-tools">Dedicated tools:</a></li>
+<li><a class="reference internal" href="#miscellaneous">Miscellaneous:</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">LMGC90 documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_philosophie.html"
+                        title="next chapter">Philosophy</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_philosophie.html" title="Philosophy"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="LMGC90 documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">LMGC90 pre-processor documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

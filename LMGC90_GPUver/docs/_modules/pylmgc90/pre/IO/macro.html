@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.IO.macro &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.IO.macro</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.IO.macro</h1><div class="highlight"><pre>
+<span></span><span class="c1"># no pathlib yet with python2.7</span>
+<span class="c1">#from pathlib import Path</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.file2BulkBehav</span> <span class="kn">import</span> <span class="n">read_bulk_behav</span>
+<span class="kn">from</span> <span class="nn">.file2Models</span>    <span class="kn">import</span> <span class="n">read_models</span>
+                     
+<span class="kn">from</span> <span class="nn">.file2Bodies</span>    <span class="kn">import</span> <span class="n">read_bodies</span>
+<span class="kn">from</span> <span class="nn">.file2DrvDof</span>    <span class="kn">import</span> <span class="n">read_drv_dof</span>
+<span class="kn">from</span> <span class="nn">.file2Dofs</span>      <span class="kn">import</span> <span class="n">read_dofs</span>
+<span class="kn">from</span> <span class="nn">.file2Gpvs</span>      <span class="kn">import</span> <span class="n">read_gpvs</span>
+
+<span class="kn">from</span> <span class="nn">.file2TactBehav</span> <span class="kn">import</span> <span class="n">read_tact_behav</span>
+<span class="kn">from</span> <span class="nn">.file2VlocRloc</span>  <span class="kn">import</span> <span class="n">read_vloc_rloc</span>
+
+<span class="kn">from</span> <span class="nn">.hfile2state</span>    <span class="kn">import</span> <span class="n">read_state_from_hfile</span>
+
+<span class="kn">from</span> <span class="nn">.bulkBehav2File</span>   <span class="kn">import</span> <span class="n">writeBulkBehav</span>
+<span class="kn">from</span> <span class="nn">.model2File</span>       <span class="kn">import</span> <span class="n">writeModels</span>
+
+<span class="kn">from</span> <span class="nn">.bodies2File</span>      <span class="kn">import</span> <span class="n">writeBodies</span>
+<span class="kn">from</span> <span class="nn">.drvDof2File</span>      <span class="kn">import</span> <span class="n">writeDrvDof</span>
+<span class="kn">from</span> <span class="nn">.dofIni2File</span>      <span class="kn">import</span> <span class="n">writeDofIni</span>
+<span class="kn">from</span> <span class="nn">.gpvIni2File</span>      <span class="kn">import</span> <span class="n">writeGPVIni</span>
+
+<span class="kn">from</span> <span class="nn">.tactBehav2File</span>   <span class="kn">import</span> <span class="n">writeTactBehav</span>
+<span class="kn">from</span> <span class="nn">.vlocrlocIni2File</span> <span class="kn">import</span> <span class="n">writeVlocRlocIni</span>
+
+<span class="kn">from</span> <span class="nn">.postpro2File</span>     <span class="kn">import</span> <span class="n">writePostpro</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">utils</span>
+
+<div class="viewcode-block" id="readState"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.readState">[docs]</a><span class="k">def</span> <span class="nf">readState</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">box_path</span><span class="o">=</span><span class="s2">&quot;./DATBOX&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tacts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_xl</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a a set of DOF, GPV and VlocRloc file to initialize an avatar container</span>
+
+<span class="sd">    :param bodies: the avatar container to initialize, must not have been renumbered !</span>
+<span class="sd">    :param box_path: (optional) the path where to read file (usually DATBOX or OUTBOX)</span>
+<span class="sd">    :param step: (optional) if 0 (default value), read .INI files, if -1, read .LAST files,</span>
+<span class="sd">                 else read .OUT.step fiels</span>
+<span class="sd">    :param hfile: (optional) instead of reading from a .INI or .OUT file, read from an hdf5 file (tacts must be provided in this case).</span>
+<span class="sd">    :param tacts: (optional) contact tact law containers must be provided with hfile.</span>
+<span class="sd">    :param with_graph: (optional) ask to append an igraph object on output.</span>
+<span class="sd">                       Value ignored if igraph module not available.</span>
+<span class="sd">    :param with_xl: (optional) if using XL format for inters</span>
+
+<span class="sd">    :returns: - inters : the interactions read in a numpy array (check dtype for content)</span>
+<span class="sd">              - ginters : (optional) igraph.Graph object linking inters array with</span>
+<span class="sd">                          the related avatar of input bodies. Only if with_graph is True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="s2">&quot;ERROR : reader is not available in python 2&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+    <span class="k">if</span> <span class="n">hfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inters</span> <span class="o">=</span> <span class="n">read_state_from_hfile</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">hfile</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">nstep_d</span><span class="p">,</span> <span class="n">ntime_d</span> <span class="o">=</span> <span class="n">read_dofs</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">box_path</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">nstep_g</span><span class="p">,</span> <span class="n">ntime_g</span> <span class="o">=</span> <span class="n">read_gpvs</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">box_path</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nstep_g</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">nstep_d</span> <span class="o">==</span> <span class="n">nstep_g</span>
+        <span class="k">if</span> <span class="n">ntime_g</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">ntime_d</span> <span class="o">==</span> <span class="n">ntime_g</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">bodies</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dimension</span>
+        <span class="n">inters</span><span class="p">,</span> <span class="n">nstep_v</span><span class="p">,</span> <span class="n">ntime_v</span> <span class="o">=</span> <span class="n">read_vloc_rloc</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">box_path</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">with_xl</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">nstep_d</span> <span class="o">==</span> <span class="n">nstep_v</span>
+        <span class="k">assert</span> <span class="n">ntime_d</span> <span class="o">==</span> <span class="n">ntime_v</span>
+
+    <span class="k">if</span> <span class="n">with_graph</span><span class="p">:</span>
+
+        <span class="n">ginters</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">generate_graph</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">inters</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">inters</span><span class="p">,</span> <span class="n">ginters</span>
+
+    <span class="k">return</span> <span class="n">inters</span></div>
+ 
+
+<div class="viewcode-block" id="readDatbox"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.readDatbox">[docs]</a><span class="k">def</span> <span class="nf">readDatbox</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">datbox_path</span><span class="o">=</span><span class="s2">&quot;./DATBOX&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">renumber</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_xl</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the files of a DATBOX directory to create the pre containers</span>
+<span class="sd">    reprensenting it.</span>
+
+<span class="sd">    If there is not MODELS.DAT file because there are only rigids,</span>
+<span class="sd">    a rigid models is still created and added. If the GPV.INI or</span>
+<span class="sd">    VlocRloc.INI file do not exists, their reading is just skipped.</span>
+
+<span class="sd">    :param dim: integer with the dimension of data to read</span>
+<span class="sd">    :param datbox_path: the string of the DATBOX directory to read</span>
+<span class="sd">    :param step: (optional) step file to read if reading from OUTBOX (will read .INI file by default)</span>
+<span class="sd">    :param hfile: (optional) instead of reading from a .INI or .OUT file, read from an hdf5 file.</span>
+<span class="sd">    :param renumber: (optional) boolean forcing renumbering of bodies after reading... break the &#39;readState&#39; calls.</span>
+<span class="sd">    :param with_graph: (optional) boolean asking to generate a graph of interaction (needs igraph module).</span>
+<span class="sd">    :param with_xl: (optional) if using XL format for inters</span>
+
+<span class="sd">    :returns: - mats : the materials container</span>
+<span class="sd">              - mods : the models container</span>
+<span class="sd">              - bodies : the avatar container</span>
+<span class="sd">              - tacts : the tact_behav container</span>
+<span class="sd">              - sees : the visibilit table container</span>
+<span class="sd">              - inters : the interaction numpy array (check its dtype for content)</span>
+<span class="sd">              - ginters : (optional) the igraph.Graph object of interaction if &#39;with_graph&#39; is True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="s2">&quot;ERROR : reader is not available in python 2&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+    <span class="n">inters</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1">#if not isinstance(datbox_path, Path):</span>
+    <span class="c1">#    datbox_path = Path(datbox_path)</span>
+
+    <span class="n">mats</span><span class="p">,</span> <span class="n">gravy</span> <span class="o">=</span> <span class="n">read_bulk_behav</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">datbox_path</span><span class="p">)</span>
+    <span class="n">mods</span> <span class="o">=</span> <span class="n">read_models</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">datbox_path</span><span class="p">)</span>
+
+    <span class="n">bodies</span> <span class="o">=</span> <span class="n">read_bodies</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">mats</span><span class="p">,</span> <span class="n">mods</span><span class="p">,</span> <span class="n">datbox_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">renumber</span><span class="p">:</span>
+        <span class="n">bodies</span><span class="o">.</span><span class="n">renumber</span><span class="p">()</span>
+    <span class="n">read_drv_dof</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">datbox_path</span><span class="p">)</span>
+
+    <span class="n">tacts</span><span class="p">,</span> <span class="n">sees</span> <span class="o">=</span> <span class="n">read_tact_behav</span><span class="p">(</span><span class="n">datbox_path</span><span class="p">)</span>
+
+    <span class="n">inters</span> <span class="o">=</span> <span class="n">readState</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">datbox_path</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">hfile</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">with_graph</span><span class="p">,</span> <span class="n">with_xl</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">with_graph</span><span class="p">:</span>
+      <span class="c1"># then inters is (inters,ginters)</span>
+      <span class="c1">#return mats, mods, bodies, tacts, sees, *inters</span>
+      <span class="c1"># for python 3.6</span>
+      <span class="k">return</span> <span class="n">mats</span><span class="p">,</span> <span class="n">mods</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">sees</span><span class="p">,</span> <span class="n">inters</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">inters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">mats</span><span class="p">,</span> <span class="n">mods</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">sees</span><span class="p">,</span> <span class="n">inters</span></div>
+
+
+<div class="viewcode-block" id="writeDatbox"><a class="viewcode-back" href="../../../../pre_classes.html#pylmgc90.pre.writeDatbox">[docs]</a><span class="k">def</span> <span class="nf">writeDatbox</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">mats</span><span class="p">,</span> <span class="n">mods</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">tacts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sees</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="p">[],</span> <span class="n">datbox_path</span><span class="o">=</span><span class="s1">&#39;DATBOX&#39;</span><span class="p">,</span> <span class="n">gravy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_xl</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write all containers in correct files in provided DATBOX directory</span>
+
+<span class="sd">    :param dim: the dimension of the avatars container</span>
+<span class="sd">    :param mats: the material container</span>
+<span class="sd">    :param mods: the model container</span>
+<span class="sd">    :param bodies: the avatar container</span>
+<span class="sd">    :param tacts: (optional) the contact law container</span>
+<span class="sd">    :param sees: (optional) the visibility table container</span>
+<span class="sd">    :param inters: (optional) the numpy array of interactions</span>
+<span class="sd">    :param post: (optional) the postpro commands container</span>
+<span class="sd">    :param datbox_path: (optional) the directory in which to write the files (default to DATBOX)</span>
+<span class="sd">    :param gravy: (optional) the gravity vector to write in BULK_BEHAV.DAT</span>
+<span class="sd">    :param with_xl: (optional) if using XL format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="n">datbox_path</span> <span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span> <span class="n">datbox_path</span> <span class="p">)</span>
+
+    <span class="n">writeBulkBehav</span><span class="p">(</span><span class="n">mats</span><span class="p">,</span> <span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">gravy</span><span class="o">=</span><span class="n">gravy</span><span class="p">)</span>
+
+    <span class="n">writeBodies</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">)</span>
+    <span class="n">writeDrvDof</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">)</span>
+    <span class="n">writeDofIni</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">bodies</span><span class="o">.</span><span class="n">getFemAvatar</span><span class="p">()</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">writeModels</span><span class="p">(</span><span class="n">mods</span><span class="p">,</span><span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">)</span>
+        <span class="n">writeGPVIni</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tacts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sees</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">writeTactBehav</span><span class="p">(</span><span class="n">tacts</span><span class="p">,</span> <span class="n">sees</span><span class="p">,</span> <span class="n">chemin</span><span class="o">=</span><span class="n">datbox_path</span><span class="p">)</span>
+        <span class="n">writeVlocRlocIni</span><span class="p">(</span><span class="n">datbox_path</span><span class="p">,</span> <span class="n">inters</span><span class="p">,</span> <span class="n">tacts</span><span class="p">,</span> <span class="n">with_xl</span><span class="p">)</span>
+
+    <span class="n">writePostpro</span><span class="p">(</span><span class="n">post</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">datbox_path</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.IO.macro</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

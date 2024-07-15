@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Mesh &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Miscellaneous" href="pre_miscellaneous.html" />
+    <link rel="prev" title="Masonry" href="pre_masonry.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_miscellaneous.html" title="Miscellaneous"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pre_masonry.html" title="Masonry"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" accesskey="U">LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Mesh</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="mesh">
+<h1>Mesh<a class="headerlink" href="#mesh" title="Permalink to this headline">¶</a></h1>
+<p>This section presents functions dedicated to creation
+or manipulation of meshes to produce avatars (rigid or deformable).
+The <a class="reference internal" href="pre_classes.html#pylmgc90.pre.mesh" title="pylmgc90.pre.mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh</span></code></a> class allows to define a mesh object in the lightest way: nodes, connectivity
+and possibly the groups elements belongs to.
+In 3D only a volumic mesh can become a deformable or rigid avatar whereas
+a surfacic mesh can only be used to generate a rigid avatar.
+In 2D a mesh may define a deformable or a rigid avatar.</p>
+<section id="hand-made-mesh">
+<h2>Hand made mesh<a class="headerlink" href="#hand-made-mesh" title="Permalink to this headline">¶</a></h2>
+<p>Again it is possible to define a mesh by hand using the class constructor
+and the basic methods as explained in <span class="xref std std-ref">avatar-definition</span>
+section. But this solution is not usable to generate big meshes.</p>
+<p>Basic example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">dimension</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]),</span> <span class="n">number</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">]),</span> <span class="n">number</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">]),</span> <span class="n">number</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">addBulk</span><span class="p">(</span> <span class="n">pre</span><span class="o">.</span><span class="n">element</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="s1">&#39;1quad&#39;</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Available geometrical elements are:</p>
+<blockquote>
+<div><blockquote>
+<div><ul class="simple">
+<li><p>1D : Point, S2xxx, S3xxx,</p></li>
+<li><p>2D : Point, S2xxx, S3xxx, T3xxx, Q4xxx, T6xxx, Q8xxx, Q9xxx,</p></li>
+<li><p>3D : Point, S2xxx, S3xxx, T3xxx, Q4xxx, T6xxx, Q8xxx, Q9xxx,
+H8xxx, H20xx, TE4xx, TE10x, PRI6x, PRI15</p></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p>Remember that rigid2d() and rigid3d() allow to define <em>rigid</em>
+element. It is equivalent to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pre</span><span class="o">.</span><span class="n">element</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">physicalEntity</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="built-in-generation">
+<h2>Built-in Generation<a class="headerlink" href="#built-in-generation" title="Permalink to this headline">¶</a></h2>
+<p>For the specific case of 2D rectangular mesh, the <a class="reference internal" href="pre_classes.html#pylmgc90.pre.buildMesh2D" title="pylmgc90.pre.buildMesh2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">buildMesh2D()</span></code></a> function can
+be used and for the case of 3D paralleloid mesh <a class="reference internal" href="pre_classes.html#pylmgc90.pre.buildMeshH8" title="pylmgc90.pre.buildMeshH8"><code class="xref py py-func docutils literal notranslate"><span class="pre">buildMeshH8()</span></code></a>
+also.</p>
+<p><strong>Example:</strong></p>
+<p>Generating a simple rectangular mesh:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_mesh</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">buildMesh2D</span><span class="p">(</span><span class="s1">&#39;Q4&#39;</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">lx</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span> <span class="n">ly</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">nb_elem_x</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">nb_elem_y</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="importing-a-mesh">
+<h2>Importing a mesh<a class="headerlink" href="#importing-a-mesh" title="Permalink to this headline">¶</a></h2>
+<p>The most efficient way to generate a mesh is to use a meshing software like
+<a class="reference external" href="http://www.geuz.org/gmsh/">gmsh</a> . To this end the <a class="reference internal" href="pre_classes.html#pylmgc90.pre.readMesh" title="pylmgc90.pre.readMesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">readMesh()</span></code></a>
+function allows to read a file with gmsh format. In this way any kind of mesh
+may be put in a mesh object.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">readMesh</span><span class="p">(</span><span class="s1">&#39;block.msh&#39;</span><span class="p">,</span><span class="n">dim</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="mesh-to-avatar">
+<h2>Mesh to avatar<a class="headerlink" href="#mesh-to-avatar" title="Permalink to this headline">¶</a></h2>
+<p>Creating an avatar from a mesh is possible using:</p>
+<ul>
+<li><p>deformable 2D/3D</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.buildMeshedAvatar" title="pylmgc90.pre.buildMeshedAvatar"><code class="xref py py-func docutils literal notranslate"><span class="pre">buildMeshedAvatar()</span></code></a></p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mesh_cube</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">readMesh</span><span class="p">(</span><span class="s1">&#39;gmsh/cube_t4.msh&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">cube</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">buildMeshedAvatar</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh_cube</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">m3Dl</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">stone</span><span class="p">)</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;102&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ASpxx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;105&#39;</span> <span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Remarks:</strong></p>
+<blockquote>
+<div><p>It exists various strategies for contactors:</p>
+<ul>
+<li><p>2D</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># candidates at nodes</span>
+<span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+<span class="c1"># candidates on edges</span>
+<span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CLxxx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.25</span><span class="p">,</span><span class="mf">0.75</span><span class="p">])</span>
+<span class="c1"># antagonist</span>
+<span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;yy&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ALpxx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;REDxx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>3D</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># candidates at nodes</span>
+<span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CSpxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;REDxx&#39;</span><span class="p">)</span>
+<span class="c1"># candidates on faces ( quadrature=0 - constant, quadrature=1  - linear, quadrature=2 - quadratic pressure)</span>
+<span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;CSpxx&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;REDxx&#39;</span><span class="p">,</span><span class="n">quadrature</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># antagoniste</span>
+<span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;yy&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ASpxx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>rigid 2D</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidFromMesh2D" title="pylmgc90.pre.rigidFromMesh2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidFromMesh2D()</span></code></a></p></li>
+</ul>
+</li>
+<li><p>rigid 3D</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.volumicMeshToRigid3D" title="pylmgc90.pre.volumicMeshToRigid3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">volumicMeshToRigid3D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.surfacicMeshToRigid3D" title="pylmgc90.pre.surfacicMeshToRigid3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">surfacicMeshToRigid3D()</span></code></a></p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">body_donut</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">volumicMeshToRigid3D</span><span class="p">(</span><span class="n">volumic_mesh</span><span class="o">=</span><span class="n">mesh_donut</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">tdur</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>For the rigid avatar, the mesh is used to define the boundary of the corresponding polygons/polyhedra.</p>
+<p>The deformable avatars inherit the group of the original mesh,
+allowing to define the desired boundary conditions and to add the contactors on them.</p>
+<p>Sometimes, it is wanted to explode the continuous mesh in a collection
+of avatars
+(if one wants to use cohezive zone model for example). The
+function allowing to obtain a container of avatars are:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.explodeMeshedAvatar2D" title="pylmgc90.pre.explodeMeshedAvatar2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">explodeMeshedAvatar2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidsFromMesh2D" title="pylmgc90.pre.rigidsFromMesh2D"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidsFromMesh2D()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pre_classes.html#pylmgc90.pre.rigidsFromMesh3D" title="pylmgc90.pre.rigidsFromMesh3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">rigidsFromMesh3D()</span></code></a></p></li>
+</ul>
+</section>
+<section id="extracting-a-mesh-from-meshes">
+<h2>Extracting a mesh from meshes<a class="headerlink" href="#extracting-a-mesh-from-meshes" title="Permalink to this headline">¶</a></h2>
+<p>Eventually a mesh loaded from a file may contain several parts which
+correspond to different avatars. Using  <a class="reference internal" href="pre_classes.html#pylmgc90.pre.mesh.separateMeshes" title="pylmgc90.pre.mesh.separateMeshes"><code class="xref py py-func docutils literal notranslate"><span class="pre">mesh.separateMeshes()</span></code></a> it
+is possible to separate the meshes.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dim</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">complete_mesh</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">readMesh</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;gmsh/3_briques.msh&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+<span class="n">entity2mesh</span>   <span class="o">=</span> <span class="n">complete_mesh</span><span class="o">.</span><span class="n">separateMeshes</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;geometricalEntity&quot;</span><span class="p">,</span> <span class="n">keep_all_elements</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">volumic_mesh</span> <span class="ow">in</span> <span class="n">entity2mesh</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+   <span class="n">body</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">volumicMeshToRigid3D</span><span class="p">(</span><span class="n">volumic_mesh</span><span class="o">=</span><span class="n">volumic_mesh</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">mod</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="n">pdur</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">)</span>
+   <span class="n">bodies</span><span class="o">.</span><span class="n">addAvatar</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The output when separting meshes is a dictionary.</p>
+<p>By the way it is possible to directly separate a surfacic mesh in
+avatars using  <a class="reference internal" href="pre_classes.html#pylmgc90.pre.surfacicMeshesToRigid3D" title="pylmgc90.pre.surfacicMeshesToRigid3D"><code class="xref py py-func docutils literal notranslate"><span class="pre">surfacicMeshesToRigid3D()</span></code></a></p>
+</section>
+<section id="managing-groups">
+<h2>Managing groups<a class="headerlink" href="#managing-groups" title="Permalink to this headline">¶</a></h2>
+<p>Groups are necessary to define model, material, contactors, boundary
+condition, etc.</p>
+<p>When defining material and models with <a class="reference internal" href="pre_classes.html#pylmgc90.pre.buildMeshedAvatar" title="pylmgc90.pre.buildMeshedAvatar"><code class="xref py py-func docutils literal notranslate"><span class="pre">buildMeshedAvatar()</span></code></a> one
+implicitely assumes that all the elements have the same group and
+usually uses
+default group <em>all</em>.  However it is possible to define several
+material and model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_mesh</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">readMesh</span><span class="p">(</span><span class="s1">&#39;Mesh.msh&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">my_mesh</span><span class="o">.</span><span class="n">rankRenumbering</span><span class="p">()</span>
+<span class="n">body</span> <span class="o">=</span> <span class="n">pre</span><span class="o">.</span><span class="n">avatar</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">addBulks</span><span class="p">(</span><span class="n">my_mesh</span><span class="o">.</span><span class="n">bulks</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">addNodes</span><span class="p">(</span><span class="n">my_mesh</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">defineGroups</span><span class="p">()</span>
+<span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">modPorous</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;11&#39;</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">matBiot</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;11&#39;</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">defineModel</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">modFluid</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;12&#39;</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">defineMaterial</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="n">matStokes</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;12&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="applying-boundary-condition-without-group">
+<h2>Applying boundary condition without group<a class="headerlink" href="#applying-boundary-condition-without-group" title="Permalink to this headline">¶</a></h2>
+<p>predicates and so on</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+   <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.0016</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">5.e-4</span>
+
+<span class="n">body</span><span class="o">.</span><span class="n">addGroupUsingPredicate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;relax&#39;</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">super_group</span><span class="o">=</span><span class="s1">&#39;12&#39;</span><span class="p">)</span>
+<span class="n">body</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;relax&#39;</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;vlocy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
+<p>other use of <a class="reference internal" href="pre_classes.html#pylmgc90.pre.avatar.addContactors" title="pylmgc90.pre.avatar.addContactors"><code class="xref py py-func docutils literal notranslate"><span class="pre">avatar.addContactors()</span></code></a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">outil</span><span class="o">.</span><span class="n">addContactors</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s1">&#39;11&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ALpxx&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;BLUEx&#39;</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-gmsh-python-api">
+<h2>Using GMSH python API<a class="headerlink" href="#using-gmsh-python-api" title="Permalink to this headline">¶</a></h2>
+<p>Provided that the Python API of gmsh software is available. It can
+be used to handle meshes. The list of features is available here: <a class="reference internal" href="gmsh_index.html#gmsh-pre"><span class="std std-ref">Pre-processing tools</span></a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Mesh</a><ul>
+<li><a class="reference internal" href="#hand-made-mesh">Hand made mesh</a></li>
+<li><a class="reference internal" href="#built-in-generation">Built-in Generation</a></li>
+<li><a class="reference internal" href="#importing-a-mesh">Importing a mesh</a></li>
+<li><a class="reference internal" href="#mesh-to-avatar">Mesh to avatar</a></li>
+<li><a class="reference internal" href="#extracting-a-mesh-from-meshes">Extracting a mesh from meshes</a></li>
+<li><a class="reference internal" href="#managing-groups">Managing groups</a></li>
+<li><a class="reference internal" href="#applying-boundary-condition-without-group">Applying boundary condition without group</a></li>
+<li><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
+<li><a class="reference internal" href="#using-gmsh-python-api">Using GMSH python API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pre_masonry.html"
+                        title="previous chapter">Masonry</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pre_miscellaneous.html"
+                        title="next chapter">Miscellaneous</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pre_mesh.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pre_miscellaneous.html" title="Miscellaneous"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pre_masonry.html" title="Masonry"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="pre_index.html" >LMGC90 pre-processor documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Mesh</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>

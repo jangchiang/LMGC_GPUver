@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pylmgc90.pre.avatar.node.node &#8212; pylmgc90 2024.rc1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinxdoc.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.avatar.node.node</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pylmgc90.pre.avatar.node.node</h1><div class="highlight"><pre>
+<span></span><span class="c1">## module node</span>
+<span class="c1"># define node class</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">...config.lmgc90dicts</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">...utilities.error</span>    <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">...models</span>       <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">...shared.model</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">.dof</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="c1">## @class node</span>
+<span class="c1">#  Class describing a node\n</span>
+<span class="c1">#  \n</span>
+<span class="c1"># attributs: \n</span>
+<span class="c1"># number its number (as an integer)\n</span>
+<span class="c1"># coor coordinates \n</span>
+<span class="c1"># dofs degrees of freedom \n </span>
+<span class="c1"># \n</span>
+<span class="c1"># methods: \n</span>
+<span class="c1">#  __init__ constructor \n</span>
+<span class="c1">#  defineDof: defines the dofs associated to the node (depends on the model) \n</span>
+<span class="c1">#  imposeDrivenDof: imposes degrees of freedom\n</span>
+<span class="c1">#  relaxDrivenDof: frees a dof previously imposed\n</span>
+<span class="c1">#  translate: translate the node\n</span>
+<div class="viewcode-block" id="node"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.node">[docs]</a><span class="k">class</span> <span class="nc">node</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class defining the node entity</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">## node constructor</span>
+    <span class="c1">#</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">number</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; __init__(self,coor=None,number=0):</span>
+
+<span class="sd">        initialize a node entity.</span>
+<span class="sd">        coor an array defining the corrdinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="k">if</span> <span class="n">coor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span>   <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span> <span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span>   <span class="o">=</span> <span class="n">coor</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntype</span> <span class="o">=</span> <span class="n">dimensionTypeNode</span><span class="p">[</span><span class="n">coor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dof</span>   <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># necessaire pour garder le lien avec le maillage de depart</span>
+        <span class="k">if</span> <span class="n">number</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>    
+          <span class="bp">self</span><span class="o">.</span><span class="n">originalnumber</span><span class="o">=</span><span class="n">number</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">originalnumber</span><span class="o">=</span><span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkType</span><span class="p">():</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;instanciating node: uncompatible type/dimension &#39;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntype</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="c1">## build the dof container of the node</span>
+    <span class="k">def</span> <span class="nf">defineDof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mod</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span><span class="n">model</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">To define a model on a node an entity &#39;model&#39; is needed &quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                  
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof</span> <span class="o">=</span> <span class="n">dof</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">nbdof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof</span><span class="o">.</span><span class="n">nbdof</span> <span class="o">!=</span> <span class="n">mod</span><span class="o">.</span><span class="n">nbdof</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> A node belonging to two elements has different number of dof from one to the other&#39;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    
+    <span class="c1">## impose dofs</span>
+    <span class="k">def</span> <span class="nf">imposeDrivenDof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">component</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;predefined&#39;</span><span class="p">,</span><span class="n">ct</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">amp</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">omega</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+                        <span class="n">phi</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">rampi</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">ramp</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">evolutionFile</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span><span class="p">,</span><span class="n">dofty</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof</span><span class="o">.</span><span class="n">imposeDrivenDof</span><span class="p">(</span><span class="n">component</span><span class="p">,</span><span class="n">description</span><span class="p">,</span><span class="n">ct</span><span class="p">,</span><span class="n">amp</span><span class="p">,</span><span class="n">omega</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">rampi</span><span class="p">,</span><span class="n">ramp</span><span class="p">,</span><span class="n">evolutionFile</span><span class="p">,</span><span class="n">dofty</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;Cannot impose dof on node </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span>
+            <span class="n">showWarning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            
+    <span class="c1"># relache des ddls</span>
+    <span class="k">def</span> <span class="nf">relaxDrivenDof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">composantes</span><span class="p">):</span>
+       <span class="c1"># si une condition limite (ou initiale) a ete imposee</span>
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="c1"># on relcahe les conditions limites concernant les composantes</span>
+          <span class="c1"># passees en argument</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">dof</span><span class="o">.</span><span class="n">relaxDrivenDof</span><span class="p">(</span><span class="n">composantes</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">imposeInitValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">composantes</span><span class="p">,</span><span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof</span><span class="o">.</span><span class="n">imposeInitValue</span><span class="p">(</span><span class="n">composantes</span><span class="p">,</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="c1">## \brief check type and size consistency</span>
+    <span class="k">def</span> <span class="nf">checkType</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dimensionTypeNode</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntype</span> <span class="ow">in</span> <span class="n">dimensionTypeNode</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="n">dim</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;[checkType] unknown node type &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntype</span>
+            <span class="n">showError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="o">.</span><span class="n">size</span> <span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="c1">## @brief tranlate the node</span>
+    <span class="c1">#  The coordinates to change depends on type</span>
+    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dx</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dy</span>
+        <span class="k">elif</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dx</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dy</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dz</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;[translate]: do not know how to apply translation to a node with &#39;</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;coordinates&#39;</span>
+            <span class="n">showWarning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="c1">## @brief scale the node</span>
+    <span class="c1">#  The coordinates to change depends on type</span>
+    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coor</span> <span class="o">*=</span> <span class="n">scale</span>
+        
+    <span class="c1">## @brief apply an affine map to the node coordinates</span>
+<div class="viewcode-block" id="node.applyAffineMapToCoor"><a class="viewcode-back" href="../../../../../pre_classes.html#pylmgc90.pre.node.applyAffineMapToCoor">[docs]</a>    <span class="k">def</span> <span class="nf">applyAffineMapToCoor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">center</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;applyAffineMapToCoor(self, q, center):</span>
+
+<span class="sd">        this function applies an affine map to the node coordinates.</span>
+
+<span class="sd">        parameters:</span>
+
+<span class="sd">        - self: the node itself</span>
+<span class="sd">        - q: a linear map expressed as a 3x3 matrix</span>
+<span class="sd">        - center: coordinates of the reference point of the affine map</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+           <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">coord</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>
+
+        <span class="n">coordR</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="n">coord</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coor</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="n">coordR</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coordR</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">]</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">coor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span> <span class="n">coordR</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coordR</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coordR</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">center</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">]</span> <span class="p">)</span></div></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">pylmgc90 2024.rc1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pylmgc90.pre.avatar.node.node</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2024, CNRS, UM.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.2.
+    </div>
+  </body>
+</html>
